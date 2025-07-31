@@ -1,0 +1,115 @@
+name: source_base
+description: A new Flutter project using BLoC, Dio and Easy Localization.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # UI
+  cupertino_icons: ^1.0.5
+  flutter_svg: ^2.0.6
+  
+  # Đa ngôn ngữ
+  easy_localization: ^3.0.2
+  
+  # State Management
+  flutter_bloc: ^8.1.3
+  bloc: ^8.1.2
+  equatable: ^2.0.5
+  
+  # Network
+  dio: ^5.2.1+1
+  pretty_dio_logger: ^1.3.1
+  json_annotation: ^4.8.1 
+  # Dependency Injection
+  get_it: ^7.6.0
+  
+  # Storage
+  shared_preferences: ^2.2.0
+  
+  # Utils
+  intl: ^0.20.2
+  logger: ^1.4.0
+  
+  # Gen assets
+  flutter_gen_runner: ^5.3.1
+  go_router: ^16.0.0
+
+  flutter_native_splash: ^2.3.10
+  image_picker: ^1.1.2
+  cached_network_image: ^3.4.1
+  pin_code_fields: ^8.0.1
+  flutter_secure_storage: ^9.2.4
+  google_sign_in: ^6.2.2
+  shimmer: ^3.0.0
+  badges: ^3.1.2
+  photo_view: ^0.15.0
+  url_launcher: ^6.3.2
+  infinite_scroll_pagination: ^5.1.0
+  timeago: ^3.7.1
+  flutter_speed_dial: ^7.0.0
+  flutter_contacts: ^1.1.9+2
+  country_flags: ^3.3.0
+  gap: ^3.0.1
+  rive: ^0.13.20
+  flutter_html_audio: ^3.0.0
+  flutter_rating_bar: ^4.0.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  
+  # Linting
+  flutter_lints: ^2.0.2
+  
+  # Code Generation
+  build_runner: ^2.4.6
+  json_serializable: ^6.7.1
+  
+  # Asset Generation
+  flutter_gen: ^5.3.1
+ 
+  flutter_facebook_auth: ^7.1.2
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/translations/
+    - assets/animations/
+    - assets/sound/
+  fonts:
+    - family: GoogleSans
+      fonts:
+        - asset: assets/fonts/GoogleSans-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/GoogleSans-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/GoogleSans-Bold.ttf
+          weight: 700
+
+flutter_gen:
+  output: lib/generated/
+  line_length: 80
+  
+  integrations:
+    flutter_svg: true
+  assets:
+    outputs:
+      directory_path_enabled: true
+  
+flutter_native_splash: 
+  image: assets/images/splash_laucher.png
+  branding: assets/images/splash_laucher.png # Xoá dòng này nếu không có branding
+  color: "#ffffff"
+  # image_dark: assets/images/splash_logo_dark.png
+  fullscreen: true
+  android: true
+  ios: true
+  android_gravity: center
+  ios_content_mode: center
