@@ -1,4 +1,7 @@
+import 'dart:math';
+
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:source_base/config/app_color.dart';
@@ -265,5 +268,261 @@ class AvatarMemoryManager {
 
   static void clearCache() {
     _avatarCache.clear();
+  }
+}
+
+// Chat utility functions
+// Chat utility functions
+enum MessagePosition {
+  single, // Tin nhắn đơn lẻ
+  firstInReply, // Tin nhắn đầu trong chuỗi
+  middleInReply, // Tin nhắn giữa chuỗi
+  lastInReply, // Tin nhắn cuối chuỗi
+}
+
+class ChatHelpers {
+  /// Xác định vị trí tin nhắn trong chuỗi
+  static MessagePosition getMessagePosition(
+      List messages, int index, String currentPersonId) {
+    if (messages.isEmpty) return MessagePosition.single;
+
+    final currentMessage = messages[index];
+    final isFromCurrentPerson = currentMessage.from == currentPersonId;
+
+    if (messages.length == 1) {
+      return MessagePosition.single;
+    } else if (index == 0) {
+      final nextMessage = messages[index + 1];
+      final nextIsFromCurrentPerson = nextMessage.from == currentPersonId;
+      return isFromCurrentPerson == nextIsFromCurrentPerson
+          ? MessagePosition.firstInReply
+          : MessagePosition.single;
+    } else if (index == messages.length - 1) {
+      final prevMessage = messages[index - 1];
+      final prevIsFromCurrentPerson = prevMessage.from == currentPersonId;
+      return isFromCurrentPerson == prevIsFromCurrentPerson
+          ? MessagePosition.lastInReply
+          : MessagePosition.single;
+    } else {
+      final prevMessage = messages[index - 1];
+      final nextMessage = messages[index + 1];
+      final prevIsFromCurrentPerson = prevMessage.from == currentPersonId;
+      final nextIsFromCurrentPerson = nextMessage.from == currentPersonId;
+
+      if (isFromCurrentPerson != prevIsFromCurrentPerson &&
+          isFromCurrentPerson == nextIsFromCurrentPerson) {
+        return MessagePosition.firstInReply;
+      } else if (isFromCurrentPerson == prevIsFromCurrentPerson &&
+          isFromCurrentPerson != nextIsFromCurrentPerson) {
+        return MessagePosition.lastInReply;
+      } else if (isFromCurrentPerson == prevIsFromCurrentPerson &&
+          isFromCurrentPerson == nextIsFromCurrentPerson) {
+        return MessagePosition.middleInReply;
+      } else {
+        return MessagePosition.single;
+      }
+    }
+  }
+
+  /// Tạo border radius cho message bubble
+  static BorderRadius getMessageBorderRadius(
+      MessagePosition position, bool isFromUser) {
+    if (isFromUser) {
+      switch (position) {
+        case MessagePosition.single:
+          return BorderRadius.circular(14);
+        case MessagePosition.lastInReply:
+          return const BorderRadius.only(
+            topLeft: Radius.circular(14),
+            topRight: Radius.circular(14),
+            bottomRight: Radius.circular(14),
+            bottomLeft: Radius.circular(3),
+          );
+        case MessagePosition.middleInReply:
+          return const BorderRadius.only(
+            topLeft: Radius.circular(3),
+            topRight: Radius.circular(14),
+            bottomRight: Radius.circular(14),
+            bottomLeft: Radius.circular(3),
+          );
+        case MessagePosition.firstInReply:
+          return const BorderRadius.only(
+            topLeft: Radius.circular(3),
+            topRight: Radius.circular(14),
+            bottomRight: Radius.circular(14),
+            bottomLeft: Radius.circular(14),
+          );
+      }
+    } else {
+      switch (position) {
+        case MessagePosition.single:
+          return BorderRadius.circular(14);
+        case MessagePosition.lastInReply:
+          return const BorderRadius.only(
+            topLeft: Radius.circular(14),
+            topRight: Radius.circular(14),
+            bottomRight: Radius.circular(3),
+            bottomLeft: Radius.circular(14),
+          );
+        case MessagePosition.middleInReply:
+          return const BorderRadius.only(
+            topLeft: Radius.circular(14),
+            topRight: Radius.circular(3),
+            bottomRight: Radius.circular(3),
+            bottomLeft: Radius.circular(14),
+          );
+        case MessagePosition.firstInReply:
+          return const BorderRadius.only(
+            topLeft: Radius.circular(14),
+            topRight: Radius.circular(3),
+            bottomRight: Radius.circular(14),
+            bottomLeft: Radius.circular(14),
+          );
+      }
+    }
+  }
+
+  /// Format time difference
+  static String getTimeAgo(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference.inDays > 0) {
+      if (difference.inDays == 1) {
+        return 'Hôm qua';
+      } else if (difference.inDays < 7) {
+        return '${difference.inDays} ngày trước';
+      } else {
+        return DateFormat('dd/MM/yyyy').format(dateTime);
+      }
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours} giờ trước';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes} phút trước';
+    } else {
+      return 'Vừa xong';
+    }
+  }
+
+  /// Format time for message
+  static String formatMessageTime(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference.inDays < 1) {
+      return DateFormat('HH:mm').format(dateTime);
+    } else {
+      return DateFormat('dd/MM HH:mm').format(dateTime);
+    }
+  }
+
+  /// Tạo avatar từ tên
+  static Widget createCircleAvatar({
+    required String name,
+    double radius = 20,
+    double? fontSize,
+  }) {
+    String initials = getInitials(name);
+    Color avatarColor = getColorFromInitial(initials);
+
+    return Container(
+      height: radius * 2,
+      width: radius * 2,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.white,
+      ),
+      child: CircleAvatar(
+        backgroundColor: avatarColor,
+        radius: radius,
+        child: Text(
+          initials,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: fontSize ?? (radius * 0.6),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Lấy initials từ tên
+  static String getInitials(String name) {
+    if (name.isEmpty) return '?';
+
+    final words = name.trim().split(' ');
+    if (words.length == 1) {
+      return words[0][0].toUpperCase();
+    } else {
+      return (words.first[0] + words.last[0]).toUpperCase();
+    }
+  }
+
+  /// Tạo màu từ initials
+  static Color getColorFromInitial(String initials) {
+    final colors = [
+      const Color(0xFF5C33F0),
+      const Color(0xFF0F5ABF),
+      const Color(0xFF00A86B),
+      const Color(0xFFFF6B35),
+      const Color(0xFFE74C3C),
+      const Color(0xFF9B59B6),
+      const Color(0xFF1ABC9C),
+      const Color(0xFFF39C12),
+    ];
+
+    int index = 0;
+    for (int i = 0; i < initials.length; i++) {
+      index += initials.codeUnitAt(i);
+    }
+    return colors[index % colors.length];
+  }
+
+  /// Get avatar provider từ URL/path
+  static ImageProvider getAvatarProvider(String? imgData) {
+    if (imgData == null || imgData.isEmpty) {
+      return const AssetImage('assets/images/default_avatar.png');
+    }
+
+    // Nếu là URL đầy đủ
+    if (imgData.startsWith('https://') || imgData.startsWith('http://')) {
+      return CachedNetworkImageProvider(imgData);
+    }
+
+    // Nếu là base64
+    if (imgData.startsWith('data:image')) {
+      final base64String = imgData.split(',')[1];
+      return MemoryImage(base64Decode(base64String));
+    }
+
+    // Nếu là relative path từ server - cần config API base URL
+    try {
+      return CachedNetworkImageProvider(imgData);
+    } catch (e) {
+      return const AssetImage('assets/images/default_avatar.png');
+    }
+  }
+
+  /// Format file size
+  static String formatFileSize(int bytes) {
+    if (bytes <= 0) return "0 B";
+    const suffixes = ["B", "KB", "MB", "GB", "TB"];
+    int i = (log(bytes) / log(1024)).floor();
+    return '${(bytes / pow(1024, i)).toStringAsFixed(1)} ${suffixes[i]}';
+  }
+
+  /// Check if URL is image
+  static bool isImageUrl(String url) {
+    final imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
+    final lowerUrl = url.toLowerCase();
+    return imageExtensions.any((ext) => lowerUrl.endsWith(ext));
+  }
+
+  /// Check if URL is video
+  static bool isVideoUrl(String url) {
+    final videoExtensions = ['.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm'];
+    final lowerUrl = url.toLowerCase();
+    return videoExtensions.any((ext) => lowerUrl.endsWith(ext));
   }
 }

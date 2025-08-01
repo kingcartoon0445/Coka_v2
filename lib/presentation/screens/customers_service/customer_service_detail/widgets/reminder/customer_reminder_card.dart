@@ -1,11 +1,12 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:source_base/data/models/customer_service_response.dart';
 import 'package:source_base/data/models/reminder.dart';
 import 'package:source_base/data/models/schedule_response.dart';
 import 'package:source_base/presentation/blocs/organization/organization_bloc.dart';
-import 'package:source_base/presentation/screens/customers/customer_detail/widgets/reminder/add_reminder_dialog.dart';
-import 'package:source_base/presentation/screens/customers/widgets/web_reminder_item.dart';
+import 'package:source_base/presentation/screens/customers_service/customer_service_detail/widgets/reminder/add_reminder_dialog.dart';
+import 'package:source_base/presentation/screens/customers_service/widgets/web_reminder_item.dart';
 import 'package:source_base/presentation/screens/theme/reminder_theme.dart';
 import 'package:source_base/presentation/widget/reminder_constants.dart';
 
@@ -182,7 +183,7 @@ class _CustomerReminderCardState extends State<CustomerReminderCard> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Hoạt động',
+                          "activity_label".tr(),
                           style: ReminderTypography.heading3.copyWith(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -193,7 +194,7 @@ class _CustomerReminderCardState extends State<CustomerReminderCard> {
                         // Di chuyển badges về phía trái, sau title
                         if (overdueReminders.isNotEmpty)
                           _buildStatChip(
-                            label: 'Quá hạn',
+                            label: "overdue".tr(),
                             count: overdueReminders.length,
                             color: ReminderColors.error,
                             icon: Icons.warning,
@@ -245,7 +246,7 @@ class _CustomerReminderCardState extends State<CustomerReminderCard> {
                                 ),
                                 const SizedBox(width: 2),
                                 Text(
-                                  'Thêm',
+                                  "add".tr(),
                                   style: ReminderTypography.button.copyWith(
                                     color: ReminderColors.primary,
                                     fontSize: 12,
@@ -289,8 +290,8 @@ class _CustomerReminderCardState extends State<CustomerReminderCard> {
                                     horizontal: 8, vertical: 4),
                                 child: Text(
                                   _showAllReminders
-                                      ? 'Thu gọn'
-                                      : 'Xem thêm ${state.scheduleDetails.length - 2} hoạt động',
+                                      ? "collapse".tr()
+                                      : "${"view_more".tr()} ${state.scheduleDetails.length - 2} ${"activity_label".tr()}",
                                   style: ReminderTypography.body2.copyWith(
                                     color: ReminderColors.primary,
                                     fontWeight: FontWeight.w500,
@@ -301,6 +302,7 @@ class _CustomerReminderCardState extends State<CustomerReminderCard> {
                             ),
                           ),
                         ],
+                        if (state.scheduleDetails.isEmpty) _buildEmptyState(),
                       ],
                     ),
                     // Column(

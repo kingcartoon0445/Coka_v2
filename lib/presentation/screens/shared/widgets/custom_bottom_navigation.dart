@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:badges/badges.dart' as badges;
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/material.dart';
 import 'package:source_base/config/app_color.dart';
 
 class CustomBottomNavigation extends StatelessWidget {
@@ -37,40 +38,59 @@ class CustomBottomNavigation extends StatelessWidget {
       ),
       child: NavigationBar(
         destinations: [
-          const NavigationDestination(
-            icon: Icon(Icons.business_outlined, size: 26),
-            selectedIcon: Icon(
-              Icons.business_sharp,
+          NavigationDestination(
+            icon: const Icon(Icons.favorite_border_outlined, size: 26),
+            selectedIcon: const Icon(
+              Icons.favorite_border_outlined,
               size: 22,
               color: Color(0xFF5A48EF),
             ),
-            label: 'Tổ chức',
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.chat_outlined, size: 22),
-            selectedIcon: Icon(
-              Icons.chat_outlined,
-              size: 22,
-              color: Color(0xFF5A48EF),
-            ),
-            label: 'Chat đa kênh',
+            label: "customer_care".tr(),
           ),
           NavigationDestination(
-            icon: badges.Badge(
-              showBadge: showCampaignBadge,
-              position: badges.BadgePosition.topEnd(top: -3, end: -3),
-              child: Image.asset(
-                "assets/images/target_outline_icon.png",
-                width: 20,
-                height: 20,
-              ),
+            icon: const Icon(Icons.handshake_outlined, size: 22),
+            selectedIcon: const Icon(
+              Icons.handshake_outlined,
+              size: 22,
+              color: Color(0xFF5A48EF),
             ),
-            selectedIcon: Image.asset(
-              "assets/images/target_icon.png",
-              width: 20,
-              height: 20,
+            label: "customer_label".tr(),
+          ),
+          NavigationDestination(
+            icon: const Icon(
+              Icons.person_outline_outlined,
+              size: 22,
             ),
-            label: 'Chiến dịch',
+            selectedIcon: const Icon(
+              Icons.person_outline_outlined,
+              size: 22,
+              color: Color(0xFF5A48EF),
+            ),
+            label: "customer_label".tr(),
+          ),
+          NavigationDestination(
+            icon: const Icon(
+              Icons.holiday_village_outlined,
+              size: 22,
+            ),
+            selectedIcon: const Icon(
+              Icons.holiday_village_outlined,
+              size: 22,
+              color: Color(0xFF5A48EF),
+            ),
+            label: "product_label".tr(),
+          ),
+          NavigationDestination(
+            icon: const Icon(
+              Icons.keyboard_control,
+              size: 22,
+            ),
+            selectedIcon: const Icon(
+              Icons.keyboard_control,
+              size: 22,
+              color: Color(0xFF5A48EF),
+            ),
+            label: "expand".tr(),
           ),
         ],
         onDestinationSelected: onTapped,

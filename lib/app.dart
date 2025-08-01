@@ -39,13 +39,13 @@ class MyApp extends StatelessWidget {
           // Xây dựng ứng dụng với chủ đề từ ThemeBloc
           return MaterialApp.router(
             title: 'Flutter Demo',
-
             localizationsDelegates: context.localizationDelegates,
             supportedLocales: context.supportedLocales,
-
-            locale: context.locale,
+            locale: state.currentLocale, // Sử dụng locale từ ThemeBloc
             theme: state.themeData, // Sử dụng theme từ state
             routerConfig: router, // Sử dụng router đã đăng ký
+            // Thêm key để force rebuild khi locale thay đổi
+            key: ValueKey(state.currentLocale.toString()),
           );
         },
       ),

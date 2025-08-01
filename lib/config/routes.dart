@@ -2,7 +2,7 @@ import 'package:go_router/go_router.dart';
 import 'package:source_base/presentation/screens/auth/complete_profile_page.dart';
 import 'package:source_base/presentation/screens/auth/login_screen.dart';
 import 'package:source_base/presentation/screens/auth/verify_otp_page.dart';
-import 'package:source_base/presentation/screens/customers/customer_detail/customer_detail_page.dart';
+import 'package:source_base/presentation/screens/customers_service/customer_service_detail/customer_detail_page.dart';
 import 'package:source_base/presentation/screens/home/home_screen.dart';
 import 'package:source_base/presentation/screens/organization/organization_page.dart';
 

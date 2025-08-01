@@ -30,19 +30,21 @@ class LoadCustomerServices extends CustomerServiceEvent {
 
 class LoadCustomerService extends CustomerServiceEvent {
   final String organizationId;
-  final LeadPagingRequest pagingRequest;
+  final LeadPagingRequest? pagingRequest;
   const LoadCustomerService({
     required this.organizationId,
-    required this.pagingRequest,
+    this.pagingRequest,
   });
 }
 
 class LoadJourneyPaging extends CustomerServiceEvent {
   final CustomerServiceModel? customerService;
   final String organizationId;
+  final String? type;
   const LoadJourneyPaging({
     this.customerService,
     required this.organizationId,
+    this.type,
   });
 }
 
@@ -76,21 +78,22 @@ class LoadMoreServiceDetails extends CustomerServiceEvent {
   final String organizationId;
   final int limit;
   final int offset;
-
+  final String? type;
   const LoadMoreServiceDetails({
     required this.organizationId,
     required this.limit,
     required this.offset,
+    this.type,
   });
 }
 
 class LoadMoreCustomers extends CustomerServiceEvent {
   final String organizationId;
-  final LeadPagingRequest pagingRequest;
+  final LeadPagingRequest? pagingRequest;
 
   const LoadMoreCustomers({
     required this.organizationId,
-    required this.pagingRequest,
+    this.pagingRequest,
   });
 }
 
@@ -101,5 +104,67 @@ class CreateReminder extends CustomerServiceEvent {
   const CreateReminder({
     required this.organizationId,
     required this.body,
+  });
+}
+
+class PostArchiveCustomer extends CustomerServiceEvent {
+  final String customerId;
+  final String organizationId;
+
+  const PostArchiveCustomer({
+    required this.customerId,
+    required this.organizationId,
+  });
+}
+
+class LoadFirstProviderChat extends CustomerServiceEvent {
+  final String organizationId;
+  final String provider;
+
+  const LoadFirstProviderChat({
+    required this.organizationId,
+    required this.provider,
+  });
+}
+
+class LoadZaloChat extends CustomerServiceEvent {
+  final String organizationId;
+
+  const LoadZaloChat({
+    required this.organizationId,
+  });
+}
+
+class LoadMoreProviderChats extends CustomerServiceEvent {
+  final String organizationId;
+  final String provider;
+  final int limit;
+  final int offset;
+
+  const LoadMoreProviderChats({
+    required this.organizationId,
+    required this.provider,
+    required this.limit,
+    required this.offset,
+  });
+}
+
+class StorageConvertToCustomer extends CustomerServiceEvent {
+  final String customerId;
+  final String organizationId;
+
+  const StorageConvertToCustomer({
+    required this.customerId,
+    required this.organizationId,
+  });
+}
+
+class StorageUnArchiveCustomer extends CustomerServiceEvent {
+  final String customerId;
+  final String organizationId;
+
+  const StorageUnArchiveCustomer({
+    required this.customerId,
+    required this.organizationId,
   });
 }

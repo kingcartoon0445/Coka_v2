@@ -1,4 +1,6 @@
+import 'package:source_base/data/models/organization_model.dart';
 import 'package:source_base/presentation/screens/shared/widgets/chip_input.dart';
+export 'package:source_base/data/models/organization_model.dart';
 
 class PagingResponse {
   int? code;
@@ -79,30 +81,5 @@ class PagingModel extends ChipData {
       'createdDate': createdDate,
       'lastModifiedDate': lastModifiedDate,
     };
-  }
-}
-
-class Metadata {
-  int? total;
-  int? count;
-  int? offset;
-  int? limit;
-
-  Metadata({this.total, this.count, this.offset, this.limit});
-
-  Metadata.fromJson(Map<String, dynamic> json) {
-    total = json['total'];
-    count = json['count'];
-    offset = json['offset'];
-    limit = json['limit'];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['total'] = this.total;
-    data['count'] = this.count;
-    data['offset'] = this.offset;
-    data['limit'] = this.limit;
-    return data;
   }
 }

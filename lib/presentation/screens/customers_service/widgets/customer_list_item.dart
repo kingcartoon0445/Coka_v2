@@ -8,7 +8,7 @@ import 'package:source_base/presentation/screens/shared/widgets/context_menu.dar
 import 'package:source_base/presentation/screens/shared/widgets/custom_alert_dialog.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:go_router/go_router.dart';
-import '../customer_detail/widgets/assign_to_bottomsheet.dart';
+import '../customer_service_detail/widgets/assign_to_bottomsheet.dart';
 
 class CustomerListItem extends StatelessWidget {
   final CustomerServiceModel customer;

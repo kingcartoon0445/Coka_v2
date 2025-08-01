@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -359,8 +360,8 @@ class _AddReminderDialogState extends State<AddReminderDialog> {
                 children: [
                   Text(
                     widget.editingReminder != null
-                        ? 'Chỉnh sửa nhắc hẹn'
-                        : 'Đặt nhắc hẹn',
+                        ? "edit_reminder".tr()
+                        : "add_reminder".tr(),
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -421,7 +422,7 @@ class _AddReminderDialogState extends State<AddReminderDialog> {
                             ),
                             validator: (value) {
                               if (value?.isEmpty ?? true) {
-                                return 'Vui lòng nhập tiêu đề';
+                                return "please_enter_title".tr();
                               }
                               return null;
                             },
@@ -469,9 +470,9 @@ class _AddReminderDialogState extends State<AddReminderDialog> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'Khách hàng',
-                                style: TextStyle(
+                              Text(
+                                "customer".tr(),
+                                style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
                                   color: Color(0xFF374151),
@@ -512,9 +513,9 @@ class _AddReminderDialogState extends State<AddReminderDialog> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      const Text(
-                                        'Ngày bắt đầu',
-                                        style: TextStyle(
+                                      Text(
+                                        "start_date".tr(),
+                                        style: const TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.w500,
                                           color: Color(0xFF374151),
@@ -553,9 +554,9 @@ class _AddReminderDialogState extends State<AddReminderDialog> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      const Text(
-                                        'Giờ bắt đầu',
-                                        style: TextStyle(
+                                      Text(
+                                        "start_time".tr(),
+                                        style: const TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.w500,
                                           color: Color(0xFF374151),
@@ -597,9 +598,9 @@ class _AddReminderDialogState extends State<AddReminderDialog> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      const Text(
-                                        'Ngày kết thúc',
-                                        style: TextStyle(
+                                      Text(
+                                        "end_date".tr(),
+                                        style: const TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.w500,
                                           color: Color(0xFF374151),
@@ -642,9 +643,9 @@ class _AddReminderDialogState extends State<AddReminderDialog> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      const Text(
-                                        'Giờ kết thúc',
-                                        style: TextStyle(
+                                      Text(
+                                        "end_time".tr(),
+                                        style: const TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.w500,
                                           color: Color(0xFF374151),
@@ -689,9 +690,9 @@ class _AddReminderDialogState extends State<AddReminderDialog> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Độ ưu tiên',
-                              style: TextStyle(
+                            Text(
+                              "priority".tr(),
+                              style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
                                 color: Color(0xFF374151),
@@ -762,9 +763,9 @@ class _AddReminderDialogState extends State<AddReminderDialog> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Mô tả chi tiết',
-                              style: TextStyle(
+                            Text(
+                              "description".tr(),
+                              style: const TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
                                 color: Color(0xFF374151),
@@ -779,12 +780,12 @@ class _AddReminderDialogState extends State<AddReminderDialog> {
                               ),
                               child: TextFormField(
                                 controller: _contentController,
-                                decoration: const InputDecoration(
-                                  hintText: 'Mô tả chi tiết về lịch hẹn',
+                                decoration: InputDecoration(
+                                  hintText: "description_placeholder".tr(),
                                   hintStyle:
-                                      TextStyle(color: Color(0xFF9CA3AF)),
+                                      const TextStyle(color: Color(0xFF9CA3AF)),
                                   border: InputBorder.none,
-                                  contentPadding: EdgeInsets.all(12),
+                                  contentPadding: const EdgeInsets.all(12),
                                 ),
                                 maxLines: 4,
                                 minLines: 4,
@@ -808,9 +809,9 @@ class _AddReminderDialogState extends State<AddReminderDialog> {
                                     color: Color(0xFF4F46E5),
                                   ),
                                   const SizedBox(width: 4),
-                                  const Text(
-                                    'Thông báo trước',
-                                    style: TextStyle(
+                                  Text(
+                                    "notify_before".tr(),
+                                    style: const TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w500,
                                       color: Color(0xFF374151),
@@ -821,9 +822,9 @@ class _AddReminderDialogState extends State<AddReminderDialog> {
                               const SizedBox(height: 8),
 
                               // Quick select buttons
-                              const Text(
-                                'Chọn nhanh:',
-                                style: TextStyle(
+                              Text(
+                                "quick_select".tr(),
+                                style: const TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
                                   color: Color(0xFF6B7280),
@@ -834,12 +835,18 @@ class _AddReminderDialogState extends State<AddReminderDialog> {
                                 spacing: 6,
                                 runSpacing: 4,
                                 children: [
-                                  _buildQuickSelectChip('5 phút', 0, 5),
-                                  _buildQuickSelectChip('15 phút', 0, 15),
-                                  _buildQuickSelectChip('30 phút', 0, 30),
-                                  _buildQuickSelectChip('1 giờ', 1, 0),
-                                  _buildQuickSelectChip('2 giờ', 2, 0),
-                                  _buildQuickSelectChip('1 ngày', 24, 0),
+                                  _buildQuickSelectChip(
+                                      '5 ${"minutes".tr()}', 0, 5),
+                                  _buildQuickSelectChip(
+                                      '15 ${"minutes".tr()}', 0, 15),
+                                  _buildQuickSelectChip(
+                                      '30 ${"minutes".tr()}', 0, 30),
+                                  _buildQuickSelectChip(
+                                      '1 ${"hours".tr()}', 1, 0),
+                                  _buildQuickSelectChip(
+                                      '2 ${"hours".tr()}', 2, 0),
+                                  _buildQuickSelectChip(
+                                      '1 ${"days".tr()}', 24, 0),
                                   // Add notification button
                                   InkWell(
                                     onTap: _addNotification,
@@ -854,18 +861,18 @@ class _AddReminderDialogState extends State<AddReminderDialog> {
                                         border: Border.all(
                                             color: const Color(0xFF4F46E5)),
                                       ),
-                                      child: const Row(
+                                      child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Icon(
+                                          const Icon(
                                             Icons.add,
                                             size: 16,
                                             color: Color(0xFF4F46E5),
                                           ),
-                                          SizedBox(width: 4),
+                                          const SizedBox(width: 4),
                                           Text(
-                                            'Thêm',
-                                            style: TextStyle(
+                                            "add".tr(),
+                                            style: const TextStyle(
                                               fontSize: 12,
                                               color: Color(0xFF4F46E5),
                                               fontWeight: FontWeight.w500,
@@ -1128,9 +1135,9 @@ class _AddReminderDialogState extends State<AddReminderDialog> {
                               if (_notifyBeforeList.isNotEmpty)
                                 const SizedBox(height: 8),
 
-                              const Text(
-                                'Hệ thống sẽ nhắc bạn trước khi đến lịch hẹn.',
-                                style: TextStyle(
+                              Text(
+                                "reminder_system_message".tr(),
+                                style: const TextStyle(
                                   fontSize: 12,
                                   color: Color(0xFF6B7280),
                                   fontStyle: FontStyle.italic,
@@ -1174,9 +1181,9 @@ class _AddReminderDialogState extends State<AddReminderDialog> {
                           },
                           activeColor: const Color(0xFF4F46E5),
                         ),
-                        const Text(
-                          'Đánh dấu đã hoàn thành',
-                          style: TextStyle(
+                        Text(
+                          "mark_as_completed".tr(),
+                          style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                             color: Color(0xFF374151),
@@ -1200,9 +1207,9 @@ class _AddReminderDialogState extends State<AddReminderDialog> {
                             side: const BorderSide(color: Color(0xFFE5E7EB)),
                           ),
                         ),
-                        child: const Text(
-                          'Hủy',
-                          style: TextStyle(
+                        child: Text(
+                          "cancel".tr(),
+                          style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                             color: Color(0xFF374151),
@@ -1232,9 +1239,9 @@ class _AddReminderDialogState extends State<AddReminderDialog> {
                                       Colors.white),
                                 ),
                               )
-                            : const Text(
-                                'Lưu',
-                                style: TextStyle(
+                            : Text(
+                                "save".tr(),
+                                style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
                                 ),

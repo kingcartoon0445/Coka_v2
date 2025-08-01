@@ -62,6 +62,10 @@ class ApiEndpoints {
       '$_prefix/integration/omnichannel/getlistpaging?Provider=$provider&Subscribed=$subscribed&searchText=$searchText&Fields=Name';
   static String updateStatusRead(String conversationId) =>
       '$_prefix/integration/omni/conversation/read/$conversationId';
+  static String postArchiveCustomer(String id) =>
+      '$_prefix2/customer/$id/archive';
+  static String postUnArchiveCustomer(String id) =>
+      '$_prefix2/customer/$id/archive/restore';
   // /api/v1/integration/omni/conversation/read/{conversationId}
   // Prefix
   static const String _prefix = '/api/v1';

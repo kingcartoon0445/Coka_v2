@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:source_base/config/helper.dart';
 import 'package:source_base/data/models/customer_service_response.dart';
+import 'package:source_base/data/models/facebook_chat_response.dart';
 import 'package:source_base/data/models/schedule_response.dart';
 import 'package:source_base/data/models/service_detail_response.dart'
     as service_detail;
@@ -24,15 +25,19 @@ class CustomerServiceBloc
     on<PostCustomerNote>(_onPostCustomerNote);
     on<UpdateNoteMark>(_onUpdateNoteMark);
     on<CreateReminder>(_onCreateReminder);
+    on<LoadFirstProviderChat>(_onLoadFirstProviderChat);
+    on<LoadMoreProviderChats>(_onLoadMoreProviderChats);
+    on<StorageConvertToCustomer>(_onStorageConvertToCustomer);
+    on<StorageUnArchiveCustomer>(_onStorageUnArchiveCustomer);
   }
 
   Future<void> _onLoadCustomerService(
     LoadCustomerService event,
     Emitter<CustomerServiceState> emit,
   ) async {
-    emit(state.copyWith(status: CustomerServiceStatus.loading));
+    emit(state.copyWith(status: CustomerServiceStatus.loadingUserInfo));
     final response = await organizationRepository.getCustomerService(
-        event.organizationId, event.pagingRequest);
+        event.organizationId, event.pagingRequest ?? state.pagingRequest!);
     final bool isSuccess = Helpers.isResponseSuccess(response.data);
     if (isSuccess) {
       final CustomerServiceResponse customerServiceResponse =
@@ -48,6 +53,7 @@ class CustomerServiceBloc
           status: CustomerServiceStatus.success,
           customerServices: customerServiceResponse.content ?? [],
           customersMetadata: customerServiceResponse.metadata,
+          pagingRequest: event.pagingRequest ?? state.pagingRequest,
           hasMoreCustomers: hasMore));
     } else {
       emit(state.copyWith(
@@ -82,7 +88,8 @@ class CustomerServiceBloc
           event.customerService == null
               ? state.customerService?.id ?? ''
               : event.customerService!.id ?? '',
-          event.organizationId);
+          event.organizationId,
+          type: event.type);
       final bool isSuccess = Helpers.isResponseSuccess(response.data);
       if (isSuccess) {
         final service_detail.ServiceDetailResponse journeyPagingResponse =
@@ -123,7 +130,7 @@ class CustomerServiceBloc
 
       final response = await organizationRepository.getLeadPagingArchive(
           state.customerService?.id ?? '', event.organizationId,
-          limit: event.limit, offset: event.offset);
+          limit: event.limit, offset: event.offset, type: event.type);
 
       final bool isSuccess = Helpers.isResponseSuccess(response.data);
       if (isSuccess) {
@@ -168,7 +175,7 @@ class CustomerServiceBloc
       emit(state.copyWith(status: CustomerServiceStatus.loadingMore));
 
       final response = await organizationRepository.getCustomerService(
-          event.organizationId, event.pagingRequest);
+          event.organizationId, event.pagingRequest ?? state.pagingRequest!);
 
       final bool isSuccess = Helpers.isResponseSuccess(response.data);
       if (isSuccess) {
@@ -311,6 +318,134 @@ class CustomerServiceBloc
         status: CustomerServiceStatus.error,
         error: e.toString(),
       ));
+    }
+  }
+
+  Future<void> _onLoadFirstProviderChat(
+    LoadFirstProviderChat event,
+    Emitter<CustomerServiceState> emit,
+  ) async {
+    print(
+        '🔍 Loading Facebook chats for organization: ${event.organizationId}');
+    emit(state.copyWith(status: CustomerServiceStatus.loading));
+    final response = await organizationRepository.getFacebookChatPaging(
+        event.organizationId, 20, 0, event.provider);
+    final bool isSuccess = Helpers.isResponseSuccess(response.data);
+    print('🔍 API Response success: $isSuccess');
+    print('🔍 API Response data: ${response.data}');
+
+    if (isSuccess) {
+      final FacebookChatResponse facebookChatResponse =
+          FacebookChatResponse.fromJson(response.data);
+
+      print(
+          '🔍 Parsed Facebook chats count: ${facebookChatResponse.content?.length ?? 0}');
+      print('🔍 Facebook chats: ${facebookChatResponse.content}');
+
+      // Calculate if there are more Facebook chats to load
+      final hasMore = facebookChatResponse.metadata != null &&
+          (facebookChatResponse.metadata!.offset ?? 0) +
+                  (facebookChatResponse.metadata!.count ?? 0) <
+              (facebookChatResponse.metadata!.total ?? 0);
+
+      emit(state.copyWith(
+          status: CustomerServiceStatus.success,
+          facebookChats: facebookChatResponse.content ?? [],
+          facebookChatsMetadata: facebookChatResponse.metadata,
+          hasMoreFacebookChats: hasMore));
+    } else {
+      print('❌ API Error: ${response.data}');
+      emit(state.copyWith(status: CustomerServiceStatus.error));
+    }
+  }
+
+  Future<void> _onLoadMoreProviderChats(
+    LoadMoreProviderChats event,
+    Emitter<CustomerServiceState> emit,
+  ) async {
+    try {
+      print(
+          '🔍 Loading more Facebook chats - offset: ${event.offset}, limit: ${event.limit}');
+      emit(state.copyWith(status: CustomerServiceStatus.loadingMore));
+
+      final response = await organizationRepository.getFacebookChatPaging(
+          event.organizationId, event.limit, event.offset, event.provider);
+
+      final bool isSuccess = Helpers.isResponseSuccess(response.data);
+      if (isSuccess) {
+        final FacebookChatResponse facebookChatResponse =
+            FacebookChatResponse.fromJson(response.data);
+
+        // Append new items to existing list
+        final updatedFacebookChats =
+            List<FacebookChatModel>.from(state.facebookChats)
+              ..addAll(facebookChatResponse.content ?? []);
+
+        // Calculate if there are more items to load
+        final hasMore = facebookChatResponse.metadata != null &&
+            (facebookChatResponse.metadata!.offset ?? 0) +
+                    (facebookChatResponse.metadata!.count ?? 0) <
+                (facebookChatResponse.metadata!.total ?? 0);
+
+        print(
+            '🔍 Loaded ${facebookChatResponse.content?.length ?? 0} more Facebook chats');
+        print('🔍 Total Facebook chats now: ${updatedFacebookChats.length}');
+        print('🔍 Has more: $hasMore');
+
+        emit(state.copyWith(
+            status: CustomerServiceStatus.success,
+            facebookChats: updatedFacebookChats,
+            facebookChatsMetadata: facebookChatResponse.metadata,
+            hasMoreFacebookChats: hasMore));
+      } else {
+        print('❌ Load more API Error: ${response.data}');
+        emit(state.copyWith(
+          status: CustomerServiceStatus.error,
+          error: response.data['message'] as String? ?? 'Unknown error',
+        ));
+      }
+    } catch (e) {
+      print('❌ Load more exception: $e');
+      emit(state.copyWith(
+        status: CustomerServiceStatus.error,
+        error: e.toString(),
+      ));
+    }
+  }
+
+  Future<void> _onStorageConvertToCustomer(
+    StorageConvertToCustomer event,
+    Emitter<CustomerServiceState> emit,
+  ) async {
+    emit(state.copyWith(status: CustomerServiceStatus.loading));
+    final response = await organizationRepository.postStorageConvertToCustomer(
+        event.customerId, event.organizationId);
+    final bool isSuccess = Helpers.isResponseSuccess(response.data);
+    if (isSuccess) {
+      emit(
+          state.copyWith(status: CustomerServiceStatus.successStorageCustomer));
+    } else {
+      emit(state.copyWith(
+          status: CustomerServiceStatus.error,
+          error: response.data['message'] as String? ?? 'Unknown error'));
+    }
+  }
+
+  Future<void> _onStorageUnArchiveCustomer(
+    StorageUnArchiveCustomer event,
+    Emitter<CustomerServiceState> emit,
+  ) async {
+    emit(state.copyWith(status: CustomerServiceStatus.loading));
+    final response = await organizationRepository.postUnArchiveCustomer(
+        event.customerId, event.organizationId);
+    final bool isSuccess = Helpers.isResponseSuccess(response.data);
+    if (isSuccess) {
+      emit(
+          state.copyWith(status: CustomerServiceStatus.successStorageCustomer));
+    } else {
+      emit(state.copyWith(
+          status: CustomerServiceStatus.error,
+          error: response.data['message'] as String? ?? 'Unknown error'));
     }
   }
 }

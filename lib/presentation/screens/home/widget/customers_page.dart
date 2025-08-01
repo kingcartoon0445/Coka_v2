@@ -1,14 +1,11 @@
 import 'dart:async';
 import 'dart:developer' as developer;
 
-import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:source_base/config/app_color.dart';
 import 'package:source_base/config/app_constans.dart';
@@ -17,6 +14,7 @@ import 'package:source_base/presentation/blocs/customer_service/customer_service
 import 'package:source_base/presentation/blocs/customer_service/customer_service_event.dart';
 import 'package:source_base/presentation/blocs/customer_service/customer_service_state.dart';
 import 'package:source_base/presentation/blocs/organization/organization_action_bloc.dart';
+import 'package:source_base/presentation/screens/customers_service/tabs/facebook_chat.dart';
 import 'package:source_base/presentation/screens/home/widget/customers_list.dart';
 import 'package:source_base/presentation/screens/home/widget/filter_modal.dart';
 import 'package:source_base/presentation/screens/shared/widgets/dropdown_button_widget.dart';
@@ -48,7 +46,6 @@ class _CustomersPageState extends State<CustomersPage>
   FilterResult? _currentFilter;
   bool _isFetchingCounts = false;
   Timer? _countsDebounce;
-  late final _mapEquality = const MapEquality<String, dynamic>();
   Map<String, dynamic>? _lastQueryParams;
   bool _isArchive = false;
 
@@ -353,63 +350,92 @@ class _CustomersPageState extends State<CustomersPage>
   }
 
   Widget _buildTabBar() {
-    return TabBar(
-      controller: _tabController,
-      isScrollable: true,
-      tabAlignment: TabAlignment.start,
-      dividerColor: Colors.transparent,
-      indicatorSize: TabBarIndicatorSize.label,
-      padding: EdgeInsets.zero,
-      labelPadding: const EdgeInsets.symmetric(horizontal: 16),
-      labelColor: AppColors.primary,
-      unselectedLabelColor: AppColors.text,
-      indicatorColor: AppColors.primary,
-      labelStyle: const TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.w500,
-      ),
-      unselectedLabelStyle: const TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.w400,
-      ),
-      tabs: _tabConfig.values.map((config) {
-        return Tab(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(config.name),
-              const SizedBox(width: 4),
-              // Container(
-              //   padding: const EdgeInsets.all(5),
-              //   // color: config.badgeColor,
-              //   decoration: BoxDecoration(
-              //     shape: BoxShape.circle,
-              //     color: config.badgeColor.withOpacity(0.3),
-              //   ),
-              //   child: const Icon(
-              //     Icons.settings_outlined,
-              //     color: AppColors.primary,
-              //   ),
-              // ),
-              // Container(
-              //   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-              //   decoration: BoxDecoration(
-              //     color: config.badgeColor,
-              //     borderRadius: BorderRadius.circular(10),
-              //   ),
-              //   child: Text(
-              //     '${_customerCounts[config.name]}',
-              //     style: const TextStyle(
-              //       fontSize: 11,
-              //       color: Colors.white,
-              //       fontWeight: FontWeight.w500,
-              //     ),
-              //   ),
-              // ),
-            ],
+    return Column(
+      children: [
+        TabBar(
+          controller: _tabController,
+          isScrollable: true,
+          tabAlignment: TabAlignment.start,
+          dividerColor: Colors.transparent,
+          indicatorSize: TabBarIndicatorSize.label,
+          onTap: (value) {
+            switch (value) {
+              case 0:
+                // ref.read(customerServiceBlocProvider.notifier).add(LoadFacebookChat(organizationId: widget.organizationId));
+                break;
+              case 1:
+                context.read<CustomerServiceBloc>().add(LoadFirstProviderChat(
+                    organizationId: widget.organizationId,
+                    provider: 'FACEBOOK'));
+                break;
+              case 2:
+                context.read<CustomerServiceBloc>().add(LoadFirstProviderChat(
+                    organizationId: widget.organizationId, provider: 'ZALO'));
+                // ref.read(customerServiceBlocProvider.notifier).add(LoadFacebookChat(organizationId: widget.organizationId));
+                break;
+              case 3:
+              default:
+                break;
+            }
+          },
+          padding: EdgeInsets.zero,
+          labelPadding: const EdgeInsets.symmetric(horizontal: 16),
+          labelColor: AppColors.primary,
+          unselectedLabelColor: AppColors.text,
+          indicatorColor: AppColors.primary,
+          labelStyle: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
           ),
-        );
-      }).toList(),
+          unselectedLabelStyle: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w400,
+          ),
+          tabs: _tabConfig.values.map((config) {
+            return Tab(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(config.name),
+                  const SizedBox(width: 4),
+                  // Container(
+                  //   padding: const EdgeInsets.all(5),
+                  //   // color: config.badgeColor,
+                  //   decoration: BoxDecoration(
+                  //     shape: BoxShape.circle,
+                  //     color: config.badgeColor.withOpacity(0.3),
+                  //   ),
+                  //   child: const Icon(
+                  //     Icons.settings_outlined,
+                  //     color: AppColors.primary,
+                  //   ),
+                  // ),
+                  // Container(
+                  //   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                  //   decoration: BoxDecoration(
+                  //     color: config.badgeColor,
+                  //     borderRadius: BorderRadius.circular(10),
+                  //   ),
+                  //   child: Text(
+                  //     '${_customerCounts[config.name]}',
+                  //     style: const TextStyle(
+                  //       fontSize: 11,
+                  //       color: Colors.white,
+                  //       fontWeight: FontWeight.w500,
+                  //     ),
+                  //   ),
+                  // ),
+                ],
+              ),
+            );
+          }).toList(),
+        ),
+        Container(
+          height: 1,
+          // width: 200,
+          color: const Color.fromARGB(255, 225, 225, 225),
+        )
+      ],
     );
   }
 
@@ -417,12 +443,12 @@ class _CustomersPageState extends State<CustomersPage>
     // Hủy bỏ debounce hiện tại nếu có
     _countsDebounce?.cancel();
 
-    // Nếu đang lấy dữ liệu, đặt lịch lấy sau 500ms
-    if (_isFetchingCounts) {
-      _countsDebounce =
-          Timer(const Duration(milliseconds: 500), _fetchCustomerCounts);
-      return;
-    }
+    // // Nếu đang lấy dữ liệu, đặt lịch lấy sau 500ms
+    // if (_isFetchingCounts) {
+    //   _countsDebounce =
+    //       Timer(const Duration(milliseconds: 500), _fetchCustomerCounts);
+    //   return;
+    // }
 
     // Tạo params
     final Map<String, dynamic> params = {
@@ -478,10 +504,10 @@ class _CustomersPageState extends State<CustomersPage>
       params['searchText'] = _searchQuery;
     }
 
-    // So sánh với các tham số cuối cùng, nếu giống nhau thì không gọi lại API
-    if (_lastQueryParams != null && _mapEquals(_lastQueryParams, params)) {
-      return;
-    }
+    // // So sánh với các tham số cuối cùng, nếu giống nhau thì không gọi lại API
+    // if (_lastQueryParams != null && _mapEquals(_lastQueryParams, params)) {
+    //   return;
+    // }
 
     _isFetchingCounts = true;
     try {
@@ -522,12 +548,12 @@ class _CustomersPageState extends State<CustomersPage>
     }
   }
 
-  bool _mapEquals(Map<String, dynamic>? map1, Map<String, dynamic>? map2) {
-    if (map1 == null || map2 == null) return map1 == map2;
-    if (map1.length != map2.length) return false;
+  // bool _mapEquals(Map<String, dynamic>? map1, Map<String, dynamic>? map2) {
+  //   if (map1 == null || map2 == null) return map1 == map2;
+  //   if (map1.length != map2.length) return false;
 
-    return _mapEquality.equals(map1, map2);
-  }
+  //   return _mapEquality.equals(map1, map2);
+  // }
 
   void _clearAllFilters() {
     setState(() {
@@ -714,7 +740,7 @@ class _CustomersPageState extends State<CustomersPage>
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        "Cơ hội chăm khách",
+                        "opportunity_customer".tr(),
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
@@ -752,7 +778,7 @@ class _CustomersPageState extends State<CustomersPage>
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        "Lưu trữ",
+                        "storage".tr(),
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
@@ -883,55 +909,117 @@ class _CustomersPageState extends State<CustomersPage>
         backgroundColor: Colors.white,
         appBar: AppBar(
           bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(55),
+            preferredSize: Size.fromHeight(_tabController.index == 0 ? 56 : 0),
             child: Column(
               children: [
                 _buildTabBar(),
-                _buildActiveFiltersBar(),
+                // ignore: unrelated_type_equality_checks
+                if (_tabController.index == 0) _buildActiveFiltersBar(),
               ],
             ),
           ),
         ),
-        body: TabBarView(
-          controller: _tabController,
-          children: _tabConfig.values.map((config) {
-            String? stageGroupId;
-            if (config.name != 'all'.tr()) {
-              stageGroupId = AppConstants.stageObject.entries
-                  .firstWhere(
-                    (entry) => entry.value['name'] == config.name,
-                    orElse: () => const MapEntry('', {}),
-                  )
-                  .key;
+        body: BlocBuilder<CustomerServiceBloc, CustomerServiceState>(
+            builder: (context, state) {
+          if (state.status == CustomerServiceStatus.loading) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+          if (state.status == CustomerServiceStatus.error) {
+            return ErrorMessageWidget(
+              message: state.error ?? '',
+              onRetry: _fetchCustomerCounts,
+            );
+          }
+          String? stageGroupId;
+          stageGroupId = AppConstants.stageObject.entries
+              .firstWhere(
+                (entry) => entry.value['name'] == 'all'.tr(),
+                orElse: () => const MapEntry('', {}),
+              )
+              .key;
 
-              if (stageGroupId == '') {
-                stageGroupId = null;
-              }
-            }
-            return BlocBuilder<CustomerServiceBloc, CustomerServiceState>(
-                builder: (context, state) {
-              if (state.status == CustomerServiceStatus.loading) {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              }
-              if (state.status == CustomerServiceStatus.error) {
-                return ErrorMessageWidget(
-                  message: state.error ?? '',
-                  onRetry: _fetchCustomerCounts,
-                );
-              }
-              return CustomersList(
+          if (stageGroupId == '') {
+            stageGroupId = null;
+          }
+          return TabBarView(
+            controller: _tabController,
+            children: [
+              CustomersList(
                 organizationId: widget.organizationId,
                 // workspaceId: "", // widget.workspaceId,
                 stageGroupId: stageGroupId,
                 searchQuery: _searchQuery,
                 queryParams: state.customerServices,
                 onRefresh: _loadCustomerService,
-              );
-            });
-          }).toList(),
-        ),
+              ),
+              const FacebookMessagesTab(
+                provider: 'FACEBOOK',
+              ),
+              const FacebookMessagesTab(
+                provider: 'ZALO',
+              ),
+              CustomersList(
+                organizationId: widget.organizationId,
+                // workspaceId: "", // widget.workspaceId,
+                stageGroupId: stageGroupId,
+                searchQuery: _searchQuery,
+                queryParams: state.customerServices,
+                onRefresh: _loadCustomerService,
+              ),
+              CustomersList(
+                organizationId: widget.organizationId,
+                // workspaceId: "", // widget.workspaceId,
+                stageGroupId: stageGroupId,
+                searchQuery: _searchQuery,
+                queryParams: state.customerServices,
+                onRefresh: _loadCustomerService,
+              ),
+            ],
+          );
+        }),
+
+        // body: TabBarView(
+        //   controller: _tabController,
+        //   children: _tabConfig.values.map((config) {
+        //     String? stageGroupId;
+        //     if (config.name != 'all'.tr()) {
+        //       stageGroupId = AppConstants.stageObject.entries
+        //           .firstWhere(
+        //             (entry) => entry.value['name'] == config.name,
+        //             orElse: () => const MapEntry('', {}),
+        //           )
+        //           .key;
+
+        //       if (stageGroupId == '') {
+        //         stageGroupId = null;
+        //       }
+        //     }
+        //     return BlocBuilder<CustomerServiceBloc, CustomerServiceState>(
+        //         builder: (context, state) {
+        //       if (state.status == CustomerServiceStatus.loading) {
+        //         return const Center(
+        //           child: CircularProgressIndicator(),
+        //         );
+        //       }
+        //       if (state.status == CustomerServiceStatus.error) {
+        //         return ErrorMessageWidget(
+        //           message: state.error ?? '',
+        //           onRetry: _fetchCustomerCounts,
+        //         );
+        //       }
+        //       return CustomersList(
+        //         organizationId: widget.organizationId,
+        //         // workspaceId: "", // widget.workspaceId,
+        //         stageGroupId: stageGroupId,
+        //         searchQuery: _searchQuery,
+        //         queryParams: state.customerServices,
+        //         onRefresh: _loadCustomerService,
+        //       );
+        //     });
+        //   }).toList(),
+        // ),
         floatingActionButton: SpeedDial(
           icon: Icons.add,
           spacing: 15,

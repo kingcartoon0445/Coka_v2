@@ -307,12 +307,12 @@ class ApiService {
   }
 
   Future<Response> getJourneyPagingService(String id, String organizationId,
-      {int? limit, int? offset}) async {
+      {int? limit, int? offset, String? type}) async {
     try {
       final queryParams = <String, dynamic>{};
       if (limit != null) queryParams['limit'] = limit;
       if (offset != null) queryParams['offset'] = offset;
-
+      if (type != null) queryParams['type'] = type;
       final response = await _dioClient.get(
         ApiEndpoints.getJourneyPaging(id),
         queryParameters: queryParams.isNotEmpty ? queryParams : null,
@@ -465,6 +465,73 @@ class ApiService {
     }
   }
 
+  Future<Response> postArchiveCustomerService(
+      String id, String organizationId) async {
+    try {
+      final response = await _dioClient.post(
+          ApiEndpoints.postArchiveCustomer(id),
+          options: Options(headers: {'organizationId': organizationId}));
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions:
+            RequestOptions(path: ApiEndpoints.postArchiveCustomer(id)),
+      );
+    }
+  }
+
+  Future<Response> postUnArchiveCustomerService(
+      String id, String organizationId) async {
+    try {
+      final response = await _dioClient.post(
+          ApiEndpoints.postUnArchiveCustomer(id),
+          options: Options(headers: {'organizationId': organizationId}));
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions:
+            RequestOptions(path: ApiEndpoints.postUnArchiveCustomer(id)),
+      );
+    }
+  }
+
+  Future<Response> getConversationListService(
+      String organizationId, Map<String, dynamic>? queryParameters) async {
+    try {
+      final response = await _dioClient.get(
+        ApiEndpoints.conversationList,
+        options: Options(headers: {'organizationId': organizationId}),
+        queryParameters: queryParameters,
+      );
+
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.conversationList),
+      );
+    }
+  }
   // Future<Response> getUserInfoService(String organizationId) async {
   //   return await _dioClient.get('${ApiEndpoints.profileDetail}');
   // }

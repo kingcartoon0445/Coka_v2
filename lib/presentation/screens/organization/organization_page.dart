@@ -458,10 +458,7 @@ class _OrganizationPageState extends State<OrganizationPage> {
                     leading: _buildAvatar(),
                     title: _buildTitle(context),
                     actions: [
-                      LanguageDropdown(
-                        supportedLocales: context.supportedLocales,
-                        fallbackLocale: Locale('en', 'US'),
-                      ),
+                      const LanguageDropdown(),
                       Padding(
                         padding: const EdgeInsets.only(right: 8.0),
                         child: Stack(
@@ -510,13 +507,6 @@ class _OrganizationPageState extends State<OrganizationPage> {
                       ),
                       const SizedBox(width: 8),
                     ],
-                    bottom: PreferredSize(
-                      preferredSize: const Size.fromHeight(1),
-                      child: Container(
-                        height: 1,
-                        color: Colors.grey.withValues(alpha: 0.2),
-                      ),
-                    ),
                   ),
             body: widget.child,
             bottomNavigationBar: isAIChatbotPage

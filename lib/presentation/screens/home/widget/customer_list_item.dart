@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:source_base/config/app_color.dart';
@@ -13,11 +14,12 @@ import 'package:go_router/go_router.dart';
 class CustomerListItem extends StatelessWidget {
   final CustomerServiceModel customer;
   final String organizationId;
-
+  final bool isArchive;
   const CustomerListItem({
     super.key,
     required this.customer,
     required this.organizationId,
+    this.isArchive = false,
   });
 
   Widget _buildAssigneeInfo() {
@@ -268,7 +270,10 @@ class CustomerListItem extends StatelessWidget {
   ) {
     // final stage = customer.status;
     final createdDate = DateTime.parse(customer.createdDate ?? '');
-    final timeAgo = timeago.format(createdDate, locale: 'vi');
+    final timeAgo = timeago.format(
+      createdDate,
+      locale: context.locale.languageCode,
+    );
     // final isNewStage = stage?['name'] == 'Mới';
 
     return Builder(

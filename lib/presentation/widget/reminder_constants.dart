@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 enum ScheduleType {
@@ -45,15 +46,15 @@ class ReminderConstants {
   static const String scheduleEndpoint = '/api/Schedule';
 
   // Time options for notifications
-  static const List<Map<String, dynamic>> notifyBeforeOptions = [
-    {'minutes': 0, 'label': 'Đúng giờ'},
-    {'minutes': 5, 'label': '5 phút trước'},
-    {'minutes': 10, 'label': '10 phút trước'},
-    {'minutes': 15, 'label': '15 phút trước'},
-    {'minutes': 30, 'label': '30 phút trước'},
-    {'minutes': 60, 'label': '1 giờ trước'},
-    {'minutes': 120, 'label': '2 giờ trước'},
-    {'minutes': 1440, 'label': '1 ngày trước'},
+  static List<Map<String, dynamic>> notifyBeforeOptions = [
+    {'minutes': 0, 'label': 'on_time'.tr()},
+    {'minutes': 5, 'label': '5 ${"minutes_ago".tr()} trước'},
+    {'minutes': 10, 'label': '10 ${"minutes_ago".tr()} trước'},
+    {'minutes': 15, 'label': '15 ${"minutes_ago".tr()} trước'},
+    {'minutes': 30, 'label': '30 ${"minutes_ago".tr()} trước'},
+    {'minutes': 60, 'label': '1 ${"hours_ago".tr()} trước'},
+    {'minutes': 120, 'label': '2 ${"hours_ago".tr()} trước'},
+    {'minutes': 1440, 'label': '1 ${"days_ago".tr()} trước'},
   ];
 
   // Default notification types
@@ -64,13 +65,13 @@ class ReminderConstants {
   ];
 
   // Days of week for repeat rules
-  static const List<Map<String, dynamic>> weekDays = [
-    {'day': 'monday', 'label': 'Thứ 2'},
-    {'day': 'tuesday', 'label': 'Thứ 3'},
-    {'day': 'wednesday', 'label': 'Thứ 4'},
-    {'day': 'thursday', 'label': 'Thứ 5'},
-    {'day': 'friday', 'label': 'Thứ 6'},
-    {'day': 'saturday', 'label': 'Thứ 7'},
-    {'day': 'sunday', 'label': 'Chủ nhật'},
+  static List<Map<String, dynamic>> weekDays = [
+    {'day': 'monday', 'label': 'monday'.tr()},
+    {'day': 'tuesday', 'label': 'tuesday'.tr()},
+    {'day': 'wednesday', 'label': 'wednesday'.tr()},
+    {'day': 'thursday', 'label': 'thursday'.tr()},
+    {'day': 'friday', 'label': 'friday'.tr()},
+    {'day': 'saturday', 'label': 'saturday'.tr()},
+    {'day': 'sunday', 'label': 'sunday'.tr()},
   ];
 }

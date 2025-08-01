@@ -10,12 +10,11 @@ import 'package:source_base/config/app_color.dart';
 import 'package:source_base/config/app_constans.dart';
 import 'package:source_base/config/routes.dart';
 import 'package:source_base/config/test_style.dart';
-import 'package:source_base/core/api/api_endpoints.dart';
 import 'package:source_base/core/api/dio_client.dart';
 import 'package:source_base/generated/assets.gen.dart';
 import 'package:source_base/presentation/screens/auth/verify_otp_page.dart';
 import 'package:source_base/presentation/screens/auth/widget/loading_button.dart';
-import 'package:source_base/presentation/widget/Language_switcher.dart';
+import 'package:source_base/presentation/widget/language_switcher.dart';
 
 import '../../blocs/auth/auth_action_bloc.dart';
 import '../../blocs/organization/organization_action_bloc.dart';
@@ -116,10 +115,8 @@ class _LoginScreenState extends State<LoginPage> {
                 child: Column(
                   children: [
                     const SizedBox(height: 20),
-                    LanguageDropdown(
-                      supportedLocales: context.supportedLocales,
-                      fallbackLocale: Locale('en', 'US'),
-                    ),
+                    const LanguageDropdown(),
+                    const SizedBox(height: 20),
                     // 👇 Popup menu debug chọn baseURL
                     PopupMenuButton<String>(
                         enabled: kDebugMode,

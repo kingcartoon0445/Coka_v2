@@ -11,17 +11,23 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
   final SharedPreferencesService _storageService =
       getIt<SharedPreferencesService>();
 
+  static const String _languageKey = 'selected_language';
+  static const String _countryKey = 'selected_country';
+
   ThemeBloc()
       : super(
           ThemeState(
             themeMode: ThemeMode.light,
             themeData: _lightTheme,
+            currentLocale: const Locale('en'),
+            supportedLocales: const [Locale('en'), Locale('vi')],
           ),
         ) {
     on<InitTheme>(_onInitTheme);
     on<ToggleTheme>(_onToggleTheme);
+    on<ChangeLanguage>(_onChangeLanguage);
 
-    // Khởi tạo theme
+    // Khởi tạo theme và ngôn ngữ
     add(InitTheme());
   }
 
@@ -29,10 +35,17 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
   void _onInitTheme(InitTheme event, Emitter<ThemeState> emit) {
     final isDarkMode = _storageService.getBool(PrefKey.isDarkMode) ?? false;
 
+    // Lấy ngôn ngữ đã lưu
+    final savedLanguage = _storageService.getString(_languageKey) ?? 'en';
+    final savedCountry = _storageService.getString(_countryKey) ?? 'US';
+    final currentLocale = Locale(savedLanguage, savedCountry);
+
     emit(
       ThemeState(
         themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
         themeData: isDarkMode ? _darkTheme : _lightTheme,
+        currentLocale: currentLocale,
+        supportedLocales: const [Locale('en'), Locale('vi')],
       ),
     );
   }
@@ -47,11 +60,23 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
     await _storageService.setBool(PrefKey.isDarkMode, newIsDarkMode);
 
     emit(
-      ThemeState(
+      state.copyWith(
         themeMode: newIsDarkMode ? ThemeMode.dark : ThemeMode.light,
         themeData: newIsDarkMode ? _darkTheme : _lightTheme,
       ),
     );
+  }
+
+  // Xử lý sự kiện thay đổi ngôn ngữ
+  Future<void> _onChangeLanguage(
+      ChangeLanguage event, Emitter<ThemeState> emit) async {
+    // Lưu ngôn ngữ mới vào storage
+    await _storageService.setString(_languageKey, event.locale.languageCode);
+    if (event.locale.countryCode != null) {
+      await _storageService.setString(_countryKey, event.locale.countryCode!);
+    }
+
+    emit(state.copyWith(currentLocale: event.locale));
   }
 
   // Định nghĩa theme sáng

@@ -1,3 +1,6 @@
+import 'package:source_base/data/models/organization_model.dart';
+export 'package:source_base/data/models/organization_model.dart';
+
 class MemberResponse {
   int? code;
   List<MemberModel>? content;
@@ -88,31 +91,6 @@ class MemberModel {
     data['createdDate'] = this.createdDate;
     data['lastModifiedBy'] = this.lastModifiedBy;
     data['lastModifiedDate'] = this.lastModifiedDate;
-    return data;
-  }
-}
-
-class Metadata {
-  int? total;
-  int? count;
-  int? offset;
-  int? limit;
-
-  Metadata({this.total, this.count, this.offset, this.limit});
-
-  Metadata.fromJson(Map<String, dynamic> json) {
-    total = json['total'];
-    count = json['count'];
-    offset = json['offset'];
-    limit = json['limit'];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['total'] = this.total;
-    data['count'] = this.count;
-    data['offset'] = this.offset;
-    data['limit'] = this.limit;
     return data;
   }
 }

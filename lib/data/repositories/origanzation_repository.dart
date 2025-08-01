@@ -68,11 +68,12 @@ class OrganizationRepository {
     String organizationId, {
     int? limit,
     int? offset,
+    String? type,
   }) async {
     try {
       final response = await apiService.getJourneyPagingService(
           id, organizationId,
-          limit: limit, offset: offset);
+          limit: limit, offset: offset, type: type);
       return response;
     } catch (e) {
       return Response<Map<String, dynamic>>(
@@ -150,6 +151,71 @@ class OrganizationRepository {
         statusMessage: 'Unknown error',
         requestOptions:
             RequestOptions(path: ApiEndpoints.postCustomerNote(customerId)),
+      );
+    }
+  }
+
+  Future<Response> getFacebookChatPaging(
+      String organizationId, int limit, int offset, String provider) async {
+    try {
+      final response =
+          await apiService.getConversationListService(organizationId, {
+        'provider': provider,
+        'offset': offset,
+        'limit': limit,
+        'sort': '[{ Column: "CreatedDate", Dir: "DESC" }]',
+      });
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.login),
+      );
+    }
+  }
+
+  Future<Response> postStorageConvertToCustomer(
+      String customerId, String organizationId) async {
+    try {
+      final response = await apiService.postArchiveCustomerService(
+          customerId, organizationId);
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.login),
+      );
+    }
+  }
+
+  Future<Response> postUnArchiveCustomer(
+      String id, String organizationId) async {
+    try {
+      final response =
+          await apiService.postUnArchiveCustomerService(id, organizationId);
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.login),
       );
     }
   }

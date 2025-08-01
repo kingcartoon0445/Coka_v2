@@ -16,6 +16,7 @@ class CustomersList extends StatefulWidget {
   final String? stageGroupId;
   final String? searchQuery;
   final List<CustomerServiceModel> queryParams;
+  final bool isArchive;
   final VoidCallback? onRefresh;
 
   const CustomersList({
@@ -24,6 +25,7 @@ class CustomersList extends StatefulWidget {
     this.stageGroupId,
     this.searchQuery,
     required this.queryParams,
+    this.isArchive = false,
     this.onRefresh,
   });
 
@@ -92,7 +94,7 @@ class _CustomersListState extends State<CustomersList> {
     context.read<CustomerServiceBloc>().add(
           LoadCustomerService(
             organizationId: widget.organizationId,
-            pagingRequest: pagingRequest,
+            pagingRequest: null,
           ),
         );
   }
@@ -121,7 +123,7 @@ class _CustomersListState extends State<CustomersList> {
       context.read<CustomerServiceBloc>().add(
             LoadMoreCustomers(
               organizationId: widget.organizationId,
-              pagingRequest: pagingRequest,
+              pagingRequest: null,
             ),
           );
 
@@ -338,6 +340,7 @@ class _CustomersListState extends State<CustomersList> {
               return CustomerListItem(
                 customer: state.customerServices[index],
                 organizationId: widget.organizationId,
+                isArchive: widget.isArchive,
               );
             },
           );
