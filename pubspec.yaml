@@ -38,7 +38,7 @@ dependencies:
   # Gen assets
   flutter_gen_runner: ^5.3.1
   go_router: ^16.0.0
-
+  file_picker: ^10.2.1
   flutter_native_splash: ^2.3.10
   image_picker: ^1.1.2
   cached_network_image: ^3.4.1
@@ -58,6 +58,9 @@ dependencies:
   rive: ^0.13.20
   flutter_html_audio: ^3.0.0
   flutter_rating_bar: ^4.0.1
+  flutter_animate: ^4.5.2
+  permission_handler: ^12.0.1
+  open_file: ^3.5.10
 
 dev_dependencies:
   flutter_test:
