@@ -4,9 +4,13 @@ import 'package:go_router/go_router.dart';
 import 'package:source_base/config/app_color.dart';
 import 'package:source_base/data/models/customer_service_response.dart';
 import 'package:source_base/presentation/blocs/organization/organization_bloc.dart';
+import 'package:source_base/presentation/screens/customers_service/switch_final_deal.dart';
 import 'package:source_base/presentation/screens/shared/widgets/avatar_widget.dart';
 
 import '../../blocs/customer_service/customer_service_action.dart';
+import '../../blocs/final_deal/final_deal_action.dart';
+import '../../blocs/switch_final_deal/switch_final_deal_action.dart';
+import '../customers_service/customer_service_detail/widgets/assign_to_bottomsheet.dart';
 
 class CustomerDetailScreen extends StatelessWidget {
   const CustomerDetailScreen({Key? key}) : super(key: key);
@@ -124,7 +128,61 @@ class CustomerDetailScreen extends StatelessWidget {
                           child: IconButton(
                             icon: const Icon(Icons.more_horiz,
                                 color: AppColors.primary),
-                            onPressed: () {},
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text('Xóa khách hàng?'),
+                                  content: const Text(
+                                      'Hành động này không thể hoàn tác.'),
+                                  actions: [
+                                    TextButton(
+                                        onPressed: () => context.pop(),
+                                        child: const Text('Hủy')),
+                                    TextButton(
+                                      onPressed: () async {
+                                        try {
+                                          // await ref.read(customerDetailProvider(widget.customerId).notifier).deleteCustomer(widget.organizationId, widget.workspaceId);
+                                          // ref.read(customerListProvider.notifier).removeCustomer(widget.customerId);
+
+                                          // // Trigger refresh cho customers list
+                                          // ref.read(customerListRefreshProvider.notifier).notifyCustomerListChanged();
+
+                                          if (!context.mounted) return;
+                                          context
+                                              .read<CustomerServiceBloc>()
+                                              .add(DeleteCustomer(
+                                                  customerId: state
+                                                          .customerService
+                                                          ?.id ??
+                                                      '',
+                                                  organizationId: context
+                                                          .read<
+                                                              OrganizationBloc>()
+                                                          .state
+                                                          .organizationId ??
+                                                      ''));
+                                          context.pop();
+                                          context.pop();
+                                          context.pop();
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(const SnackBar(
+                                                  content: Text(
+                                                      'Đã xóa khách hàng')));
+                                        } catch (e) {
+                                          if (!context.mounted) return;
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(SnackBar(
+                                                  content: Text(e.toString())));
+                                        }
+                                      },
+                                      child: const Text('Xóa',
+                                          style: TextStyle(color: Colors.red)),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
                           ),
                         ),
                       ],
@@ -141,7 +199,14 @@ class CustomerDetailScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(4),
                           ),
                         ),
-                        onPressed: () {},
+                        onPressed: () {
+                  
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      const SwitchFinalDeal()));
+                        },
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [

@@ -626,7 +626,7 @@ class _AddCustomerPageState extends State<AddCustomerPage> {
                                 .contains(query.toLowerCase()))
                             .toList();
                       },
-                      onChanged: (List<ChipData> data) {
+                      onChanged: (data) {
                         setState(() {
                           _tagList.clear();
                           _tagList.addAll(data);

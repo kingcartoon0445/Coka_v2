@@ -616,7 +616,7 @@ class _EditCustomerPageState extends State<EditCustomerPage> {
                           tag.name.toLowerCase().contains(query.toLowerCase()))
                       .toList();
                 },
-                onChanged: (List<ChipData> data) {
+                onChanged: (data) {
                   setState(() {
                     _tagList.clear();
                     _tagList.addAll(data);

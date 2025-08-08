@@ -312,6 +312,7 @@ class _CustomerJourneyState extends State<CustomerJourney>
                   bloc: context.read<CustomerServiceBloc>(),
                   builder: (context, state) {
                     final journeyList = state.serviceDetails;
+
                     return ListView(
                       controller: _scrollController,
                       physics: const AlwaysScrollableScrollPhysics(),
@@ -336,37 +337,34 @@ class _CustomerJourneyState extends State<CustomerJourney>
                             child: Stack(
                               alignment: Alignment.bottomRight,
                               children: [
-                                Expanded(
-                                  child: TextFormField(
-                                    focusNode: _focusNode,
-                                    cursorColor: Colors.black,
+                                TextFormField(
+                                  focusNode: _focusNode,
+                                  cursorColor: Colors.black,
 
-                                    controller: chatController,
-                                    maxLines: 5,
-                                    // minLines: 1,
-                                    keyboardType: TextInputType.multiline,
-                                    textCapitalization:
-                                        TextCapitalization.sentences,
-                                    onTap: () {
-                                      setState(() {
-                                        _isInputFocused = true;
-                                      });
-                                    },
-                                    decoration: InputDecoration(
-                                      isDense: true,
-                                      contentPadding:
-                                          const EdgeInsets.symmetric(
-                                        horizontal: 14,
-                                        vertical: 10,
-                                      ),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(18),
-                                        borderSide: BorderSide.none,
-                                      ),
-                                      filled: true,
-                                      fillColor: Colors.transparent,
-                                      hintText: "note_placeholder".tr(),
+                                  controller: chatController,
+                                  maxLines: 5,
+                                  // minLines: 1,
+                                  keyboardType: TextInputType.multiline,
+                                  textCapitalization:
+                                      TextCapitalization.sentences,
+                                  onTap: () {
+                                    setState(() {
+                                      _isInputFocused = true;
+                                    });
+                                  },
+                                  decoration: InputDecoration(
+                                    isDense: true,
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 14,
+                                      vertical: 10,
                                     ),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(18),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                    filled: true,
+                                    fillColor: Colors.transparent,
+                                    hintText: "note_placeholder".tr(),
                                   ),
                                 ),
                                 Container(
@@ -517,10 +515,8 @@ class _CustomerJourneyState extends State<CustomerJourney>
                               ],
                             ),
                           ),
-                          const Expanded(
-                            child: Center(
-                              child: Text('Chưa có hành trình nào'),
-                            ),
+                          const Center(
+                            child: Text('Chưa có hành trình nào'),
                           ),
                         ] else ...[
                           ...() {
@@ -642,6 +638,7 @@ class _CustomerJourneyState extends State<CustomerJourney>
               color: Colors.white,
             ),
           ),
+
           Positioned(
             bottom: viewInsets.bottom + 20,
             left: 0,

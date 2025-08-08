@@ -110,6 +110,83 @@ class FacebookChatModel {
     assignName = json['assignName'];
     assignAvatar = json['assignAvatar'];
   }
+  FacebookChatModel.fromFirebase(Map<String, dynamic> json) {
+    id = json['Id'] ?? '';
+    integrationAuthId = json['IntegrationAuthId'] ?? '';
+    conversationId = json['ConversationId'] ?? '';
+    pageId = json['From'] ?? '';
+    pageName = json['FromName'] ?? '';
+    pageAvatar = json['Avatar'] ?? '';
+    personId = json['To'] ?? '';
+    personName = json['ToName'] ?? '';
+    personAvatar = json['Avatar'] ?? '';
+    snippet = json['Message'] ?? '';
+    unreadCount = 0;
+    canReply = true;
+    updatedTime = json['Timestamp'] ?? 0;
+    gptStatus = json['IsGpt'] == true ? 1 : 0;
+    isRead = false;
+    type = json['Type'] ?? '';
+    provider = 'facebook';
+    status = json['Status'] ?? 1;
+
+    contact = null;
+    messageCount = 0;
+    assignTo = '';
+    assignName = '';
+    assignAvatar = '';
+  }
+  FacebookChatModel copyWith({
+    String? id,
+    String? integrationAuthId,
+    String? conversationId,
+    String? pageId,
+    String? pageName,
+    String? pageAvatar,
+    String? personId,
+    String? personName,
+    String? personAvatar,
+    String? snippet,
+    int? unreadCount,
+    bool? canReply,
+    int? updatedTime,
+    int? gptStatus,
+    bool? isRead,
+    String? type,
+    String? provider,
+    int? status,
+    Contact? contact,
+    int? messageCount,
+    String? assignTo,
+    String? assignName,
+    String? assignAvatar,
+  }) {
+    return FacebookChatModel(
+      id: id ?? this.id,
+      integrationAuthId: integrationAuthId ?? this.integrationAuthId,
+      conversationId: conversationId ?? this.conversationId,
+      pageId: pageId ?? this.pageId,
+      pageName: pageName ?? this.pageName,
+      pageAvatar: pageAvatar ?? this.pageAvatar,
+      personId: personId ?? this.personId,
+      personName: personName ?? this.personName,
+      personAvatar: personAvatar ?? this.personAvatar,
+      snippet: snippet ?? this.snippet,
+      unreadCount: unreadCount ?? this.unreadCount,
+      canReply: canReply ?? this.canReply,
+      updatedTime: updatedTime ?? this.updatedTime,
+      gptStatus: gptStatus ?? this.gptStatus,
+      isRead: isRead ?? this.isRead,
+      type: type ?? this.type,
+      provider: provider ?? this.provider,
+      status: status ?? this.status,
+      contact: contact ?? this.contact,
+      messageCount: messageCount ?? this.messageCount,
+      assignTo: assignTo ?? this.assignTo,
+      assignName: assignName ?? this.assignName,
+      assignAvatar: assignAvatar ?? this.assignAvatar,
+    );
+  }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();

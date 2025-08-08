@@ -17,7 +17,7 @@ class CustomerDetailPage extends StatefulWidget {
   // final String organizationId;
   // final String workspaceId;
   // final String customerId;
-    
+
   const CustomerDetailPage({
     super.key,
     // required this.organizationId,
@@ -433,310 +433,304 @@ class _CustomerDetailPageState extends State<CustomerDetailPage>
         bloc: context.read<CustomerServiceBloc>(),
         builder: (context, state) {
           return Scaffold(
-              appBar: AppBar(
-                backgroundColor: Colors.white,
-                elevation: 0,
-                leading: IconButton(
-                  icon: const Icon(Icons.arrow_back),
-                  onPressed: () => context.pop(),
-                ),
-                title: state.status == CustomerServiceStatus.loadingUserInfo
-                    ? Shimmer.fromColors(
-                        baseColor: Colors.grey[300]!,
-                        highlightColor: Colors.grey[100]!,
-                        child: Row(children: [
-                          Container(
-                              width: 40,
-                              height: 40,
-                              decoration: const BoxDecoration(
-                                  color: Colors.white, shape: BoxShape.circle)),
-                          const SizedBox(width: 12),
-                          Expanded(
-                              child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                Container(
-                                    width: 120,
-                                    height: 16,
-                                    color: Colors.white),
-                                const SizedBox(height: 4),
-                                Container(
-                                    width: 80, height: 14, color: Colors.white)
-                              ])),
-                        ]),
-                      )
-                    : GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const CustomerDetailScreen(),
-                            ),
-                          );
-                          // context.push(
-                          //   '/organization/${widget.organizationId}/workspace/${widget.workspaceId}/customers/${widget.customerId}/basic-info',
-                          //   extra: customerDetail,
-                          // );
-                        },
-                        child: Row(
-                          children: [
-                            AppAvatar(
-                              // imageUrl: state.customerService?.avatar,
-                              fallbackText:
-                                  state.customerService?.fullName ?? '',
-                              size: 40,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
+            appBar: AppBar(
+              backgroundColor: Colors.white,
+              elevation: 0,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => context.pop(),
+              ),
+              title: state.status == CustomerServiceStatus.loadingUserInfo
+                  ? Shimmer.fromColors(
+                      baseColor: Colors.grey[300]!,
+                      highlightColor: Colors.grey[100]!,
+                      child: Row(children: [
+                        Container(
+                            width: 40,
+                            height: 40,
+                            decoration: const BoxDecoration(
+                                color: Colors.white, shape: BoxShape.circle)),
+                        const SizedBox(width: 12),
+                        Expanded(
+                            child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Text(state.customerService?.fullName ?? '',
-                                      style: const TextStyle(
-                                          color: Color(0xFF1F2329),
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w500),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis),
-                                  const SizedBox(height: 2),
-                                  _buildCompactAssigneeInfo(
-                                      state.customerService!),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                bottom: TabBar(
-                  controller: _tabController,
-                  labelColor: const Color(0xFF1F2329),
-                  unselectedLabelColor: const Color(0xFF667085),
-                  indicatorColor: const Color(0xFF5C33F0),
-                  onTap: (value) {
-                    if (value == 0) {
-                      context.read<CustomerServiceBloc>().add(LoadJourneyPaging(
-                            organizationId: context
-                                    .read<OrganizationBloc>()
-                                    .state
-                                    .organizationId ??
-                                '',
-                          ));
-                    } else if (value == 1) {
-                      context.read<CustomerServiceBloc>().add(LoadJourneyPaging(
-                            organizationId: context
-                                    .read<OrganizationBloc>()
-                                    .state
-                                    .organizationId ??
-                                '',
-                            type: 'create_note',
-                          ));
-                    }
-                  },
-                  indicatorWeight: 2,
-                  labelStyle: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  unselectedLabelStyle: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
-                  ),
-                  tabs: [
-                    Tab(text: "activity_label".tr()),
-                    Tab(text: "note_label".tr()),
-                    // Tab(text: 'Hoạt động'),
-                  ],
-                ),
-                actions: [
-                  MenuAnchor(
-                    style: MenuStyle(
-                      backgroundColor:
-                          const WidgetStatePropertyAll(Colors.white),
-                      elevation: const WidgetStatePropertyAll(4),
-                      shadowColor: WidgetStatePropertyAll(
-                          Colors.black.withValues(alpha: 0.08)),
-                      shape: WidgetStatePropertyAll(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          side: const BorderSide(
-                            color: Color(0xFFE4E7EC),
-                            width: 1,
+                              Container(
+                                  width: 120, height: 16, color: Colors.white),
+                              const SizedBox(height: 4),
+                              Container(
+                                  width: 80, height: 14, color: Colors.white)
+                            ])),
+                      ]),
+                    )
+                  : GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const CustomerDetailScreen(),
                           ),
-                        ),
-                      ),
-                      padding: const WidgetStatePropertyAll(
-                          EdgeInsets.symmetric(vertical: 8)),
-                    ),
-                    builder: (context, controller, child) {
-                      return IconButton(
-                        icon: const Icon(Icons.more_vert),
-                        onPressed: () {
-                          if (controller.isOpen) {
-                            controller.close();
-                          } else {
-                            controller.open();
-                          }
-                        },
-                      );
-                    },
-                    menuChildren: [
-                      MenuItemButton(
-                        style: const ButtonStyle(
-                          padding: WidgetStatePropertyAll(EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8)),
-                          minimumSize: WidgetStatePropertyAll(Size.zero),
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        leadingIcon: const Icon(
-                          Icons.swap_horiz,
-                          size: 20,
-                          color: Color(0xFF667085),
-                        ),
-                        onPressed: () {
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true,
-                            backgroundColor: Colors.transparent,
-                            builder: (context) => AssignToBottomSheet(
-                              organizationId: context
-                                      .read<OrganizationBloc>()
-                                      .state
-                                      .organizationId ??
-                                  '',
-                              workspaceId: '',
-                              customerId: state.customerService?.id ?? '',
-                              defaultAssignees: state
-                                          .customerService?.assignees !=
-                                      null
-                                  ? List<Assignees>.from(
-                                      state.customerService?.assignees ?? [])
-                                  : [],
-                              onSelected: (assignData) {
-                                // Callback này không còn được sử dụng vì đã xử lý trực tiếp trong bottomsheet
-                              },
-                            ),
-                          );
-                        },
-                        child: const Text(
-                          'Chuyển phụ trách',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                            color: Color(0xFF101828),
+                        );
+                        // context.push(
+                        //   '/organization/${widget.organizationId}/workspace/${widget.workspaceId}/customers/${widget.customerId}/basic-info',
+                        //   extra: customerDetail,
+                        // );
+                      },
+                      child: Row(
+                        children: [
+                          AppAvatar(
+                            // imageUrl: state.customerService?.avatar,
+                            fallbackText: state.customerService?.fullName ?? '',
+                            size: 40,
                           ),
-                        ),
-                      ),
-                      MenuItemButton(
-                        style: const ButtonStyle(
-                          padding: WidgetStatePropertyAll(EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8)),
-                          minimumSize: WidgetStatePropertyAll(Size.zero),
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        leadingIcon: const Icon(
-                          Icons.edit_outlined,
-                          size: 20,
-                          color: Color(0xFF667085),
-                        ),
-                        onPressed: () {
-                          // context.push(
-                          //   '/organization/${state.organizationId}/workspace/${state.workspaceId}/customers/${state.customerService?.id}/edit',
-                          //   extra: customerDetail,
-                          // );
-                        },
-                        child: const Text(
-                          'Chỉnh sửa khách hàng',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                            color: Color(0xFF101828),
-                          ),
-                        ),
-                      ),
-                      MenuItemButton(
-                        style: const ButtonStyle(
-                          padding: WidgetStatePropertyAll(EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8)),
-                          minimumSize: WidgetStatePropertyAll(Size.zero),
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        leadingIcon: const Icon(
-                          Icons.delete_outline,
-                          size: 20,
-                          color: Colors.red,
-                        ),
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text('Xóa khách hàng?'),
-                              content: const Text(
-                                  'Hành động này không thể hoàn tác.'),
-                              actions: [
-                                TextButton(
-                                    onPressed: () => context.pop(),
-                                    child: const Text('Hủy')),
-                                TextButton(
-                                  onPressed: () async {
-                                    try {
-                                      // await ref.read(customerDetailProvider(widget.customerId).notifier).deleteCustomer(widget.organizationId, widget.workspaceId);
-                                      // ref.read(customerListProvider.notifier).removeCustomer(widget.customerId);
-
-                                      // // Trigger refresh cho customers list
-                                      // ref.read(customerListRefreshProvider.notifier).notifyCustomerListChanged();
-
-                                      if (!context.mounted) return;
-                                      context.pop();
-                                      context.pop();
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(const SnackBar(
-                                              content:
-                                                  Text('Đã xóa khách hàng')));
-                                    } catch (e) {
-                                      if (!context.mounted) return;
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(SnackBar(
-                                              content: Text(e.toString())));
-                                    }
-                                  },
-                                  child: const Text('Xóa',
-                                      style: TextStyle(color: Colors.red)),
-                                ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(state.customerService?.fullName ?? '',
+                                    style: const TextStyle(
+                                        color: Color(0xFF1F2329),
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis),
+                                const SizedBox(height: 2),
+                                _buildCompactAssigneeInfo(
+                                    state.customerService!),
                               ],
                             ),
-                          );
-                        },
-                        child: const Text(
-                          'Xóa khách hàng',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                            color: Colors.red,
                           ),
-                        ),
+                        ],
                       ),
-                    ],
-                  )
+                    ),
+              bottom: TabBar(
+                controller: _tabController,
+                labelColor: const Color(0xFF1F2329),
+                unselectedLabelColor: const Color(0xFF667085),
+                indicatorColor: const Color(0xFF5C33F0),
+                onTap: (value) {
+                  if (value == 0) {
+                    context.read<CustomerServiceBloc>().add(LoadJourneyPaging(
+                          organizationId: context
+                                  .read<OrganizationBloc>()
+                                  .state
+                                  .organizationId ??
+                              '',
+                        ));
+                  } else if (value == 1) {
+                    context.read<CustomerServiceBloc>().add(LoadJourneyPaging(
+                          organizationId: context
+                                  .read<OrganizationBloc>()
+                                  .state
+                                  .organizationId ??
+                              '',
+                          type: 'create_note',
+                        ));
+                  }
+                },
+                indicatorWeight: 2,
+                labelStyle: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+                unselectedLabelStyle: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                ),
+                tabs: [
+                  Tab(text: "activity_label".tr()),
+                  Tab(text: "note_label".tr()),
+                  // Tab(text: 'Hoạt động'),
                 ],
               ),
-              body: state.status == CustomerServiceStatus.loading
-                  ? _buildLoadingSkeleton()
-                  : TabBarView(
-                      controller: _tabController,
-                      children: const [
-                        // Tab 1: Hành trình
-                        CustomerJourney(),
+              actions: [
+                MenuAnchor(
+                  style: MenuStyle(
+                    backgroundColor: const WidgetStatePropertyAll(Colors.white),
+                    elevation: const WidgetStatePropertyAll(4),
+                    shadowColor: WidgetStatePropertyAll(
+                        Colors.black.withValues(alpha: 0.08)),
+                    shape: WidgetStatePropertyAll(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: const BorderSide(
+                          color: Color(0xFFE4E7EC),
+                          width: 1,
+                        ),
+                      ),
+                    ),
+                    padding: const WidgetStatePropertyAll(
+                        EdgeInsets.symmetric(vertical: 8)),
+                  ),
+                  builder: (context, controller, child) {
+                    return IconButton(
+                      icon: const Icon(Icons.more_vert),
+                      onPressed: () {
+                        if (controller.isOpen) {
+                          controller.close();
+                        } else {
+                          controller.open();
+                        }
+                      },
+                    );
+                  },
+                  menuChildren: [
+                    MenuItemButton(
+                      style: const ButtonStyle(
+                        padding: WidgetStatePropertyAll(
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
+                        minimumSize: WidgetStatePropertyAll(Size.zero),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      leadingIcon: const Icon(
+                        Icons.swap_horiz,
+                        size: 20,
+                        color: Color(0xFF667085),
+                      ),
+                      onPressed: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (context) => AssignToBottomSheet(
+                            organizationId: context
+                                    .read<OrganizationBloc>()
+                                    .state
+                                    .organizationId ??
+                                '',
+                            workspaceId: '',
+                            customerId: state.customerService?.id ?? '',
+                            defaultAssignees:
+                                state.customerService?.assignees != null
+                                    ? List<Assignees>.from(
+                                        state.customerService?.assignees ?? [])
+                                    : [],
+                            onSelected: (assignData) {
+                              // Callback này không còn được sử dụng vì đã xử lý trực tiếp trong bottomsheet
+                            },
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        'Chuyển phụ trách',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                          color: Color(0xFF101828),
+                        ),
+                      ),
+                    ),
+                    MenuItemButton(
+                      style: const ButtonStyle(
+                        padding: WidgetStatePropertyAll(
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
+                        minimumSize: WidgetStatePropertyAll(Size.zero),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      leadingIcon: const Icon(
+                        Icons.edit_outlined,
+                        size: 20,
+                        color: Color(0xFF667085),
+                      ),
+                      onPressed: () {
+                        // context.push(
+                        //   '/organization/${state.organizationId}/workspace/${state.workspaceId}/customers/${state.customerService?.id}/edit',
+                        //   extra: customerDetail,
+                        // );
+                      },
+                      child: const Text(
+                        'Chỉnh sửa khách hàng',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                          color: Color(0xFF101828),
+                        ),
+                      ),
+                    ),
+                    MenuItemButton(
+                      style: const ButtonStyle(
+                        padding: WidgetStatePropertyAll(
+                            EdgeInsets.symmetric(horizontal: 16, vertical: 8)),
+                        minimumSize: WidgetStatePropertyAll(Size.zero),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      leadingIcon: const Icon(
+                        Icons.delete_outline,
+                        size: 20,
+                        color: Colors.red,
+                      ),
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Xóa khách hàng?'),
+                            content:
+                                const Text('Hành động này không thể hoàn tác.'),
+                            actions: [
+                              TextButton(
+                                  onPressed: () => context.pop(),
+                                  child: const Text('Hủy')),
+                              TextButton(
+                                onPressed: () async {
+                                  try {
+                                    // await ref.read(customerDetailProvider(widget.customerId).notifier).deleteCustomer(widget.organizationId, widget.workspaceId);
+                                    // ref.read(customerListProvider.notifier).removeCustomer(widget.customerId);
 
-                        // Tab 2: Thông tin
-                        CustomerJourney(onlyNote: true),
+                                    // // Trigger refresh cho customers list
+                                    // ref.read(customerListRefreshProvider.notifier).notifyCustomerListChanged();
 
-                        // Tab 3: Hoạt động
-                        // _buildActivityTab(state),
-                      ],
-                    ));
+                                    if (!context.mounted) return;
+                                    context.pop();
+                                    context.pop();
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                            content:
+                                                Text('Đã xóa khách hàng')));
+                                  } catch (e) {
+                                    if (!context.mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text(e.toString())));
+                                  }
+                                },
+                                child: const Text('Xóa',
+                                    style: TextStyle(color: Colors.red)),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        'Xóa khách hàng',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.red,
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              ],
+            ),
+            body: state.status == CustomerServiceStatus.loading
+                ? _buildLoadingSkeleton()
+                : TabBarView(
+                    controller: _tabController,
+                    children: const [
+                      // Tab 1: Hành trình
+                      CustomerJourney(),
+
+                      // Tab 2: Thông tin
+                      CustomerJourney(onlyNote: true),
+
+                      // Tab 3: Hoạt động
+                      // _buildActivityTab(state),
+                    ],
+                  ),
+          );
         });
   }
 }

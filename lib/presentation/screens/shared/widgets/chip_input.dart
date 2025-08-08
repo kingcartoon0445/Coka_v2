@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:source_base/config/app_color.dart';
 
 import 'suggestions_box_controller.dart';
 import 'text_cursor.dart';
@@ -49,39 +50,40 @@ extension on TextEditingValue {
 }
 
 class ChipsInput<T> extends StatefulWidget {
-  const ChipsInput({
-    super.key,
-    this.initialValue = const [],
-    this.decoration = const InputDecoration(),
-    this.enabled = true,
-    required this.chipBuilder,
-    required this.suggestionBuilder,
-    this.findSuggestions,
-    this.suggestions,
-    required this.onChanged,
-    this.maxChips,
-    this.textStyle,
-    this.suggestionsBoxMaxHeight,
-    this.inputType = TextInputType.text,
-    this.textOverflow = TextOverflow.clip,
-    this.obscureText = false,
-    this.autocorrect = true,
-    this.actionLabel,
-    this.inputAction = TextInputAction.unspecified,
-    this.keyboardAppearance = Brightness.light,
-    this.textCapitalization = TextCapitalization.none,
-    this.autofocus = false,
-    this.allowChipEditing = false,
-    this.allowInputText = true,
-    this.focusNode,
-    this.initialSuggestions,
-  }) : assert(maxChips == null || initialValue.length <= maxChips);
+  ChipsInput(
+      {super.key,
+      this.initialValue = const [],
+      this.decoration = const InputDecoration(),
+      this.enabled = true,
+      required this.chipBuilder,
+      required this.suggestionBuilder,
+      this.findSuggestions,
+      this.suggestions,
+      required this.onChanged,
+      this.maxChips,
+      this.textStyle,
+      this.suggestionsBoxMaxHeight,
+      this.inputType = TextInputType.text,
+      this.textOverflow = TextOverflow.clip,
+      this.obscureText = false,
+      this.autocorrect = true,
+      this.actionLabel,
+      this.inputAction = TextInputAction.unspecified,
+      this.keyboardAppearance = Brightness.light,
+      this.textCapitalization = TextCapitalization.none,
+      this.autofocus = false,
+      this.allowChipEditing = false,
+      this.allowInputText = true,
+      this.focusNode,
+      this.initialSuggestions,
+      this.isOnlyOne = false})
+      : assert(maxChips == null || initialValue.length <= maxChips);
 
   final InputDecoration decoration;
   final TextStyle? textStyle;
   final bool enabled;
   final ChipsInputSuggestions<T>? findSuggestions;
-  final List<T>? suggestions;
+  List<T>? suggestions;
   final ValueChanged<List<T>> onChanged;
   final ChipsBuilder<T> chipBuilder;
   final ChipsBuilder<T> suggestionBuilder;
@@ -99,6 +101,7 @@ class ChipsInput<T> extends StatefulWidget {
   final bool allowChipEditing;
   final bool allowInputText;
   final FocusNode? focusNode;
+  final bool isOnlyOne;
   final List<T>? initialSuggestions;
 
   final TextCapitalization textCapitalization;
@@ -316,6 +319,10 @@ class ChipsInputState<T> extends State<ChipsInput<T>>
   void selectSuggestion(T data) {
     if (!_hasReachedMaxChips) {
       setState(() => _chips = _chips..add(data));
+      if (widget.isOnlyOne) {
+        _chips.clear();
+        setState(() => _chips.add(data));
+      }
       if (widget.allowChipEditing) {
         final enteredText = _value.normalCharactersText;
         if (enteredText.isNotEmpty) _enteredTexts[data] = enteredText;
@@ -481,6 +488,12 @@ class ChipsInputState<T> extends State<ChipsInput<T>>
   void didUpdateWidget(covariant ChipsInput<T> oldWidget) {
     super.didUpdateWidget(oldWidget);
     _effectiveFocusNode.canRequestFocus = _canRequestFocus;
+    setState(() {
+      _suggestions = widget.initialSuggestions ??
+          widget.suggestions
+              ?.where((r) => !_chips.contains(r))
+              .toList(growable: true);
+    });
   }
 
   @override
@@ -601,4 +614,52 @@ class ChipsInputState<T> extends State<ChipsInput<T>>
   void performSelector(String selectorName) {
     // TODO: implement performAction
   }
+}
+
+Widget BuildSuggestion<T extends ChipData>(
+  BuildContext context,
+  ChipsInputState<T> state,
+  T data,
+  bool isSelected,
+) {
+  return InkWell(
+    onTap: () {
+      if (isSelected) {
+        state.deleteChip(data);
+      } else {
+        state.selectSuggestion(data);
+      }
+    },
+    child: Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      color: isSelected ? const Color(0xFFF9FAFB) : Colors.transparent,
+      alignment: Alignment.centerLeft,
+      child: Text(
+        data.name,
+        style: TextStyle(
+          fontSize: 14,
+          color: isSelected ? AppColors.primary : AppColors.text,
+        ),
+      ),
+    ),
+  );
+}
+
+const _chipLabelStyle = TextStyle(
+  fontSize: 12,
+  color: Color(0xFF344054),
+);
+
+Widget BuildChip<T extends ChipData>(
+    BuildContext context, ChipsInputState<T> state, T data) {
+  return Chip(
+    label: Text(
+      data.name,
+      style: _chipLabelStyle,
+    ),
+    backgroundColor: const Color(0xFFF2F4F7),
+    deleteIcon: const Icon(Icons.close, size: 18),
+    onDeleted: () => state.deleteChip(data),
+  );
 }

@@ -38,6 +38,7 @@ class ApiEndpoints {
   static const String fbConnect = '$_prefix/auth/facebook/message';
   static const String conversationList =
       '$_prefix/omni/conversation/getlistpaging';
+
   static const String chatList = '$_prefix/social/message/getlistpaging';
   static const String sendMessage = '$_prefix/social/message/sendmessage';
   static const String assignConversation = '$_prefix/omni/conversation';
@@ -56,7 +57,7 @@ class ApiEndpoints {
       '$_prefix2/customer/$customerId/note';
   static String getJourneyPaging(String id) =>
       '$_prefix2/customer/$id/journey/getlistpaging';
-
+  static String customerPath(String id) => '$_prefix2/customer/$id';
   static String getListPage(
           String provider, String subscribed, String searchText) =>
       '$_prefix/integration/omnichannel/getlistpaging?Provider=$provider&Subscribed=$subscribed&searchText=$searchText&Fields=Name';
@@ -66,6 +67,19 @@ class ApiEndpoints {
       '$_prefix2/customer/$id/archive';
   static String postUnArchiveCustomer(String id) =>
       '$_prefix2/customer/$id/archive/restore';
+// API Được sử dụng
+
+  static String getCustomerPaging = '$_prefix2/customer/getlistpaging';
+
+  static String getAllWorkspace =
+      '$_prefix/settings/permission/organization/getallworkspace';
+
+  static String getProduct = '$_prefix/Product';
+  static String getBusinessProcess(
+    String workspaceId,
+  ) =>
+      '$_prefix/BusinessProcessStage/workspace/$workspaceId';
+  static String getBusinessProcessTask = '$_prefix/BusinessProcessTask';
   // /api/v1/integration/omni/conversation/read/{conversationId}
   // Prefix
   static const String _prefix = '/api/v1';

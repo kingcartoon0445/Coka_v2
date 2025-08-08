@@ -219,6 +219,11 @@ class CustomerListItem extends StatelessWidget {
         iconColor: Colors.red,
         textColor: Colors.red,
         onTap: () {
+          // context
+          //     .read<CustomerServiceBloc>()
+          //     .add(DeleteCustomer(customerId: customer.id!));
+          context.pop();
+          context.pop();
           // Future.delayed(
           //   const Duration(milliseconds: 100),
           //   () => showDialog(
@@ -268,6 +273,8 @@ class CustomerListItem extends StatelessWidget {
   Widget build(
     BuildContext context,
   ) {
+    timeago.setLocaleMessages('vi', timeago.ViMessages());
+    timeago.setLocaleMessages('en', timeago.EnMessages());
     // final stage = customer.status;
     final createdDate = DateTime.parse(customer.createdDate ?? '');
     final timeAgo = timeago.format(

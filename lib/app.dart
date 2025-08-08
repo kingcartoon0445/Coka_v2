@@ -3,11 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:source_base/config/routes.dart';
 import 'package:source_base/dio/service_locator.dart';
 import 'package:source_base/presentation/blocs/auth/auth_bloc.dart';
+import 'package:source_base/presentation/blocs/chat/chat_bloc.dart';
 import 'package:source_base/presentation/blocs/customer_service/customer_service_bloc.dart';
 import 'package:source_base/presentation/blocs/organization/organization_action_bloc.dart';
+import 'package:source_base/presentation/blocs/switch_final_deal/switch_final_deal_bloc.dart';
 import 'package:source_base/presentation/blocs/theme/theme_bloc.dart';
 
 import 'presentation/blocs/filter_item/filter_item_aciton.dart';
+import 'presentation/blocs/final_deal/final_deal_action.dart';
 import 'presentation/blocs/theme/theme_state.dart';
 
 class MyApp extends StatelessWidget {
@@ -32,6 +35,15 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider<FilterItemBloc>(
           create: (_) => getIt<FilterItemBloc>(),
+        ),
+        BlocProvider<ChatBloc>(
+          create: (_) => getIt<ChatBloc>(),
+        ),
+        BlocProvider<FinalDealBloc>(
+          create: (_) => getIt<FinalDealBloc>(),
+        ),
+        BlocProvider<SwitchFinalDealBloc>(
+          create: (_) => getIt<SwitchFinalDealBloc>(),
         ),
       ],
       child: BlocBuilder<ThemeBloc, ThemeState>(

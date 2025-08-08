@@ -19,7 +19,19 @@ class FullScreenImage extends StatelessWidget {
       body: Center(
         child: InteractiveViewer(
           // zoom/pan hỗ trợ
-          child: Image.network(imageUrl),
+          child: Image.network(
+            imageUrl,
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) {
+              return const Icon(Icons.error);
+            },
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            },
+          ),
         ),
       ),
     );

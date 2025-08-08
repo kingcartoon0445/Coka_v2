@@ -464,7 +464,7 @@ class _FilterModalState extends State<FilterModal> {
                     allowInputText: false,
                     suggestions: state.paginges,
                     decoration: _inputDecoration,
-                    onChanged: (List<PagingModel> data) {
+                    onChanged: (data) {
                       setState(() {
                         _selectedPagingModels = data;
                       });
@@ -576,7 +576,7 @@ class _FilterModalState extends State<FilterModal> {
               allowInputText: false,
               suggestions: _ratings,
               decoration: _inputDecoration,
-              onChanged: (List<Rating> data) {
+              onChanged: (data) {
                 setState(() {
                   _selectedRatings = data;
                 });
@@ -607,7 +607,7 @@ class _FilterModalState extends State<FilterModal> {
               allowInputText: false,
               suggestions: _categories,
               decoration: _inputDecoration,
-              onChanged: (List<Category> data) {
+              onChanged: (data) {
                 setState(() {
                   _selectedCategories = data;
                 });
@@ -651,7 +651,7 @@ class _FilterModalState extends State<FilterModal> {
                     allowInputText: false,
                     suggestions: state.utmSources,
                     decoration: _inputDecoration,
-                    onChanged: (List<UtmSourceModel> data) {
+                    onChanged: (data) {
                       setState(() {
                         _selectedSources = data;
                       });

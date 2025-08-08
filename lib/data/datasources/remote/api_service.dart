@@ -532,7 +532,232 @@ class ApiService {
       );
     }
   }
+
+  Future<Response> getChatListService(String organizationId,
+      String conversationId, int limit, int offset) async {
+    try {
+      final response = await _dioClient.get(
+        ApiEndpoints.chatList,
+        options: Options(headers: {'organizationId': organizationId}),
+        queryParameters: {
+          'conversationId': conversationId,
+          'limit': limit,
+          'offset': offset,
+        },
+      );
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.chatList),
+      );
+    }
+  }
   // Future<Response> getUserInfoService(String organizationId) async {
   //   return await _dioClient.get('${ApiEndpoints.profileDetail}');
   // }
+
+  Future<Response> updateStatusReadService(
+      String conversationId, String organizationId) async {
+    try {
+      final response = await _dioClient.patch(
+        ApiEndpoints.updateStatusRead(conversationId),
+        options: Options(headers: {'organizationId': organizationId}),
+      );
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions:
+            RequestOptions(path: ApiEndpoints.updateStatusRead(conversationId)),
+      );
+    }
+  }
+
+  Future<Response> sendMessageService(
+      String organizationId, String conversationId, FormData formData) async {
+    try {
+      final response = await _dioClient.post(ApiEndpoints.sendMessage,
+          options: Options(headers: {'organizationid': organizationId}),
+          data: formData);
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.sendMessage),
+      );
+    }
+  }
+
+  Future<Response> sendImageMessageService(
+      String organizationId, FormData formData) async {
+    try {
+      final response = await _dioClient.post(ApiEndpoints.sendMessage,
+          options: Options(headers: {'organizationid': organizationId}),
+          data: formData);
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.sendMessage),
+      );
+    }
+  }
+
+  Future<Response> deleteCustomerService(
+      String id, String organizationId) async {
+    try {
+      final response = await _dioClient.delete(ApiEndpoints.customerPath(id),
+          options: Options(headers: {'organizationId': organizationId}));
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.customerPath(id)),
+      );
+    }
+  }
+
+  Future<Response> getAllWorkspaceService(String organizationId) async {
+    try {
+      final response = await _dioClient.get(ApiEndpoints.getAllWorkspace,
+          options: Options(headers: {'organizationId': organizationId}));
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.getAllWorkspace),
+      );
+    }
+  }
+
+  Future<Response> getBusinessProcessService(
+      String organizationId, String workspaceId) async {
+    try {
+      final response = await _dioClient.getProducts(
+        ApiEndpoints.getBusinessProcess(workspaceId),
+        options: Options(headers: {'organizationId': organizationId}),
+      );
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions:
+            RequestOptions(path: ApiEndpoints.getBusinessProcess(workspaceId)),
+      );
+    }
+  }
+
+  Future<Response> getBusinessProcessTaskService(
+      String organizationId, Map<String, dynamic>? queryParameters) async {
+    try {
+      // XOÁ KEY CÓ VALUE =''
+      if (queryParameters != null) {
+        queryParameters.removeWhere((key, value) => value == '');
+      }
+      final response = await _dioClient.getProducts(
+          ApiEndpoints.getBusinessProcessTask,
+          options: Options(headers: {'organizationId': organizationId}),
+          queryParameters: queryParameters);
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions:
+            RequestOptions(path: ApiEndpoints.getBusinessProcessTask),
+      );
+    }
+  }
+
+  Future<Response> getListPagingService(
+      String organizationId, Map<String, dynamic> data) async {
+    try {
+      final response = await _dioClient.get(
+        ApiEndpoints.getCustomerPaging,
+        options: Options(headers: {'organizationId': organizationId}),
+        queryParameters: data,
+      );
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.getCustomerPaging),
+      );
+    }
+  }
+
+  Future<Response> getProductService(
+      String organizationId, bool isManage) async {
+    try {
+      final response = await _dioClient.getProducts(ApiEndpoints.getProduct,
+          options: Options(headers: {'organizationId': organizationId}));
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.getProduct),
+      );
+    }
+  }
 }
+  

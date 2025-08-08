@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:source_base/config/helper.dart';
 import 'package:source_base/data/models/facebook_chat_response.dart';
 import 'package:source_base/dio/service_locator.dart';
@@ -41,6 +42,53 @@ class _FacebookMessagesTabState extends State<FacebookMessagesTab> {
     // ref
     //     .read(facebookMessageProvider.notifier)
     //     .setupFirebaseListener(widget.organizationId, context);
+  }
+
+  Widget _buildShimmerItem() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Shimmer.fromColors(
+        baseColor: Colors.grey[300]!,
+        highlightColor: Colors.grey[100]!,
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: double.infinity,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    width: 100,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -93,14 +141,21 @@ class _FacebookMessagesTabState extends State<FacebookMessagesTab> {
 
       // final state = ref.watch(customerServiceProvider);
       if (state.status == CustomerServiceStatus.loading) {
-        return _buildLoadingState();
+        return _buildShimmerItem();
       }
 
       if (state.status != CustomerServiceStatus.loading &&
           state.facebookChats.isEmpty) {
         return _buildEmptyState();
       }
+      // Khi gọi ChangeStatusRead, conversationes (state.facebookChats) sẽ chỉ thay đổi nếu bloc emit một state mới với facebookChats đã được cập nhật.
+      // Nếu conversationes không thay đổi sau khi gọi ChangeStatusRead, có thể là do:
+      // 1. Bloc không emit state mới (ví dụ: nếu conversationId không khớp, hoặc emit với cùng instance list).
+      // 2. UI không rebuild vì state.facebookChats không phải là một list mới (cùng instance).
+      // Để đảm bảo UI cập nhật, trong bloc cần emit một list mới (copy) khi cập nhật isRead, ví dụ:
+      // emit(state.copyWith(facebookChats: List.from(state.facebookChats)));
 
+      final conversationes = state.facebookChats;
       return Container(
         color: Colors.white,
         child: RefreshIndicator(
@@ -120,41 +175,31 @@ class _FacebookMessagesTabState extends State<FacebookMessagesTab> {
                     : const SizedBox();
               }
 
-              final conversation = state.facebookChats[index];
+              final conversation = conversationes[index];
               return MessageItem(
                 isRead: conversation.isRead ?? false,
                 id: conversation.id ?? '',
                 organizationId:
                     context.read<OrganizationBloc>().state.organizationId ?? "",
                 sender: conversation.personName ?? '',
-                isFileMessage: false,
                 content: conversation.snippet ?? '',
                 time: conversation.updatedTime != null
                     ? DateTime.fromMillisecondsSinceEpoch(
                             conversation.updatedTime!)
                         .toIso8601String()
                     : '',
+                isFileMessage:
+                    conversation.snippet == null || conversation.snippet == '',
                 platform: conversation.provider ?? '',
                 avatar: conversation.personAvatar,
                 pageAvatar: conversation.pageAvatar,
+                facebookChat: conversation,
               );
             },
           ),
         ),
       );
     });
-  }
-
-  Widget _buildLoadingState() {
-    return Container(
-      color: const Color(0xFFF8F8F8),
-      child: const Center(
-        child: CircularProgressIndicator(
-          strokeWidth: 2,
-          color: Color(0xFF554FE8),
-        ),
-      ),
-    );
   }
 
   Widget _buildEmptyState() {

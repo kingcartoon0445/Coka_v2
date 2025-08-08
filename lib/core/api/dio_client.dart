@@ -9,6 +9,7 @@ import 'interceptors/auth_interceptor.dart';
 class DioClient {
   late final Dio _dio;
   late final Dio _calendarDio;
+  late final Dio _productsDio;
 
   // Singleton instance
   static final DioClient _instance = DioClient._internal();
@@ -26,6 +27,10 @@ class DioClient {
     // Initialize Calendar API client
     _calendarDio = Dio();
     _initializeCalendarDio();
+
+    // Initialize Products API client
+    _productsDio = Dio();
+    _initializeProductsDio();
   }
 
   static const _baseUrlKey = 'api_base_url';
@@ -35,7 +40,10 @@ class DioClient {
   static const String baseUrlCoka = 'https://api.coka.ai';
   static const String baseUrlDev = 'https://dev.coka.ai';
   static const String baseUrlAlpha = 'https://api.alpha.coka.ai';
+
+  // Danh sách base url khác
   static String baseUrlCalendar = 'https://calendar.coka.ai/api';
+  static String baseUrlProducts = 'https://api.products.coka.ai';
 
   /// Configure Dio for primary API
   void _initializeDio() {
@@ -89,6 +97,32 @@ class DioClient {
     }
   }
 
+  /// Configure Dio for Calendar API
+  void _initializeProductsDio() {
+    _productsDio.options = BaseOptions(
+      baseUrl: baseUrlProducts,
+      connectTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 30),
+      validateStatus: (status) => status != null && status < 500,
+      responseType: ResponseType.json,
+    );
+
+    _productsDio.interceptors.add(AuthInterceptor());
+
+    if (AppConfig.isDevelopment) {
+      _productsDio.interceptors.add(
+        PrettyDioLogger(
+          requestHeader: true,
+          requestBody: true,
+          responseHeader: true,
+          responseBody: true,
+          error: true,
+          compact: false,
+        ),
+      );
+    }
+  }
+
   /// Retrieve the stored base URL or return default.
   Future<String> getBaseUrl() async {
     final prefs = await SharedPreferences.getInstance();
@@ -108,6 +142,9 @@ class DioClient {
 
   /// Expose the Calendar Dio instance
   Dio get calendarDioInstance => _calendarDio;
+
+  /// Expose the Products Dio instance
+  Dio get productsDioInstance => _productsDio;
 
   // ---------------------- Primary API methods ----------------------
 
@@ -324,6 +361,118 @@ class DioClient {
   }) async {
     try {
       return await _calendarDio.patch(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+        options: options,
+        cancelToken: cancelToken,
+        onSendProgress: onSendProgress,
+        onReceiveProgress: onReceiveProgress,
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // ------------------ Products API methods ------------------
+
+  Future<Response> getProducts(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+    CancelToken? cancelToken,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    try {
+      return await _productsDio.get(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+        options: options,
+        cancelToken: cancelToken,
+        onReceiveProgress: onReceiveProgress,
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Response> postProducts(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      return await _productsDio.post(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+        options: options,
+        cancelToken: cancelToken,
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Response> putProducts(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+    CancelToken? cancelToken,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    try {
+      return await _productsDio.put(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+        options: options,
+        cancelToken: cancelToken,
+        onSendProgress: onSendProgress,
+        onReceiveProgress: onReceiveProgress,
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Response> deleteProducts(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+    CancelToken? cancelToken,
+  }) async {
+    try {
+      return await _productsDio.delete(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+        options: options,
+        cancelToken: cancelToken,
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<Response> patchProducts(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+    CancelToken? cancelToken,
+    ProgressCallback? onSendProgress,
+    ProgressCallback? onReceiveProgress,
+  }) async {
+    try {
+      return await _productsDio.patch(
         path,
         data: data,
         queryParameters: queryParameters,

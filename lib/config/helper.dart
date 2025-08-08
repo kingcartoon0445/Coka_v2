@@ -14,8 +14,19 @@ import 'package:crypto/crypto.dart';
 class Helpers {
   /// Kiểm tra xem response có thành công hay không
   /// Hỗ trợ các mã: 0 (success), 200 (OK), 201 (Created)
+  ///
+  static String formatCurrency(num amount) {
+    final format = NumberFormat.currency(
+      locale: 'vi_VN', // Locale Việt Nam
+      symbol: '₫', // Ký hiệu tiền
+      decimalDigits: 0, // Không có phần thập phân
+    );
+    return format.format(amount);
+  }
+
   static bool isResponseSuccess(Map<String, dynamic>? response) {
     if (response == null) return false;
+    if (response['success'] == true) return true;
     if (response['StatusCode'] == 200) return true;
     final code = response['code'];
     return code == 0 || code == 200 || code == 201;
@@ -487,7 +498,9 @@ class ChatHelpers {
 
     // Nếu là URL đầy đủ
     if (imgData.startsWith('https://') || imgData.startsWith('http://')) {
-      return CachedNetworkImageProvider(imgData);
+      return CachedNetworkImageProvider(
+        imgData,
+      );
     }
 
     // Nếu là base64

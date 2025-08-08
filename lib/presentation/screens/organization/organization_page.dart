@@ -4,6 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:source_base/config/app_color.dart';
 import 'package:source_base/config/helper.dart';
 import 'package:source_base/config/routes.dart';
 import 'package:source_base/config/test_style.dart';
@@ -13,6 +14,7 @@ import 'package:source_base/data/models/organization_model.dart';
 import 'package:source_base/data/models/user_profile.dart';
 import 'package:source_base/presentation/blocs/auth/auth_bloc.dart';
 import 'package:source_base/presentation/blocs/auth/auth_event.dart';
+import 'package:source_base/presentation/blocs/final_deal/model/workspace_response.dart';
 import 'package:source_base/presentation/screens/shared/widgets/avatar_widget.dart';
 import 'package:source_base/presentation/screens/shared/widgets/custom_bottom_navigation.dart';
 import 'package:source_base/presentation/screens/shared/widgets/notification_list_widget.dart';
@@ -20,6 +22,7 @@ import 'package:source_base/presentation/screens/shared/widgets/organization_dra
 import 'package:source_base/presentation/widget/language_switcher.dart';
 
 import '../../blocs/customer_service/customer_service_action.dart';
+import '../../blocs/final_deal/final_deal_action.dart';
 import '../../blocs/organization/organization_action_bloc.dart';
 
 class OrganizationPage extends StatefulWidget {
@@ -182,7 +185,7 @@ class _OrganizationPageState extends State<OrganizationPage> {
     );
   }
 
-  Widget _buildTitle(BuildContext context) {
+  Widget _buildTitle(BuildContext context, int index) {
     final location = GoRouterState.of(context).uri.path;
     if (location.contains('/messages')) {
       return const Text('Tin nhắn');
@@ -205,7 +208,9 @@ class _OrganizationPageState extends State<OrganizationPage> {
     if (_organizationInfo == null && widget.organizationId != 'default') {
       return _buildSkeletonTitle();
     }
-
+    if (index == 1) {
+      return const CustomDropdown();
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -234,11 +239,11 @@ class _OrganizationPageState extends State<OrganizationPage> {
 
   int _calculateSelectedIndex(BuildContext context) {
     final location = GoRouterState.of(context).uri.path;
-    if (location.contains('/messages')) {
-      return 1;
+    if (location.contains(AppPaths.organization(widget.organizationId))) {
+      return 0;
     }
-    if (location.contains('/campaigns')) {
-      return 2;
+    if (location.contains(AppPaths.finalDeal(widget.organizationId))) {
+      return 1;
     }
     return 0;
   }
@@ -252,10 +257,10 @@ class _OrganizationPageState extends State<OrganizationPage> {
   void _onItemTapped(int index, BuildContext context) {
     switch (index) {
       case 0:
-        context.replace('/organization/${widget.organizationId}');
+        context.replace(AppPaths.organization(widget.organizationId));
         break;
       case 1:
-        context.replace(AppPaths.messages(widget.organizationId));
+        context.replace(AppPaths.finalDeal(widget.organizationId));
         break;
       case 2:
         context.replace('/organization/${widget.organizationId}/campaigns');
@@ -456,7 +461,8 @@ class _OrganizationPageState extends State<OrganizationPage> {
                 ? null
                 : AppBar(
                     leading: _buildAvatar(),
-                    title: _buildTitle(context),
+                    title:
+                        _buildTitle(context, _calculateSelectedIndex(context)),
                     actions: [
                       const LanguageDropdown(),
                       Padding(
@@ -519,5 +525,95 @@ class _OrganizationPageState extends State<OrganizationPage> {
                   ),
           );
         });
+  }
+}
+
+class CustomDropdown extends StatefulWidget {
+  const CustomDropdown({super.key});
+
+  @override
+  _CustomDropdownState createState() => _CustomDropdownState();
+}
+
+class _CustomDropdownState extends State<CustomDropdown> {
+  bool isOpen = false;
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<FinalDealBloc, FinalDealState>(
+        builder: (context, state) {
+      return Align(
+        alignment: Alignment.centerLeft, // Cho dropdown mở từ trên xuống
+        child: PopupMenuButton<WorkspaceModel>(
+          color: Colors.white,
+          onOpened: () {
+            setState(() {
+              isOpen = true;
+            });
+          },
+          onCanceled: () {
+            setState(() {
+              isOpen = false;
+            });
+          },
+          onSelected: (WorkspaceModel value) {
+            setState(() {
+              context.read<FinalDealBloc>().add(FinalDealSelectWorkspace(
+                    workspace: value,
+                    organizationId:
+                        context.read<OrganizationBloc>().state.organizationId ??
+                            '',
+                  ));
+              isOpen = false;
+            });
+          },
+          itemBuilder: (BuildContext context) {
+            return state.workspaces.map((WorkspaceModel choice) {
+              final isSelected = choice == state.selectedWorkspace;
+              return PopupMenuItem<WorkspaceModel>(
+                value: choice,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      choice.name ?? '',
+                      style: TextStyle(
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.normal,
+                        color: isSelected ? AppColors.primary : Colors.black,
+                      ),
+                    ),
+                    if (isSelected)
+                      const Icon(Icons.check,
+                          color: AppColors.primary, size: 18),
+                  ],
+                ),
+              );
+            }).toList();
+          },
+          offset: const Offset(0, 45), // mở lên trên một chút
+
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              // border: Border.all(color: Colors.grey.shade400),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  state.selectedWorkspace?.name ?? '',
+                  style: const TextStyle(fontSize: 16),
+                ),
+                const SizedBox(width: 8),
+                isOpen
+                    ? const Icon(Icons.keyboard_arrow_up)
+                    : const Icon(Icons.keyboard_arrow_down),
+              ],
+            ),
+          ),
+        ),
+      );
+    });
   }
 }

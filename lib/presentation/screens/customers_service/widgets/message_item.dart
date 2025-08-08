@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:source_base/config/app_color.dart';
+import 'package:source_base/config/routes.dart';
+import 'package:source_base/data/models/facebook_chat_response.dart';
 import 'package:source_base/presentation/screens/shared/widgets/avatar_widget.dart';
 import 'package:timeago/timeago.dart' as timeago;
+
+import '../../../blocs/chat/chat_aciton.dart';
+import '../../../blocs/customer_service/customer_service_action.dart';
 
 class MessageItem extends StatelessWidget {
   final String id;
@@ -16,7 +21,7 @@ class MessageItem extends StatelessWidget {
   final bool isFileMessage; // Biến này có thể được sử dụng nếu cần thiết
   final String? avatar;
   final String? pageAvatar;
-
+  final FacebookChatModel facebookChat;
   const MessageItem({
     super.key,
     required this.id,
@@ -29,6 +34,7 @@ class MessageItem extends StatelessWidget {
     required this.platform,
     this.avatar,
     this.pageAvatar,
+    required this.facebookChat,
   });
 
   String _getFirstAndLastWord(String text) {
@@ -49,6 +55,25 @@ class MessageItem extends StatelessWidget {
   void _handleTap(
     BuildContext context,
   ) {
+    if (!isRead) {
+      context.read<CustomerServiceBloc>().add(
+          ChangeStatusRead(organizationId: organizationId, conversationId: id));
+    }
+    // context.read<ChatBloc>().add(LoadFacebookChat(facebookChat: facebookChat));
+    context
+        .read<CustomerServiceBloc>()
+        .add(LoadFacebookChat(facebookChat: facebookChat));
+    context.read<ChatBloc>().add(ToolListenFirebase(
+          organizationId: organizationId ?? '',
+          conversationId: id,
+        ));
+    context.push(AppPaths.chatDetail).then((v) {
+      context
+          .read<CustomerServiceBloc>()
+          .add(const LoadFacebookChat(facebookChat: null));
+      // ignore: use_build_context_synchronously
+      context.read<ChatBloc>().add(DisableFirebaseListener());
+    });
     // Kiểm tra conversation trong state tương ứng và cập nhật selected conversation
     // if (platform == 'FACEBOOK') {
     //   if (ref
@@ -101,7 +126,7 @@ class MessageItem extends StatelessWidget {
     // }
 
     // Điều hướng đến trang chi tiết
-    context.push('/organization/$organizationId/messages/detail/$id');
+    // context.push('/organization/$organizationId/messages/detail/$id');
   }
 
   @override

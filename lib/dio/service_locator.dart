@@ -5,14 +5,21 @@ import 'package:source_base/data/datasources/local/shared_preferences_service.da
 import 'package:source_base/data/datasources/remote/api_calendar_service.dart';
 import 'package:source_base/data/datasources/remote/api_service.dart';
 import 'package:source_base/data/repositories/calendar_repository.dart';
+import 'package:source_base/data/repositories/chat_repository.dart';
+import 'package:source_base/data/repositories/final_deal_repository.dart';
 import 'package:source_base/data/repositories/origanzation_repository.dart';
+import 'package:source_base/data/repositories/switch_final_deal_repository.dart';
 import 'package:source_base/data/repositories/user_repository.dart';
 import 'package:source_base/presentation/blocs/auth/auth_bloc.dart';
 import 'package:source_base/presentation/blocs/customer_service/customer_service_bloc.dart';
 import 'package:source_base/presentation/blocs/organization/organization_bloc.dart';
 import 'package:source_base/presentation/blocs/theme/theme_bloc.dart';
 
+import '../presentation/blocs/chat/chat_aciton.dart';
 import '../presentation/blocs/filter_item/filter_item_aciton.dart';
+import '../presentation/blocs/final_deal/final_deal_action.dart';
+import '../presentation/blocs/switch_final_deal/switch_final_deal_bloc.dart';
+import '../presentation/blocs/switch_final_deal/switch_final_deal_action.dart';
 
 // Khởi tạo GetIt singleton
 final GetIt getIt = GetIt.instance;
@@ -39,8 +46,15 @@ Future<void> setupServiceLocator() async {
       ));
   getIt.registerLazySingleton<OrganizationRepository>(
       () => OrganizationRepository(apiService: getIt<ApiService>()));
+
   getIt.registerLazySingleton<CalendarRepository>(() =>
       CalendarRepository(apiCalendarService: getIt<ApiCalendarService>()));
+  getIt.registerLazySingleton<ChatRepository>(
+      () => ChatRepository(apiService: getIt<ApiService>()));
+  getIt.registerLazySingleton<FinalDealRepository>(
+      () => FinalDealRepository(apiService: getIt<ApiService>()));
+  getIt.registerLazySingleton<SwitchFinalDealRepository>(
+      () => SwitchFinalDealRepository(apiService: getIt<ApiService>()));
   // BLoCs
   getIt.registerFactory<ThemeBloc>(() => ThemeBloc());
   getIt.registerFactory<AuthBloc>(
@@ -53,4 +67,11 @@ Future<void> setupServiceLocator() async {
       ));
   getIt.registerFactory<FilterItemBloc>(() =>
       FilterItemBloc(organizationRepository: getIt<OrganizationRepository>()));
+  getIt.registerFactory<ChatBloc>(
+      () => ChatBloc(chatRepository: getIt<ChatRepository>()));
+  getIt.registerFactory<FinalDealBloc>(
+      () => FinalDealBloc(repository: getIt<FinalDealRepository>()));
+  getIt.registerFactory<SwitchFinalDealBloc>(() => SwitchFinalDealBloc(
+      repository: getIt<SwitchFinalDealRepository>(),
+      finalRepository: getIt<FinalDealRepository>()));
 }

@@ -219,4 +219,42 @@ class OrganizationRepository {
       );
     }
   }
+
+  Future<Response> updateStatusRead(
+      String conversationId, String organizationId) async {
+    try {
+      final response = await apiService.updateStatusReadService(
+          conversationId, organizationId);
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.login),
+      );
+    }
+  }
+
+  Future<Response> deleteCustomerService(String id, String organizationId) async {
+    try {
+      final response = await apiService.deleteCustomerService(id, organizationId);
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.login),
+      );
+    }
+  }
 }

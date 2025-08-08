@@ -24,7 +24,8 @@ class CustomerServiceState extends Equatable {
   final List<ServiceDetailModel> serviceDetails;
   final List<ScheduleModel> scheduleDetails;
   final List<FacebookChatModel> facebookChats;
-  final String? error; 
+  final FacebookChatModel? facebookChat;
+  final String? error;
   final Metadata? serviceDetailsMetadata;
   final bool hasMoreServiceDetails;
   final Metadata? customersMetadata;
@@ -33,13 +34,14 @@ class CustomerServiceState extends Equatable {
   final bool hasMoreFacebookChats;
   final LeadPagingRequest? pagingRequest;
   const CustomerServiceState({
-    this.status = CustomerServiceStatus.initial,
+    this.status = CustomerServiceStatus.loading,
     this.customerServices = const [],
     this.customerService,
     this.serviceDetails = const [],
     this.scheduleDetails = const [],
     this.facebookChats = const [],
-    this.error, 
+    this.facebookChat,
+    this.error,
     this.serviceDetailsMetadata,
     this.hasMoreServiceDetails = false,
     this.customersMetadata,
@@ -56,6 +58,7 @@ class CustomerServiceState extends Equatable {
     List<ServiceDetailModel>? serviceDetails,
     List<ScheduleModel>? scheduleDetails,
     List<FacebookChatModel>? facebookChats,
+    FacebookChatModel? facebookChat,
     String? error,
     String? organizationId,
     Metadata? serviceDetailsMetadata,
@@ -73,7 +76,8 @@ class CustomerServiceState extends Equatable {
       serviceDetails: serviceDetails ?? this.serviceDetails,
       scheduleDetails: scheduleDetails ?? this.scheduleDetails,
       facebookChats: facebookChats ?? this.facebookChats,
-      error: error ?? this.error, 
+      facebookChat: facebookChat ?? this.facebookChat,
+      error: error ?? this.error,
       serviceDetailsMetadata:
           serviceDetailsMetadata ?? this.serviceDetailsMetadata,
       hasMoreServiceDetails:
@@ -90,12 +94,13 @@ class CustomerServiceState extends Equatable {
   @override
   List<Object?> get props => [
         status,
-        error, 
+        error,
         customerServices,
         customerService,
         serviceDetails,
         scheduleDetails,
         facebookChats,
+        facebookChat,
         serviceDetailsMetadata,
         hasMoreServiceDetails,
         customersMetadata,

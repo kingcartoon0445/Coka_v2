@@ -1,9 +1,8 @@
-import 'dart:io';
-
 import 'package:equatable/equatable.dart';
-import 'package:flutter/material.dart';
+import 'package:source_base/config/enum_platform.dart';
 import 'package:source_base/data/datasources/remote/param_model/lead_paging_request_model.dart';
 import 'package:source_base/data/models/customer_service_response.dart';
+import 'package:source_base/data/models/facebook_chat_response.dart';
 import 'package:source_base/data/models/reminder_service_body.dart';
 
 abstract class CustomerServiceEvent extends Equatable {
@@ -164,6 +163,67 @@ class StorageUnArchiveCustomer extends CustomerServiceEvent {
   final String organizationId;
 
   const StorageUnArchiveCustomer({
+    required this.customerId,
+    required this.organizationId,
+  });
+}
+
+class ChangeStatusRead extends CustomerServiceEvent {
+  final String organizationId;
+  final String conversationId;
+  const ChangeStatusRead({
+    required this.organizationId,
+    required this.conversationId,
+  });
+}
+
+class FirebaseConversationUpdated extends CustomerServiceEvent {
+  final FacebookChatModel conversation;
+  final String organizationId;
+  final bool isUpdate;
+  bool isRead;
+
+  FirebaseConversationUpdated({
+    required this.conversation,
+    required this.organizationId,
+    this.isUpdate = false,
+    this.isRead = false,
+  });
+}
+
+class ToggleFirebaseListenerRequested extends CustomerServiceEvent {
+  final String organizationId;
+  final bool isEnabled;
+  final PlatformSocial platform;
+
+  const ToggleFirebaseListenerRequested({
+    required this.organizationId,
+    required this.isEnabled,
+    required this.platform,
+  });
+}
+
+class DisableFirebaseListenerRequested extends CustomerServiceEvent {
+  final String organizationId;
+
+  const DisableFirebaseListenerRequested({
+    required this.organizationId,
+  });
+}
+
+class LoadFacebookChat extends CustomerServiceEvent {
+  final FacebookChatModel? facebookChat;
+
+  const LoadFacebookChat({
+    this.facebookChat,
+  });
+}
+
+class DeleteCustomer extends CustomerServiceEvent {
+  final String customerId;
+  final String organizationId;
+
+  const DeleteCustomer({
     required this.customerId,
     required this.organizationId,
   });

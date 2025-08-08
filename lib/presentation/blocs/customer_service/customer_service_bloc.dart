@@ -1,3 +1,8 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:developer';
+
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:source_base/config/helper.dart';
 import 'package:source_base/data/models/customer_service_response.dart';
@@ -14,6 +19,8 @@ class CustomerServiceBloc
     extends Bloc<CustomerServiceEvent, CustomerServiceState> {
   final OrganizationRepository organizationRepository;
   final CalendarRepository calendarRepository;
+  StreamSubscription? _firebaseListener;
+
   CustomerServiceBloc({
     required this.organizationRepository,
     required this.calendarRepository,
@@ -25,10 +32,23 @@ class CustomerServiceBloc
     on<PostCustomerNote>(_onPostCustomerNote);
     on<UpdateNoteMark>(_onUpdateNoteMark);
     on<CreateReminder>(_onCreateReminder);
+    on<ChangeStatusRead>(_onChangeStatusRead);
     on<LoadFirstProviderChat>(_onLoadFirstProviderChat);
     on<LoadMoreProviderChats>(_onLoadMoreProviderChats);
     on<StorageConvertToCustomer>(_onStorageConvertToCustomer);
     on<StorageUnArchiveCustomer>(_onStorageUnArchiveCustomer);
+    on<FirebaseConversationUpdated>(_onFirebaseConversationUpdated);
+    on<ToggleFirebaseListenerRequested>(_onToggleFirebaseListenerRequested);
+    on<DisableFirebaseListenerRequested>(_onDisableFirebaseListenerRequested);
+    on<LoadFacebookChat>(_onLoadFacebookChat);
+    on<DeleteCustomer>(_onDeleteCustomer);
+  }
+
+  Future<void> _onLoadFacebookChat(
+    LoadFacebookChat event,
+    Emitter<CustomerServiceState> emit,
+  ) async {
+    emit(state.copyWith(facebookChat: event.facebookChat));
   }
 
   Future<void> _onLoadCustomerService(
@@ -447,5 +467,179 @@ class CustomerServiceBloc
           status: CustomerServiceStatus.error,
           error: response.data['message'] as String? ?? 'Unknown error'));
     }
+  }
+
+  Future<void> _onChangeStatusRead(
+    ChangeStatusRead event,
+    Emitter<CustomerServiceState> emit,
+  ) async {
+    final response = await organizationRepository.updateStatusRead(
+        event.conversationId, event.organizationId);
+    final bool isSuccess = Helpers.isResponseSuccess(response.data);
+    if (isSuccess) {
+      final updatedChats = List<FacebookChatModel>.from(state.facebookChats);
+      final index = updatedChats
+          .indexWhere((element) => element.id == event.conversationId);
+      if (index != -1) {
+        updatedChats[index] = updatedChats[index].copyWith(isRead: true);
+      }
+      emit(state.copyWith(facebookChats: updatedChats));
+    }
+  }
+
+  void _onDisableFirebaseListenerRequested(
+    DisableFirebaseListenerRequested event,
+    Emitter<CustomerServiceState> emit,
+  ) async {
+    disableFirebaseListener();
+  }
+
+  void _onToggleFirebaseListenerRequested(
+    ToggleFirebaseListenerRequested event,
+    Emitter<CustomerServiceState> emit,
+  ) async {
+    final ref = FirebaseDatabase.instance
+        .ref('root/OrganizationId: ${event.organizationId}');
+    await _firebaseListener?.cancel();
+    _firebaseListener = ref.onValue.listen((eventListen) {
+      final data = (eventListen.snapshot.value ?? {}) as Map;
+      log('🔍 Firebase data: $data');
+      if (!data.containsKey("CreateOrUpdateConversation")) return;
+      try {
+        final outerKey = data["CreateOrUpdateConversation"].keys.first;
+        // final conversationId = outerKey.split(': ').last;
+        // final isDetailUpdate = event.currentConversationId == conversationId;
+
+        final rawData = data["CreateOrUpdateConversation"][outerKey];
+
+        log('🔍 Firebase data: $rawData');
+        final jsonString = jsonEncode(rawData);
+        final FacebookChatModel newConversation =
+            FacebookChatModel.fromFirebase(jsonDecode(jsonString));
+        if (newConversation.conversationId == state.facebookChat?.id) {
+          newConversation.isRead = true;
+        }
+
+        add(FirebaseConversationUpdated(
+          organizationId: event.organizationId,
+          conversation: newConversation,
+          isUpdate: true,
+          // isRead: isDetailUpdate,
+        ));
+      } catch (e) {
+        print("Error parsing Firebase message: $e");
+      }
+    });
+  }
+
+  Future<void> _onFirebaseConversationUpdated(
+    FirebaseConversationUpdated event,
+    Emitter<CustomerServiceState> emit,
+  ) async {
+    final existingIndex = state.facebookChats
+        .indexWhere((e) => e.id == event.conversation.conversationId);
+    List<FacebookChatModel> updatedChats = List.from(state.facebookChats);
+    bool isRead = false;
+    //Nếu đang ở trong chi tiết chat thì đánh đấu đã đọc
+    if (state.facebookChat?.id == event.conversation.conversationId) {
+      isRead = true;
+      if (updatedChats.first.isRead == true) {
+        add(ChangeStatusRead(
+            conversationId: updatedChats.first.id ?? '',
+            organizationId: event.organizationId));
+      }
+    }
+    if (state.facebookChat?.pageId == event.conversation.pageId) {
+      isRead = true;
+    }
+    if (existingIndex != -1) {
+      log('🔍 updatedChats[existingIndex].pageId: ${updatedChats[existingIndex].pageId}');
+      log('🔍 event.conversation.pageId: ${event.conversation.pageId}');
+      if (updatedChats[existingIndex].pageId == event.conversation.pageId) {
+        isRead = true;
+      }
+      // Nếu đã có, xóa ở vị trí cũ và chèn lên đầu
+      updatedChats[existingIndex].isRead = event.conversation.isRead;
+      updatedChats[existingIndex].snippet = event.conversation.snippet;
+      // Copy all values from updatedChats[existingIndex] to event.conversation, except isRead and snippet
+      event.conversation
+        ..id = updatedChats[existingIndex].id
+        ..integrationAuthId = updatedChats[existingIndex].integrationAuthId
+        ..conversationId = updatedChats[existingIndex].conversationId
+        ..pageId = updatedChats[existingIndex].pageId
+        ..pageName = updatedChats[existingIndex].pageName
+        ..pageAvatar = updatedChats[existingIndex].pageAvatar
+        ..personId = updatedChats[existingIndex].personId
+        ..personName = updatedChats[existingIndex].personName
+        ..personAvatar = updatedChats[existingIndex].personAvatar
+        // snippet: keep event.conversation.snippet
+        ..unreadCount = updatedChats[existingIndex].unreadCount
+        ..canReply = updatedChats[existingIndex].canReply
+        ..updatedTime = updatedChats[existingIndex].updatedTime
+        ..gptStatus = updatedChats[existingIndex].gptStatus
+        ..isRead = isRead
+        // isRead: keep event.conversation.isRead
+        ..type = updatedChats[existingIndex].type
+        ..provider = updatedChats[existingIndex].provider
+        ..status = updatedChats[existingIndex].status
+        ..contact = updatedChats[existingIndex].contact
+        ..messageCount = updatedChats[existingIndex].messageCount
+        ..assignTo = updatedChats[existingIndex].assignTo
+        ..assignName = updatedChats[existingIndex].assignName
+        ..assignAvatar = updatedChats[existingIndex].assignAvatar;
+      final existingChat = updatedChats.removeAt(existingIndex);
+      updatedChats.insert(0, event.conversation);
+    } else {
+      // Nếu chưa có, thêm mới vào đầu danh sách
+      updatedChats.insert(
+          0,
+          event.conversation.copyWith(
+            isRead: isRead,
+          ));
+    }
+
+    log('🔍 updatedChats: $updatedChats');
+
+    emit(state.copyWith(facebookChats: updatedChats));
+    // return;
+    // final updated = event.conversation.copyWith(isRead: event.isRead);
+    // final index = state.facebookChats.indexWhere((e) => e.id == updated.id);
+    // final newList = [...state.facebookChats];
+    // if (index != -1) {
+    //   newList[index] = updated;
+    // } else {
+    //   newList.insert(0, updated);
+    // }
+    // emit(state.copyWith(facebookChats: newList));
+  }
+
+  Future<void> _onDeleteCustomer(
+    DeleteCustomer event,
+    Emitter<CustomerServiceState> emit,
+  ) async {
+    final response = await organizationRepository.deleteCustomerService(
+        event.customerId, event.organizationId);
+    final bool isSuccess = Helpers.isResponseSuccess(response.data);
+    if (isSuccess) {
+      final updatedCustomers = state.customerServices
+          .where((element) => element.id != event.customerId)
+          .toList();
+      emit(state.copyWith(
+          status: CustomerServiceStatus.success,
+          customerServices: updatedCustomers));
+    } else {
+      emit(state.copyWith(status: CustomerServiceStatus.error));
+    }
+  }
+
+  void disableFirebaseListener() {
+    _firebaseListener?.cancel();
+    _firebaseListener = null;
+  }
+
+  @override
+  Future<void> close() {
+    _firebaseListener?.cancel();
+    return super.close();
   }
 }

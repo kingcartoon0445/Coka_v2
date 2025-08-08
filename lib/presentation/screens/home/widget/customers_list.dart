@@ -256,8 +256,7 @@ class _CustomersListState extends State<CustomersList> {
       child: BlocBuilder<CustomerServiceBloc, CustomerServiceState>(
         builder: (context, state) {
           // Show shimmer loading only for initial load when no data
-          if (state.status == CustomerServiceStatus.loading &&
-              state.customerServices.isEmpty) {
+          if (state.status == CustomerServiceStatus.loadingUserInfo) {
             return Column(
               children: List.generate(
                 5,
@@ -294,7 +293,8 @@ class _CustomersListState extends State<CustomersList> {
           }
 
           // Show empty state
-          if (state.customerServices.isEmpty) {
+          if (state.customerServices.isEmpty &&
+              state.status != CustomerServiceStatus.loadingUserInfo) {
             return const Center(
               child: Text(
                 'Không có khách hàng nào',

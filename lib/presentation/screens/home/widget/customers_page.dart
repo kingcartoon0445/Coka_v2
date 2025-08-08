@@ -9,6 +9,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:source_base/config/app_color.dart';
 import 'package:source_base/config/app_constans.dart';
+import 'package:source_base/config/enum_platform.dart';
 import 'package:source_base/data/datasources/remote/param_model/lead_paging_request_model.dart';
 import 'package:source_base/presentation/blocs/customer_service/customer_service_bloc.dart';
 import 'package:source_base/presentation/blocs/customer_service/customer_service_event.dart';
@@ -359,18 +360,39 @@ class _CustomersPageState extends State<CustomersPage>
           dividerColor: Colors.transparent,
           indicatorSize: TabBarIndicatorSize.label,
           onTap: (value) {
+            context.read<CustomerServiceBloc>().add(
+                  DisableFirebaseListenerRequested(
+                    organizationId: widget.organizationId,
+                  ),
+                );
             switch (value) {
               case 0:
+
                 // ref.read(customerServiceBlocProvider.notifier).add(LoadFacebookChat(organizationId: widget.organizationId));
                 break;
               case 1:
                 context.read<CustomerServiceBloc>().add(LoadFirstProviderChat(
                     organizationId: widget.organizationId,
                     provider: 'FACEBOOK'));
+                context.read<CustomerServiceBloc>().add(
+                      ToggleFirebaseListenerRequested(
+                        organizationId: widget.organizationId,
+                        isEnabled: true,
+                        platform: PlatformSocial.facebook,
+                      ),
+                    );
+
                 break;
               case 2:
                 context.read<CustomerServiceBloc>().add(LoadFirstProviderChat(
                     organizationId: widget.organizationId, provider: 'ZALO'));
+                context.read<CustomerServiceBloc>().add(
+                      ToggleFirebaseListenerRequested(
+                        organizationId: widget.organizationId,
+                        isEnabled: true,
+                        platform: PlatformSocial.zalo,
+                      ),
+                    );
                 // ref.read(customerServiceBlocProvider.notifier).add(LoadFacebookChat(organizationId: widget.organizationId));
                 break;
               case 3:
@@ -560,6 +582,53 @@ class _CustomersPageState extends State<CustomersPage>
       // _currentFilter = null;
     });
     _fetchCustomerCounts();
+  }
+
+  Widget _buildShimmerItem() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Shimmer.fromColors(
+        baseColor: Colors.grey[300]!,
+        highlightColor: Colors.grey[100]!,
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: double.infinity,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    width: 100,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildActiveFiltersBar() {
@@ -922,9 +991,7 @@ class _CustomersPageState extends State<CustomersPage>
         body: BlocBuilder<CustomerServiceBloc, CustomerServiceState>(
             builder: (context, state) {
           if (state.status == CustomerServiceStatus.loading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return _buildShimmerItem();
           }
           if (state.status == CustomerServiceStatus.error) {
             return ErrorMessageWidget(
@@ -1037,6 +1104,12 @@ class _CustomersPageState extends State<CustomersPage>
                 color: Colors.black,
               ),
               onTap: () {
+                // context.read<CustomerServiceBloc>().add(
+                //       ToggleFirebaseListenerRequested(
+                //         organizationId: widget.organizationId,
+                //         isEnabled: true,
+                //       ),
+                //     );
                 // context.push(
                 //   '/organization/${widget.organizationId}/workspace/${widget.workspaceId}/customers/new',
                 // );

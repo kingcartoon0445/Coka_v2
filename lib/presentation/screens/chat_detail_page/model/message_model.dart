@@ -11,6 +11,7 @@ class Message {
   final String message;
   final bool isFromMe;
   final int? timestamp;
+  final bool? isPageReply;
   final bool? isGpt;
   final String? type;
   final String fullName;
@@ -19,6 +20,7 @@ class Message {
   final String? localId;
   final bool sending;
   final FileAttachment? fileAttachment;
+  final String? avatar;
 
   Message({
     required this.id,
@@ -31,6 +33,7 @@ class Message {
     this.toName,
     required this.message,
     this.timestamp,
+    this.isPageReply,
     this.isGpt,
     this.type,
     required this.fullName,
@@ -39,6 +42,7 @@ class Message {
     this.localId,
     this.sending = false,
     this.fileAttachment,
+    this.avatar,
   });
 
   // bool get isFromMe =>
@@ -48,15 +52,17 @@ class Message {
 
   String get senderName => fromName;
 
-  String? get senderAvatar => null; // TODO: Add avatar from API if available
+  String? get senderAvatar => avatar;
 
   factory Message.fromJson(Map<String, dynamic> json) {
     List<Attachment>? attachments;
     if (json['attachments'] != null) {
       try {
-        final List<dynamic> attachmentsList =
-            json['attachments'] is String ? jsonDecode(json['attachments']) : json['attachments'];
-        attachments = attachmentsList.map((e) => Attachment.fromJson(e)).toList();
+        final List<dynamic> attachmentsList = json['attachments'] is String
+            ? jsonDecode(json['attachments'])
+            : json['attachments'];
+        attachments =
+            attachmentsList.map((e) => Attachment.fromJson(e)).toList();
       } catch (e) {
         print('Error parsing attachments: $e');
       }
@@ -84,6 +90,7 @@ class Message {
       timestamp: json['timestamp'] is int
           ? json['timestamp']
           : int.tryParse(json['timestamp']?.toString() ?? '0') ?? 0,
+      isPageReply: json['isPageReply'] ?? false,
       isGpt: json['isGpt'] ?? false,
       type: json['type'] ?? 'MESSAGE',
       fullName: json['fullName'] ?? '',
@@ -92,6 +99,7 @@ class Message {
       localId: json['localId'],
       sending: json['sending'] ?? false,
       fileAttachment: fileAttachment,
+      avatar: json['avatar'],
     );
   }
 }
@@ -120,6 +128,15 @@ class Attachment {
       payload: payload,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'type': type,
+      'url': url,
+      'name': name,
+      'payload': payload,
+    };
+  }
 }
 
 class FileAttachment {
@@ -139,7 +156,9 @@ class FileAttachment {
     return FileAttachment(
       name: json['name']?.toString() ?? '',
       type: json['type']?.toString() ?? '',
-      size: json['size'] is int ? json['size'] : int.tryParse(json['size']?.toString() ?? '0') ?? 0,
+      size: json['size'] is int
+          ? json['size']
+          : int.tryParse(json['size']?.toString() ?? '0') ?? 0,
       url: json['url']?.toString() ?? '',
     );
   }

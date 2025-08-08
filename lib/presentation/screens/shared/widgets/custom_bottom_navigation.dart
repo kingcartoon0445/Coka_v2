@@ -42,16 +42,16 @@ class CustomBottomNavigation extends StatelessWidget {
             icon: const Icon(Icons.favorite_border_outlined, size: 26),
             selectedIcon: const Icon(
               Icons.favorite_border_outlined,
-              size: 22,
+              size: 30,
               color: Color(0xFF5A48EF),
             ),
             label: "customer_care".tr(),
           ),
           NavigationDestination(
-            icon: const Icon(Icons.handshake_outlined, size: 22),
+            icon: const Icon(Icons.handshake_outlined, size: 26),
             selectedIcon: const Icon(
               Icons.handshake_outlined,
-              size: 22,
+              size: 30,
               color: Color(0xFF5A48EF),
             ),
             label: "customer_label".tr(),
@@ -59,11 +59,11 @@ class CustomBottomNavigation extends StatelessWidget {
           NavigationDestination(
             icon: const Icon(
               Icons.person_outline_outlined,
-              size: 22,
+              size: 26,
             ),
             selectedIcon: const Icon(
               Icons.person_outline_outlined,
-              size: 22,
+              size: 30,
               color: Color(0xFF5A48EF),
             ),
             label: "customer_label".tr(),
@@ -71,11 +71,11 @@ class CustomBottomNavigation extends StatelessWidget {
           NavigationDestination(
             icon: const Icon(
               Icons.holiday_village_outlined,
-              size: 22,
+              size: 26,
             ),
             selectedIcon: const Icon(
               Icons.holiday_village_outlined,
-              size: 22,
+              size: 30,
               color: Color(0xFF5A48EF),
             ),
             label: "product_label".tr(),
@@ -83,11 +83,11 @@ class CustomBottomNavigation extends StatelessWidget {
           NavigationDestination(
             icon: const Icon(
               Icons.keyboard_control,
-              size: 22,
+              size: 26,
             ),
             selectedIcon: const Icon(
               Icons.keyboard_control,
-              size: 22,
+              size: 30,
               color: Color(0xFF5A48EF),
             ),
             label: "expand".tr(),
@@ -101,7 +101,7 @@ class CustomBottomNavigation extends StatelessWidget {
         elevation: 4,
         shadowColor: Colors.black,
         surfaceTintColor: Colors.white,
-        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+        labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
         height: 68,
       ),
     );

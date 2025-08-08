@@ -2,9 +2,12 @@ import 'package:go_router/go_router.dart';
 import 'package:source_base/presentation/screens/auth/complete_profile_page.dart';
 import 'package:source_base/presentation/screens/auth/login_screen.dart';
 import 'package:source_base/presentation/screens/auth/verify_otp_page.dart';
+import 'package:source_base/presentation/screens/chat_detail_page/chat_detail_page.dart';
 import 'package:source_base/presentation/screens/customers_service/customer_service_detail/customer_detail_page.dart';
 import 'package:source_base/presentation/screens/home/home_screen.dart';
 import 'package:source_base/presentation/screens/organization/organization_page.dart';
+
+import '../presentation/screens/final_deal/final_deal_page.dart';
 
 class AppPaths {
   // Private constructor to prevent instantiation
@@ -15,11 +18,14 @@ class AppPaths {
   static const String login = '/';
   static const String completeProfile = '/complete-profile';
 
+  static String finalDeal(String organizationId) =>
+      '/finalDeal/$organizationId';
+
   static String verifyOtp(String email, String otpId) =>
       '/verify-otp?email=$email&otpId=$otpId';
   // Organization creation
   static const String createOrganization = '/organization/create';
-
+  static const String chatDetail = '/organization/messages/detail';
   // Organization base paths
   static String organization(String organizationId) =>
       '/organization/$organizationId';
@@ -31,8 +37,8 @@ class AppPaths {
       '/organization/$organizationId/messages';
   static String messageSettings(String organizationId) =>
       '/organization/$organizationId/messages/settings';
-  static String chatDetail(String organizationId, String conversationId) =>
-      '/organization/$organizationId/messages/detail/$conversationId';
+  // static String chatDetail(String organizationId, String conversationId) =>
+  //     '/organization/$organizationId/messages/detail/$conversationId';
 
   // Campaigns paths
   static String campaigns(String organizationId) =>
@@ -202,6 +208,11 @@ final GoRouter router = GoRouter(
               // organizationId: state.pathParameters['organizationId']!,
               ),
         ),
+        GoRoute(
+          path: AppPaths.finalDeal(':organizationId'),
+          builder: (context, state) => FinalDealScreen(),
+        ),
+
         // GoRoute(
         //   path: AppPaths.messages(
         //     ':organizationId',
@@ -294,6 +305,11 @@ final GoRouter router = GoRouter(
     GoRoute(
         path: AppPaths.completeProfile,
         builder: (context, state) => const CompleteProfilePage()),
+    GoRoute(
+      path: AppPaths.chatDetail,
+      name: 'chatDetail',
+      builder: (context, state) => const ChatDetailPage(),
+    ),
     // ShellRoute(
     //   builder: (context, state, child) => OrganizationPage(
     //     organizationId: state.pathParameters['organizationId']!,

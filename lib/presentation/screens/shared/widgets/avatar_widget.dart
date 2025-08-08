@@ -122,7 +122,7 @@ class AppAvatar extends StatelessWidget {
     // Thêm cache buster nếu có cacheKey
     final avatarUrl = Helpers.getAvatarUrl(imageUrl!);
     final finalUrl = cacheKey != null ? '$avatarUrl?v=$cacheKey' : avatarUrl;
-
+    // gây lỗi Invalid statusCode: 404
     final imageWidget = CachedNetworkImage(
       imageUrl: finalUrl,
       width: size,
