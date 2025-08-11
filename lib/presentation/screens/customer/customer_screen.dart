@@ -4,13 +4,12 @@ import 'package:go_router/go_router.dart';
 import 'package:source_base/config/app_color.dart';
 import 'package:source_base/data/models/customer_service_response.dart';
 import 'package:source_base/presentation/blocs/organization/organization_bloc.dart';
+import 'package:source_base/presentation/blocs/switch_final_deal/switch_final_deal_bloc.dart';
 import 'package:source_base/presentation/screens/customers_service/switch_final_deal.dart';
 import 'package:source_base/presentation/screens/shared/widgets/avatar_widget.dart';
 
 import '../../blocs/customer_service/customer_service_action.dart';
-import '../../blocs/final_deal/final_deal_action.dart';
 import '../../blocs/switch_final_deal/switch_final_deal_action.dart';
-import '../customers_service/customer_service_detail/widgets/assign_to_bottomsheet.dart';
 
 class CustomerDetailScreen extends StatelessWidget {
   const CustomerDetailScreen({Key? key}) : super(key: key);
@@ -200,7 +199,8 @@ class CustomerDetailScreen extends StatelessWidget {
                           ),
                         ),
                         onPressed: () {
-                  
+                          context.read<SwitchFinalDealBloc>().add(LoadCustomer(
+                              customerService: state.customerService!));
                           Navigator.push(
                               context,
                               MaterialPageRoute(

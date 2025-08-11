@@ -1,4 +1,6 @@
 import 'package:equatable/equatable.dart';
+import 'package:source_base/presentation/blocs/final_deal/model/business_process_response.dart';
+import 'package:source_base/presentation/blocs/final_deal/model/business_process_task_response.dart';
 
 import 'model/workspace_response.dart';
 
@@ -34,21 +36,29 @@ class FinalDealGetBusinessProcess extends FinalDealEvent {
 
 class FinalDealGetBusinessProcessTask extends FinalDealEvent {
   final String organizationId;
-  final String workspaceId;
-  final String processId;
-  final String stageId;
-  final String customerId;
-  final String assignedTo;
-  final String status;
+  final String? processId;
+  final BusinessProcessModel? stage;
+  final String? customerId;
+  final String? assignedTo;
+  final String? status;
   final bool includeHistory;
   final int page;
   final int pageSize;
   const FinalDealGetBusinessProcessTask(
       {required this.organizationId,
-      required this.workspaceId,
-      required this.processId,
-      required this.stageId,
-      required this.customerId,
-      required this.assignedTo,
-      required this.status, required this.includeHistory, required this.page, required this.pageSize});
+      this.processId,
+      this.stage,
+      this.customerId,
+      this.assignedTo,
+      this.status,
+      required this.includeHistory,
+      required this.page,
+      required this.pageSize});
+}
+
+class FinalDealSelectBusinessProcess extends FinalDealEvent {
+  final BusinessProcessModel businessProcess;
+  final String organizationId;
+  const FinalDealSelectBusinessProcess(
+      {required this.businessProcess, required this.organizationId});
 }

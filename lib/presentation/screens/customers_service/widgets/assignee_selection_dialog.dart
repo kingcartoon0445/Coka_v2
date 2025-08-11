@@ -21,20 +21,17 @@ class AssigneeData {
 
 class AssigneeSelectionDialog extends StatefulWidget {
   final String organizationId;
-  final String workspaceId;
   final List<AssigneeData> initialValue;
 
   const AssigneeSelectionDialog({
     super.key,
     required this.organizationId,
-    required this.workspaceId,
     required this.initialValue,
   });
 
   static Future<List<AssigneeData>?> show(
     BuildContext context,
     String organizationId,
-    String workspaceId,
     List<AssigneeData> initialValue,
   ) {
     return showDialog<List<AssigneeData>>(
@@ -42,7 +39,6 @@ class AssigneeSelectionDialog extends StatefulWidget {
       barrierDismissible: false,
       builder: (context) => AssigneeSelectionDialog(
         organizationId: organizationId,
-        workspaceId: workspaceId,
         initialValue: initialValue,
       ),
     );
@@ -60,9 +56,9 @@ class _AssigneeSelectionDialogState extends State<AssigneeSelectionDialog>
   final TextEditingController _teamSearchController = TextEditingController();
   // final TeamRepository _teamRepository = TeamRepository(ApiClient());
   List<AssigneeData> _selectedAssignees = [];
-  List<AssigneeData> _members = [];
+  final List<AssigneeData> _members = [];
   List<AssigneeData> _teams = [];
-  bool _isLoadingMembers = true;
+  final bool _isLoadingMembers = true;
   bool _isLoadingTeams = true;
   String _memberSearchText = '';
   String _teamSearchText = '';
@@ -72,7 +68,7 @@ class _AssigneeSelectionDialogState extends State<AssigneeSelectionDialog>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _selectedAssignees = List.from(widget.initialValue);
-    _loadData();
+    // _loadData();
   }
 
   @override
@@ -91,32 +87,32 @@ class _AssigneeSelectionDialogState extends State<AssigneeSelectionDialog>
   }
 
   Future<void> _loadMembers() async {
-    try {
-      Map<String, dynamic> response = {};
+    // try {
+    //   Map<String, dynamic> response = {};
 
-      if (mounted) {
-        setState(() {
-          _members = (response['content'] as List).map((member) {
-            final profile = member['profile'];
-            return AssigneeData(
-              id: profile['id'],
-              name: profile['fullName'],
-              avatar: profile['avatar'],
-              isTeam: false,
-            );
-          }).toList();
-          _isLoadingMembers = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isLoadingMembers = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Có lỗi xảy ra khi tải danh sách thành viên')),
-        );
-      }
-    }
+    //   if (mounted) {
+    //     setState(() {
+    //       _members = (response['content'] as List).map((member) {
+    //         final profile = member['profile'];
+    //         return AssigneeData(
+    //           id: profile['id'],
+    //           name: profile['fullName'],
+    //           avatar: profile['avatar'],
+    //           isTeam: false,
+    //         );
+    //       }).toList();
+    //       _isLoadingMembers = false;
+    //     });
+    //   }
+    // } catch (e) {
+    //   if (mounted) {
+    //     setState(() => _isLoadingMembers = false);
+    //     ScaffoldMessenger.of(context).showSnackBar(
+    //       const SnackBar(
+    //           content: Text('Có lỗi xảy ra khi tải danh sách thành viên')),
+    //     );
+    //   }
+    // }
   }
 
   Future<void> _loadTeams() async {

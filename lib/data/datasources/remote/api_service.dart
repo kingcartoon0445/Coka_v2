@@ -260,7 +260,7 @@ class ApiService {
       final queryParams = {
         'limit': limit,
         'offset': offset,
-        if (searchText != null) 'searchText': searchText,
+        'searchText': searchText,
       };
       return await _dioClient.get(ApiEndpoints.organizationPaging,
           queryParameters: queryParams);
@@ -759,5 +759,134 @@ class ApiService {
       );
     }
   }
+
+  Future<Response> getBusinessProcessTemplateService() async {
+    try {
+      final response = await _dioClient.getProducts(
+        ApiEndpoints.businessProcessTemplate,
+      );
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.getProduct),
+      );
+    }
+  }
+
+  Future<Response> getBusinessProcessTagService(
+      String organizationId, String workspaceId) async {
+    try {
+      final response = await _dioClient.getProducts(
+          ApiEndpoints.getBusinessProcessTag,
+          options: Options(headers: {'organizationId': organizationId}),
+          queryParameters: {'workspaceId': workspaceId});
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions:
+            RequestOptions(path: ApiEndpoints.getBusinessProcessTag),
+      );
+    }
+  }
+
+  Future<Response> postBusinessProcessTagService(
+      String organizationId, Map<String, dynamic> data) async {
+    try {
+      final response = await _dioClient.postProducts(
+          ApiEndpoints.getBusinessProcessTag,
+          options: Options(headers: {'organizationId': organizationId}),
+          data: data);
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.getProduct),
+      );
+    }
+  }
+
+  Future<Response> postBusinessProcessTaskService(
+      String organizationId, Map<String, dynamic> data) async {
+    try {
+      final response = await _dioClient.postProducts(
+          ApiEndpoints.businessProcessTask,
+          options: Options(headers: {'organizationId': organizationId}),
+          data: data);
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.businessProcessTask),
+      );
+    }
+  }
+
+  Future<Response> linkOrderService(
+      String organizationId, String id, Map<String, dynamic> data) async {
+    try {
+      final response = await _dioClient.postProducts(ApiEndpoints.linkOrder(id),
+          options: Options(headers: {'organizationId': organizationId}),
+          data: data);
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.linkOrder(id)),
+      );
+    }
+  }
+
+  Future<Response> postOrderService(
+      String organizationId, Map<String, dynamic> data) async {
+    try {
+      final response = await _dioClient.postProducts(ApiEndpoints.order,
+          options: Options(headers: {'organizationId': organizationId}),
+          data: data);
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions:
+            RequestOptions(path: ApiEndpoints.getBusinessProcessTag),
+      );
+    }
+  }
 }
-  

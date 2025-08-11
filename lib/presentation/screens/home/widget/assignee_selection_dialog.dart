@@ -12,20 +12,17 @@ import '../../../blocs/filter_item/filter_item_aciton.dart';
 
 class AssigneeSelectionDialog extends StatefulWidget {
   final String organizationId;
-  final String workspaceId;
   final List<MemberModel> initialValue;
 
   const AssigneeSelectionDialog({
     super.key,
     required this.organizationId,
-    required this.workspaceId,
     required this.initialValue,
   });
 
   static Future<List<MemberModel>?> show(
     BuildContext context,
     String organizationId,
-    String workspaceId,
     List<MemberModel> initialValue,
   ) {
     return showDialog<List<MemberModel>>(
@@ -33,7 +30,6 @@ class AssigneeSelectionDialog extends StatefulWidget {
       barrierDismissible: false,
       builder: (context) => AssigneeSelectionDialog(
         organizationId: organizationId,
-        workspaceId: workspaceId,
         initialValue: initialValue,
       ),
     );
@@ -294,7 +290,7 @@ class _AssigneeSelectionDialogState extends State<AssigneeSelectionDialog>
                     children: [
                       Text(
                         'select_assignee'.tr(),
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: Color(0xFF101828),

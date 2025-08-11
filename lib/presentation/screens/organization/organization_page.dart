@@ -260,11 +260,15 @@ class _OrganizationPageState extends State<OrganizationPage> {
         context.replace(AppPaths.organization(widget.organizationId));
         break;
       case 1:
+        context.read<FinalDealBloc>().add(FinalDealGetAllWorkspace(
+              organizationId:
+                  context.read<OrganizationBloc>().state.organizationId ?? '',
+            ));
         context.replace(AppPaths.finalDeal(widget.organizationId));
         break;
-      case 2:
-        context.replace('/organization/${widget.organizationId}/campaigns');
-        break;
+      // case 2:
+      //   context.replace('/organization/${widget.organizationId}/campaigns');
+      //   break;
     }
   }
 

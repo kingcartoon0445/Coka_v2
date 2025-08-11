@@ -1,211 +1,226 @@
 class BusinessProcessTaskResponse {
-  bool? success;
-  String? message;
-  List<BusinessProcessTaskModel>? data;
-  Pagination? pagination;
+  final bool? success;
+  final String? message;
+  final List<BusinessProcessTaskModel>? data;
+  final Pagination? pagination; 
 
-  BusinessProcessTaskResponse(
-      {this.success, this.message, this.data, this.pagination});
+  BusinessProcessTaskResponse({
+    this.success,
+    this.message,
+    this.data,
+    this.pagination,
+  });
 
-  BusinessProcessTaskResponse.fromJson(Map<String, dynamic> json) {
-    success = json['success'];
-    message = json['message'];
-    if (json['data'] != null) {
-      data = <BusinessProcessTaskModel>[];
-      json['data'].forEach((v) {
-        data!.add(new BusinessProcessTaskModel.fromJson(v));
-      });
-    }
-    pagination = json['pagination'] != null
-        ? new Pagination.fromJson(json['pagination'])
-        : null;
+  factory BusinessProcessTaskResponse.fromJson(Map<String, dynamic> json) {
+    return BusinessProcessTaskResponse(
+      success: json['success'] as bool?,
+      message: json['message'] as String?,
+      data: (json['data'] as List<dynamic>?)
+              ?.map((e) => BusinessProcessTaskModel.fromJson(e))
+              .toList() ??
+          <BusinessProcessTaskModel>[],
+      pagination: json['pagination'] != null
+          ? Pagination.fromJson(json['pagination'])
+          : null,
+    );
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['success'] = this.success;
-    data['message'] = this.message;
-    if (this.data != null) {
-      data['data'] = this.data!.map((v) => v.toJson()).toList();
-    }
-    if (this.pagination != null) {
-      data['pagination'] = this.pagination!.toJson();
-    }
-    return data;
+    final map = <String, dynamic>{};
+    if (success != null) map['success'] = success;
+    if (message != null) map['message'] = message;
+    if (data != null) map['data'] = data!.map((e) => e.toJson()).toList();
+    if (pagination != null) map['pagination'] = pagination!.toJson();
+    return map;
   }
 }
 
 class BusinessProcessTaskModel {
-  String? id;
-  String? stageId;
-  String? stageName;
-  String? name;
-  String? description;
-  String? customerId;
-  String? orderId;
-  List<AssignedTo>? assignedTo;
-  String? startDate;
-  String? dueDate;
-  String? completedDate;
-  int? status;
-  String? priority;
-  String? notes;
-  bool? isBlocked;
-  String? blockedReason;
-  String? createdDate;
-  String? createdBy;
-  String? updatedDate;
-  String? updatedBy;
-  List<String>? subTasks;
-  List<String>? stageHistory;
-  String? customerInfo;
+  final String? id;
+  final String? stageId;
+  final String? stageName;
+  final String? name;
+  final String? username;
+  final String? email;
+  final String? phone;
+  final num? orderValue;
+  final String? description;
+  final String? customerId;
+  final String? orderId;
+  final List<AssignedTo>? assignedTo;
+  final num? status;
+  final String? notes;
+  final bool? isBlocked;
+  final String? blockedReason;
+  final DateTime? createdDate;
+  final String? createdBy;
+  final DateTime? updatedDate;
+  final String? updatedBy;
+  final List<dynamic>? subTasks;
+  final List<dynamic>? stageHistory;
+  final List<dynamic>? tags;
 
-  BusinessProcessTaskModel(
-      {this.id,
-      this.stageId,
-      this.stageName,
-      this.name,
-      this.description,
-      this.customerId,
-      this.orderId,
-      this.assignedTo,
-      this.startDate,
-      this.dueDate,
-      this.completedDate,
-      this.status,
-      this.priority,
-      this.notes,
-      this.isBlocked,
-      this.blockedReason,
-      this.createdDate,
-      this.createdBy,
-      this.updatedDate,
-      this.updatedBy,
-      this.subTasks,
-      this.stageHistory,
-      this.customerInfo});
+  BusinessProcessTaskModel({
+    this.id,
+    this.stageId,
+    this.stageName,
+    this.name,
+    this.username,
+    this.email,
+    this.phone,
+    this.orderValue,
+    this.description,
+    this.customerId,
+    this.orderId,
+    this.assignedTo,
+    this.status,
+    this.notes,
+    this.isBlocked,
+    this.blockedReason,
+    this.createdDate,
+    this.createdBy,
+    this.updatedDate,
+    this.updatedBy,
+    this.subTasks,
+    this.stageHistory,
+    this.tags,
+  });
 
-  BusinessProcessTaskModel.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    stageId = json['stageId'];
-    stageName = json['stageName'];
-    name = json['name'];
-    description = json['description'];
-    customerId = json['customerId'];
-    orderId = json['orderId'];
-    if (json['assignedTo'] != null) {
-      assignedTo = <AssignedTo>[];
-      json['assignedTo'].forEach((v) {
-        assignedTo!.add(new AssignedTo.fromJson(v));
-      });
+  factory BusinessProcessTaskModel.fromJson(Map<String, dynamic> json) {
+    DateTime? parseDate(dynamic v) {
+      if (v == null) return null;
+      if (v is DateTime) return v;
+      if (v is String && v.isNotEmpty) return DateTime.tryParse(v);
+      return null;
     }
-    startDate = json['startDate'];
-    dueDate = json['dueDate'];
-    completedDate = json['completedDate'];
-    status = json['status'];
-    priority = json['priority'];
-    notes = json['notes'];
-    isBlocked = json['isBlocked'];
-    blockedReason = json['blockedReason'];
-    createdDate = json['createdDate'];
-    createdBy = json['createdBy'];
-    updatedDate = json['updatedDate'];
-    updatedBy = json['updatedBy'];
-    if (json['subTasks'] != null) {
-      subTasks = <String>[];
-      json['subTasks'].forEach((v) {
-        subTasks!.add(v);
-      });
-    }
-    if (json['stageHistory'] != null) {
-      stageHistory = <String>[];
-      json['stageHistory'].forEach((v) {
-        stageHistory!.add(v);
-      });
-    }
-    customerInfo = json['customerInfo'];
+
+    return BusinessProcessTaskModel(
+      id: json['id'] as String?,
+      stageId: json['stageId'] as String?,
+      stageName: json['stageName'] as String?,
+      name: json['name'] as String?,
+      username: json['username'] as String?,
+      email: json['email'] as String?,
+      phone: json['phone'] as String?,
+      orderValue: (json['orderValue'] as num?)?.toInt(),
+      description: json['description'] as String?,
+      customerId: json['customerId'] as String?,
+      orderId: json['orderId'] as String?,
+      assignedTo: (json['assignedTo'] as List<dynamic>?)
+              ?.map((e) => AssignedTo.fromJson(e))
+              .toList() ??
+          <AssignedTo>[],
+      status: (json['status'] as num?)?.toInt(),
+      notes: json['notes'] as String?,
+      isBlocked: json['isBlocked'] as bool?,
+      blockedReason: json['blockedReason'] as String?,
+      createdDate: parseDate(json['createdDate']),
+      createdBy: json['createdBy'] as String?,
+      updatedDate: parseDate(json['updatedDate']),
+      updatedBy: json['updatedBy'] as String?,
+      subTasks: (json['subTasks'] as List<dynamic>?) ?? <dynamic>[],
+      stageHistory: (json['stageHistory'] as List<dynamic>?) ?? <dynamic>[],
+      tags: (json['tags'] as List<dynamic>?) ?? <dynamic>[],
+    );
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['stageId'] = this.stageId;
-    data['stageName'] = this.stageName;
-    data['name'] = this.name;
-    data['description'] = this.description;
-    data['customerId'] = this.customerId;
-    data['orderId'] = this.orderId;
-    if (this.assignedTo != null) {
-      data['assignedTo'] = this.assignedTo!.map((v) => v.toJson()).toList();
+    final map = <String, dynamic>{};
+    if (id != null) map['id'] = id;
+    if (stageId != null) map['stageId'] = stageId;
+    if (stageName != null) map['stageName'] = stageName;
+    if (name != null) map['name'] = name;
+    if (username != null) map['username'] = username;
+    if (email != null) map['email'] = email;
+    if (phone != null) map['phone'] = phone;
+    if (orderValue != null) map['orderValue'] = orderValue;
+    if (description != null) map['description'] = description;
+    if (customerId != null) map['customerId'] = customerId;
+    if (orderId != null) map['orderId'] = orderId;
+    if (assignedTo != null) {
+      map['assignedTo'] = assignedTo!.map((e) => e.toJson()).toList();
     }
-    data['startDate'] = this.startDate;
-    data['dueDate'] = this.dueDate;
-    data['completedDate'] = this.completedDate;
-    data['status'] = this.status;
-    data['priority'] = this.priority;
-    data['notes'] = this.notes;
-    data['isBlocked'] = this.isBlocked;
-    data['blockedReason'] = this.blockedReason;
-    data['createdDate'] = this.createdDate;
-    data['createdBy'] = this.createdBy;
-    data['updatedDate'] = this.updatedDate;
-    data['updatedBy'] = this.updatedBy;
-
-    data['customerInfo'] = this.customerInfo;
-    return data;
+    if (status != null) map['status'] = status;
+    if (notes != null) map['notes'] = notes;
+    if (isBlocked != null) map['isBlocked'] = isBlocked;
+    if (blockedReason != null) map['blockedReason'] = blockedReason;
+    if (createdDate != null)
+      map['createdDate'] = createdDate!.toIso8601String();
+    if (createdBy != null) map['createdBy'] = createdBy;
+    if (updatedDate != null)
+      map['updatedDate'] = updatedDate!.toIso8601String();
+    if (updatedBy != null) map['updatedBy'] = updatedBy;
+    if (subTasks != null) map['subTasks'] = subTasks;
+    if (stageHistory != null) map['stageHistory'] = stageHistory;
+    if (tags != null) map['tags'] = tags;
+    return map;
   }
 }
 
 class AssignedTo {
-  String? id;
-  String? name;
-  String? avatar;
-  String? type;
-  int? status;
+  final String? id;
+  final String? name;
+  final String? avatar;
+  final String? type;
+  final num? status;
 
-  AssignedTo({this.id, this.name, this.avatar, this.type, this.status});
+  AssignedTo({
+    this.id,
+    this.name,
+    this.avatar,
+    this.type,
+    this.status,
+  });
 
-  AssignedTo.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    name = json['name'];
-    avatar = json['avatar'];
-    type = json['type'];
-    status = json['status'];
+  factory AssignedTo.fromJson(Map<String, dynamic> json) {
+    return AssignedTo(
+      id: json['id'] as String?,
+      name: json['name'] as String?,
+      avatar: json['avatar'] as String?,
+      type: json['type'] as String?,
+      status: (json['status'] as num?)?.toInt(),
+    );
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['name'] = this.name;
-    data['avatar'] = this.avatar;
-    data['type'] = this.type;
-    data['status'] = this.status;
-    return data;
+    final map = <String, dynamic>{};
+    if (id != null) map['id'] = id;
+    if (name != null) map['name'] = name;
+    if (avatar != null) map['avatar'] = avatar;
+    if (type != null) map['type'] = type;
+    if (status != null) map['status'] = status;
+    return map;
   }
 }
 
 class Pagination {
-  int? pageNumber;
-  int? pageSize;
-  int? totalRecords;
-  int? totalPages;
+  final num? pageNumber;
+  final num? pageSize;
+  final num? totalRecords;
+  final num? totalPages;
 
-  Pagination(
-      {this.pageNumber, this.pageSize, this.totalRecords, this.totalPages});
+  Pagination({
+    this.pageNumber,
+    this.pageSize,
+    this.totalRecords,
+    this.totalPages,
+  });
 
-  Pagination.fromJson(Map<String, dynamic> json) {
-    pageNumber = json['pageNumber'];
-    pageSize = json['pageSize'];
-    totalRecords = json['totalRecords'];
-    totalPages = json['totalPages'];
+  factory Pagination.fromJson(Map<String, dynamic> json) {
+    return Pagination(
+      pageNumber: (json['pageNumber'] as num?)?.toInt(),
+      pageSize: (json['pageSize'] as num?)?.toInt(),
+      totalRecords: (json['totalRecords'] as num?)?.toInt(),
+      totalPages: (json['totalPages'] as num?)?.toInt(),
+    );
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['pageNumber'] = this.pageNumber;
-    data['pageSize'] = this.pageSize;
-    data['totalRecords'] = this.totalRecords;
-    data['totalPages'] = this.totalPages;
-    return data;
+    final map = <String, dynamic>{};
+    if (pageNumber != null) map['pageNumber'] = pageNumber;
+    if (pageSize != null) map['pageSize'] = pageSize;
+    if (totalRecords != null) map['totalRecords'] = totalRecords;
+    if (totalPages != null) map['totalPages'] = totalPages;
+    return map;
   }
 }

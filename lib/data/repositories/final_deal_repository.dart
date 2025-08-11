@@ -18,7 +18,6 @@ class FinalDealRepository {
 
   Future<Response> getBusinessProcessTask(
     String organizationId,
-    String workspaceId,
     String processId,
     String stageId,
     String customerId,
@@ -29,9 +28,8 @@ class FinalDealRepository {
     int pageSize,
   ) async {
     return await apiService.getBusinessProcessTaskService(organizationId, {
-      'workspaceId': workspaceId,
-      'processId': processId,
       'stageId': stageId,
+      'processId': processId,
       'customerId': customerId,
       'assignedTo': assignedTo,
       'status': status,

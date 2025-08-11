@@ -49,6 +49,7 @@ extension on TextEditingValue {
   int get replacementCharactersCount => replacementCharacters.length;
 }
 
+// ignore: must_be_immutable
 class ChipsInput<T> extends StatefulWidget {
   ChipsInput(
       {super.key,
@@ -76,7 +77,8 @@ class ChipsInput<T> extends StatefulWidget {
       this.allowInputText = true,
       this.focusNode,
       this.initialSuggestions,
-      this.isOnlyOne = false})
+      this.isOnlyOne = false,
+      this.onAddTag})
       : assert(maxChips == null || initialValue.length <= maxChips);
 
   final InputDecoration decoration;
@@ -103,6 +105,7 @@ class ChipsInput<T> extends StatefulWidget {
   final FocusNode? focusNode;
   final bool isOnlyOne;
   final List<T>? initialSuggestions;
+  final Function()? onAddTag;
 
   final TextCapitalization textCapitalization;
 
@@ -203,7 +206,7 @@ class ChipsInputState<T> extends State<ChipsInput<T>>
     if (_effectiveFocusNode.hasFocus) {
       _openInputConnection();
       if (!widget.allowInputText) {
-        suggestionsBoxController.toggle();
+        _effectiveFocusNode.unfocus();
       }
     } else {
       FocusScope.of(context).requestFocus(_effectiveFocusNode);
@@ -255,7 +258,7 @@ class ChipsInputState<T> extends State<ChipsInput<T>>
                       constraints: BoxConstraints(
                         maxHeight: suggestionBoxHeight,
                       ),
-                      child: snapshot.data!.isEmpty
+                      child: snapshot.data!.isEmpty && widget.onAddTag == null
                           ? Container(
                               padding: const EdgeInsets.symmetric(
                                 vertical: 16,
@@ -273,7 +276,9 @@ class ChipsInputState<T> extends State<ChipsInput<T>>
                           : ListView.separated(
                               shrinkWrap: true,
                               padding: EdgeInsets.zero,
-                              itemCount: snapshot.data!.length,
+                              itemCount: widget.onAddTag != null
+                                  ? snapshot.data!.length + 1
+                                  : snapshot.data!.length,
                               physics: const ClampingScrollPhysics(),
                               separatorBuilder: (context, index) =>
                                   const Divider(
@@ -281,13 +286,36 @@ class ChipsInputState<T> extends State<ChipsInput<T>>
                                 thickness: 0.2,
                               ),
                               itemBuilder: (BuildContext context, int index) {
-                                return _suggestions != null
-                                    ? widget.suggestionBuilder(
-                                        context,
-                                        this,
-                                        _suggestions![index] as T,
-                                      )
-                                    : Container();
+                                if (widget.onAddTag != null) {
+                                  if (index == 0) {
+                                    return ListTile(
+                                      title: const Text("+ Thêm tag mới",
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: AppColors.primary,
+                                          )),
+                                      onTap: () {
+                                        widget.onAddTag!();
+                                        _effectiveFocusNode.unfocus();
+                                      },
+                                    );
+                                  }
+                                  return _suggestions != null
+                                      ? widget.suggestionBuilder(
+                                          context,
+                                          this,
+                                          _suggestions![index - 1] as T,
+                                        )
+                                      : Container();
+                                } else {
+                                  return _suggestions != null
+                                      ? widget.suggestionBuilder(
+                                          context,
+                                          this,
+                                          _suggestions![index] as T,
+                                        )
+                                      : Container();
+                                }
                               },
                             ),
                     ),
@@ -322,6 +350,10 @@ class ChipsInputState<T> extends State<ChipsInput<T>>
       if (widget.isOnlyOne) {
         _chips.clear();
         setState(() => _chips.add(data));
+        requestKeyboard();
+        if (widget.isOnlyOne) {
+          suggestionsBoxController.close();
+        }
       }
       if (widget.allowChipEditing) {
         final enteredText = _value.normalCharactersText;

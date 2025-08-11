@@ -1,4 +1,3 @@
-import 'package:badges/badges.dart' as badges;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:source_base/config/app_color.dart';

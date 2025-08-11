@@ -15,6 +15,7 @@ class FinalDealBloc extends Bloc<FinalDealEvent, FinalDealState> {
     on<FinalDealSelectWorkspace>(_onSelectWorkspace);
     on<FinalDealGetBusinessProcess>(_onGetBusinessProcess);
     on<FinalDealGetBusinessProcessTask>(_onGetBusinessProcessTask);
+    on<FinalDealSelectBusinessProcess>(_onSelectBusinessProcess);
   }
 
   void _onInitialized(
@@ -24,7 +25,7 @@ class FinalDealBloc extends Bloc<FinalDealEvent, FinalDealState> {
 
   void _onGetAllWorkspace(
       FinalDealGetAllWorkspace event, Emitter<FinalDealState> emit) async {
-    emit(state.copyWith(status: FinalDealStatus.loading));
+    emit(state.copyWith(status: FinalDealStatus.loadingBusinessProcess));
     final response = await repository.getAllWorkspace(event.organizationId);
     final bool isSuccess = Helpers.isResponseSuccess(response.data);
     if (isSuccess) {
@@ -38,7 +39,7 @@ class FinalDealBloc extends Bloc<FinalDealEvent, FinalDealState> {
         ));
       }
       emit(state.copyWith(
-          status: FinalDealStatus.success,
+          // status: FinalDealStatus.success,
           workspaces: workspaceResponse.content ?? [],
           selectedWorkspace: workspace));
     } else {
@@ -57,7 +58,7 @@ class FinalDealBloc extends Bloc<FinalDealEvent, FinalDealState> {
 
   void _onGetBusinessProcess(
       FinalDealGetBusinessProcess event, Emitter<FinalDealState> emit) async {
-    emit(state.copyWith(status: FinalDealStatus.loading));
+    emit(state.copyWith(status: FinalDealStatus.loadingBusinessProcess));
     final response = await repository.getBusinessProcess(
         event.organizationId, event.workspaceId);
     final bool isSuccess = Helpers.isResponseSuccess(response.data);
@@ -66,9 +67,8 @@ class FinalDealBloc extends Bloc<FinalDealEvent, FinalDealState> {
           BusinessProcessResponse.fromJson(response.data);
       add(FinalDealGetBusinessProcessTask(
         organizationId: event.organizationId,
-        workspaceId: event.workspaceId,
         processId: '',
-        stageId: '',
+        stage: businessProcessResponse.data?.first,
         customerId: '',
         assignedTo: '',
         status: '',
@@ -77,7 +77,7 @@ class FinalDealBloc extends Bloc<FinalDealEvent, FinalDealState> {
         pageSize: 10,
       ));
       emit(state.copyWith(
-          status: FinalDealStatus.success,
+          status: FinalDealStatus.successBusinessProcessTask,
           businessProcesses: businessProcessResponse.data ?? []));
     } else {
       emit(state.copyWith(status: FinalDealStatus.error));
@@ -89,12 +89,11 @@ class FinalDealBloc extends Bloc<FinalDealEvent, FinalDealState> {
     emit(state.copyWith(status: FinalDealStatus.loading));
     final response = await repository.getBusinessProcessTask(
         event.organizationId,
-        event.workspaceId,
-        event.processId,
-        event.stageId,
-        event.customerId,
-        event.assignedTo,
-        event.status,
+        event.processId ?? '',
+        event.stage?.id ?? '',
+        event.customerId ?? '',
+        event.assignedTo ?? '',
+        event.status ?? '',
         event.includeHistory,
         event.page,
         event.pageSize);
@@ -102,11 +101,30 @@ class FinalDealBloc extends Bloc<FinalDealEvent, FinalDealState> {
     if (isSuccess) {
       BusinessProcessTaskResponse businessProcessTaskResponse =
           BusinessProcessTaskResponse.fromJson(response.data);
+      emit(state.copyWith(isDelete: true));
       emit(state.copyWith(
           status: FinalDealStatus.success,
+          selectedBusinessProcess: event.stage,
           businessProcessTasks: businessProcessTaskResponse.data ?? []));
     } else {
       emit(state.copyWith(status: FinalDealStatus.error));
     }
+  }
+
+  void _onSelectBusinessProcess(FinalDealSelectBusinessProcess event,
+      Emitter<FinalDealState> emit) async {
+    emit(state.copyWith(selectedBusinessProcess: event.businessProcess));
+
+    add(FinalDealGetBusinessProcessTask(
+      organizationId: event.organizationId,
+      processId: '',
+      stage: event.businessProcess,
+      customerId: '',
+      assignedTo: '',
+      status: '',
+      includeHistory: false,
+      page: 1,
+      pageSize: 10,
+    ));
   }
 }

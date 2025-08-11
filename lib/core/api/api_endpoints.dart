@@ -68,18 +68,22 @@ class ApiEndpoints {
   static String postUnArchiveCustomer(String id) =>
       '$_prefix2/customer/$id/archive/restore';
 // API Được sử dụng
-
+  static String businessProcessTask = '$_prefix/businessprocesstask';
+  static String order = '$_prefix/order';
+  static String linkOrder(String id) => '$businessProcessTask/$id/link-order';
+  static String getBusinessProcessTag = '$_prefix/BusinessProcessTag';
   static String getCustomerPaging = '$_prefix2/customer/getlistpaging';
 
   static String getAllWorkspace =
       '$_prefix/settings/permission/organization/getallworkspace';
 
   static String getProduct = '$_prefix/Product';
+  static String businessProcessTemplate = "$_prefix/businessprocesstemplate";
   static String getBusinessProcess(
     String workspaceId,
   ) =>
       '$_prefix/BusinessProcessStage/workspace/$workspaceId';
-  static String getBusinessProcessTask = '$_prefix/BusinessProcessTask';
+  static String getBusinessProcessTask = '$_prefix/businessprocesstask';
   // /api/v1/integration/omni/conversation/read/{conversationId}
   // Prefix
   static const String _prefix = '/api/v1';

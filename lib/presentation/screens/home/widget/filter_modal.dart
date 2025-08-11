@@ -171,7 +171,7 @@ class _FilterModalState extends State<FilterModal> {
   final List<MemberModel> _selectedAssignees = [];
   List<Category> _selectedCategories = [];
   List<UtmSourceModel> _selectedSources = [];
-  List<UtmSourceModel> _sources = [];
+  final List<UtmSourceModel> _sources = [];
   List<PagingModel> _selectedPagingModels = [];
   // List<PagingModel> _tags = [];
   List<Rating> _selectedRatings = [];
@@ -341,7 +341,6 @@ class _FilterModalState extends State<FilterModal> {
                 final selectedAssignees = await AssigneeSelectionDialog.show(
                   context,
                   widget.organizationId,
-                  widget.workspaceId,
                   _selectedAssignees,
                 );
                 if (selectedAssignees != null && mounted) {
@@ -369,7 +368,7 @@ class _FilterModalState extends State<FilterModal> {
                         return assignees.isEmpty
                             ? Text(
                                 'all'.tr(),
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 14,
                                   color: AppColors.text,
                                 ),
@@ -721,7 +720,7 @@ class _FilterModalState extends State<FilterModal> {
                   leadingWidth: 120,
                   leading: Row(
                     children: [
-                      SizedBox(
+                      const SizedBox(
                         width: 16,
                       ),
                       const Icon(
@@ -935,7 +934,7 @@ class _FilterModalState extends State<FilterModal> {
                               ),
                               child: Text(
                                 'apply'.tr(),
-                                style: TextStyle(color: Colors.white),
+                                style: const TextStyle(color: Colors.white),
                               ),
                             ),
                           ),

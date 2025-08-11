@@ -1,3 +1,5 @@
+import 'package:source_base/presentation/screens/shared/widgets/chip_input.dart';
+
 class BusinessProcessResponse {
   bool? success;
   String? message;
@@ -13,68 +15,61 @@ class BusinessProcessResponse {
     if (json['data'] != null) {
       data = <BusinessProcessModel>[];
       json['data'].forEach((v) {
-        data!.add(new BusinessProcessModel.fromJson(v));
+        data!.add(BusinessProcessModel.fromJson(v));
       });
     }
     pagination = json['pagination'];
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['success'] = this.success;
-    data['message'] = this.message;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['success'] = success;
+    data['message'] = message;
     if (this.data != null) {
       data['data'] = this.data!.map((v) => v.toJson()).toList();
     }
-    data['pagination'] = this.pagination;
+    data['pagination'] = pagination;
     return data;
   }
 }
 
-class BusinessProcessModel {
-  String? id;
-  String? name;
+class BusinessProcessModel extends ChipData {
   String? description;
   String? templateId;
   String? workspaceId;
   int? status;
   List<ProcessStages>? processStages;
 
-  BusinessProcessModel(
-      {this.id,
-      this.name,
-      this.description,
+  BusinessProcessModel(super.id, super.name,
+      {this.description,
       this.templateId,
       this.workspaceId,
       this.status,
       this.processStages});
 
-  BusinessProcessModel.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    name = json['name'];
-    description = json['description'];
-    templateId = json['templateId'];
-    workspaceId = json['workspaceId'];
-    status = json['status'];
-    if (json['processStages'] != null) {
-      processStages = <ProcessStages>[];
-      json['processStages'].forEach((v) {
-        processStages!.add(new ProcessStages.fromJson(v));
-      });
-    }
+  factory BusinessProcessModel.fromJson(Map<String, dynamic> json) {
+    return BusinessProcessModel(json['id'], json['name'],
+        description: json['description'],
+        templateId: json['templateId'],
+        workspaceId: json['workspaceId'],
+        status: json['status'],
+        processStages: json['processStages'] != null
+            ? (json['processStages'] as List)
+                .map((v) => ProcessStages.fromJson(v))
+                .toList()
+            : null);
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['name'] = this.name;
-    data['description'] = this.description;
-    data['templateId'] = this.templateId;
-    data['workspaceId'] = this.workspaceId;
-    data['status'] = this.status;
-    if (this.processStages != null) {
-      data['processStages'] =
-          this.processStages!.map((v) => v.toJson()).toList();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['name'] = name;
+    data['description'] = description;
+    data['templateId'] = templateId;
+    data['workspaceId'] = workspaceId;
+    data['status'] = status;
+    if (processStages != null) {
+      data['processStages'] = processStages!.map((v) => v.toJson()).toList();
     }
     return data;
   }
@@ -127,20 +122,20 @@ class ProcessStages {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['name'] = this.name;
-    data['description'] = this.description;
-    data['color'] = this.color;
-    data['orderIndex'] = this.orderIndex;
-    data['isRequired'] = this.isRequired;
-    data['estimatedDays'] = this.estimatedDays;
-    data['startDate'] = this.startDate;
-    data['completedDate'] = this.completedDate;
-    data['status'] = this.status;
-    data['assignedTo'] = this.assignedTo;
-    data['notes'] = this.notes;
-    data['isCurrentStage'] = this.isCurrentStage;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['name'] = name;
+    data['description'] = description;
+    data['color'] = color;
+    data['orderIndex'] = orderIndex;
+    data['isRequired'] = isRequired;
+    data['estimatedDays'] = estimatedDays;
+    data['startDate'] = startDate;
+    data['completedDate'] = completedDate;
+    data['status'] = status;
+    data['assignedTo'] = assignedTo;
+    data['notes'] = notes;
+    data['isCurrentStage'] = isCurrentStage;
     return data;
   }
 }
