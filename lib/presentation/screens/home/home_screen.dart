@@ -5,6 +5,7 @@ import 'package:source_base/config/app_color.dart' show AppColors;
 import 'package:source_base/data/datasources/remote/param_model/lead_paging_request_model.dart';
 import 'package:source_base/presentation/blocs/organization/organization_bloc.dart';
 import 'package:source_base/presentation/screens/home/widget/customers_page.dart';
+import 'package:source_base/presentation/widget/dialog_member.dart';
 
 import '../../blocs/customer_service/customer_service_action.dart';
 
@@ -33,15 +34,8 @@ class _HomeScreenState extends State<HomeScreen> {
       bloc: context.read<CustomerServiceBloc>(),
       listener: (context, state) {
         if (state.status == CustomerServiceStatus.error) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                state.error!,
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-              backgroundColor: AppColors.error,
-            ),
-          );
+          ShowdialogNouti(context,
+              type: NotifyType.error, title: 'Lỗi', message: state.error ?? '');
         }
       },
       builder: (context, state) => CustomersPage(

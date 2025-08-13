@@ -513,7 +513,7 @@ class ApiService {
       String organizationId, Map<String, dynamic>? queryParameters) async {
     try {
       final response = await _dioClient.get(
-        ApiEndpoints.conversationList,
+        ApiEndpoints.getLeadPaging,
         options: Options(headers: {'organizationId': organizationId}),
         queryParameters: queryParameters,
       );
@@ -886,6 +886,32 @@ class ApiService {
         statusMessage: 'Unknown error',
         requestOptions:
             RequestOptions(path: ApiEndpoints.getBusinessProcessTag),
+      );
+    }
+  }
+
+  Future<Response> getDealActivityService(
+      String organizationId, String stageId) async {
+    try {
+      final response = await _dioClient.getProducts(
+          ApiEndpoints.businessProcessTask,
+          options: Options(headers: {'organizationId': organizationId}),
+          queryParameters: {
+            'stageId': stageId,
+            'pageSize': 10,
+            'page': 0,
+          });
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.businessProcessTask),
       );
     }
   }

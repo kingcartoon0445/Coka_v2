@@ -1,6 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:source_base/data/models/customer_service_response.dart';
 import 'package:source_base/data/models/reminder.dart';
 import 'package:source_base/data/models/schedule_response.dart';
@@ -8,10 +7,10 @@ import 'package:source_base/presentation/blocs/organization/organization_bloc.da
 import 'package:source_base/presentation/screens/customers_service/customer_service_detail/widgets/reminder/add_reminder_dialog.dart';
 import 'package:source_base/presentation/screens/customers_service/widgets/web_reminder_item.dart';
 import 'package:source_base/presentation/screens/theme/reminder_theme.dart';
+import 'package:source_base/presentation/widget/dialog_member.dart';
 import 'package:source_base/presentation/widget/reminder_constants.dart';
 
 import '../../../../../blocs/customer_service/customer_service_action.dart';
-import '../../../../../blocs/customer_service/customer_service_bloc.dart';
 
 class CustomerReminderCard extends StatefulWidget {
   final CustomerServiceModel? customerData;
@@ -55,6 +54,26 @@ class _CustomerReminderCardState extends State<CustomerReminderCard> {
         workspaceId: '',
         contactId: '',
         contactData: widget.customerData,
+        onCreateReminder: (reminderBody) {
+          context.read<CustomerServiceBloc>().add(CreateReminder(
+                organizationId: context
+                    .read<OrganizationBloc>()
+                    .state
+                    .organizationId
+                    .toString(),
+                body: reminderBody!,
+              ));
+        },
+        onUpdateReminder: (reminderBody) {
+          context.read<CustomerServiceBloc>().add(UpdateReminder(
+                organizationId: context
+                    .read<OrganizationBloc>()
+                    .state
+                    .organizationId
+                    .toString(),
+                body: reminderBody!,
+              ));
+        },
       ),
     ).then((_) {
       // Reload reminders after dialog closes
@@ -77,11 +96,32 @@ class _CustomerReminderCardState extends State<CustomerReminderCard> {
     showDialog(
       context: context,
       builder: (context) => AddReminderDialog(
-        organizationId: '',
+        organizationId:
+            context.read<OrganizationBloc>().state.organizationId ?? '',
         workspaceId: '',
         contactId: '',
         contactData: widget.customerData,
         editingReminder: reminder,
+        onCreateReminder: (reminderBody) {
+          context.read<CustomerServiceBloc>().add(CreateReminder(
+                organizationId: context
+                    .read<OrganizationBloc>()
+                    .state
+                    .organizationId
+                    .toString(),
+                body: reminderBody!,
+              ));
+        },
+        onUpdateReminder: (reminderBody) {
+          context.read<CustomerServiceBloc>().add(UpdateReminder(
+                organizationId: context
+                    .read<OrganizationBloc>()
+                    .state
+                    .organizationId
+                    .toString(),
+                body: reminderBody!,
+              ));
+        },
       ),
     ).then((_) {
       _loadReminders();
@@ -103,14 +143,16 @@ class _CustomerReminderCardState extends State<CustomerReminderCard> {
             onPressed: () async {
               try {
                 // await ref.read(reminderListProvider.notifier).deleteReminder(reminder.id);
+                context.read<CustomerServiceBloc>().add(DeleteReminder(
+                      organizationId: context
+                              .read<OrganizationBloc>()
+                              .state
+                              .organizationId ??
+                          '',
+                      reminderId: reminder.id ?? '',
+                    ));
                 if (!context.mounted) return;
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Đã xóa nhắc hẹn'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
               } catch (e) {
                 if (!context.mounted) return;
                 Navigator.pop(context);
@@ -138,8 +180,16 @@ class _CustomerReminderCardState extends State<CustomerReminderCard> {
     // Lấy tất cả reminders và sắp xếp: pending trước, completed sau
     // List<Reminder>  state.scheduleDetails = [];
 
-    return BlocBuilder<CustomerServiceBloc, CustomerServiceState>(
+    return BlocConsumer<CustomerServiceBloc, CustomerServiceState>(
         bloc: context.read<CustomerServiceBloc>(),
+        listener: (context, state) {
+          if (state.status == CustomerServiceStatus.successDeleteReminder) {
+            ShowdialogNouti(context,
+                type: NotifyType.success,
+                title: 'Thành công',
+                message: 'Đã xóa nhắc hẹn');
+          }
+        },
         builder: (context, state) {
           if (state.status == CustomerServiceStatus.error) {
             return _buildErrorState();
@@ -192,45 +242,55 @@ class _CustomerReminderCardState extends State<CustomerReminderCard> {
                         const SizedBox(width: 8),
 
                         // Di chuyển badges về phía trái, sau title
-                        if (overdueReminders.isNotEmpty)
-                          _buildStatChip(
-                            label: "overdue".tr(),
-                            count: overdueReminders.length,
-                            color: ReminderColors.error,
-                            icon: Icons.warning,
-                          ),
-                        if (overdueReminders.isNotEmpty &&
-                            todayReminders.isNotEmpty)
-                          const SizedBox(width: 4),
-                        if (todayReminders.isNotEmpty)
-                          _buildStatChip(
-                            label: 'Hôm nay',
-                            count: todayReminders.length,
-                            color: ReminderColors.warning,
-                            icon: Icons.today,
-                          ),
-
-                        const Spacer(),
-
-                        if (state.scheduleDetails.isNotEmpty) ...[
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: ReminderColors.primary.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
+                        Expanded(
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                if (overdueReminders.isNotEmpty)
+                                  _buildStatChip(
+                                    label: "overdue".tr(),
+                                    count: overdueReminders.length,
+                                    color: ReminderColors.error,
+                                    icon: Icons.warning,
+                                  ),
+                                if (overdueReminders.isNotEmpty &&
+                                    todayReminders.isNotEmpty)
+                                  const SizedBox(width: 4),
+                                if (todayReminders.isNotEmpty)
+                                  _buildStatChip(
+                                    label: 'Hôm nay',
+                                    count: todayReminders.length,
+                                    color: ReminderColors.warning,
+                                    icon: Icons.today,
+                                  ),
+                                if (state.scheduleDetails.isNotEmpty) ...[
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: ReminderColors.primary
+                                          .withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Text(
+                                      '${state.scheduleDetails.length}',
+                                      style:
+                                          ReminderTypography.caption.copyWith(
+                                        color: ReminderColors.primary,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                ],
+                              ],
                             ),
-                            child: Text(
-                              '${state.scheduleDetails.length}',
-                              style: ReminderTypography.caption.copyWith(
-                                color: ReminderColors.primary,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 11,
-                              ),
-                            ),
                           ),
-                          const SizedBox(width: 6),
-                        ],
+                        ),
+
                         GestureDetector(
                           onTap: () => _showAddReminderDialog(),
                           child: Container(
@@ -239,7 +299,7 @@ class _CustomerReminderCardState extends State<CustomerReminderCard> {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(
+                                const Icon(
                                   Icons.add,
                                   size: 14,
                                   color: ReminderColors.primary,

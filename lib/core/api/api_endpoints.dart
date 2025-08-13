@@ -52,11 +52,10 @@ class ApiEndpoints {
   static const String teamList =
       '$_prefix/organization/workspace/team/getlistpaging';
   static const String getlistpaging = '$_prefix2/category/tags/getlistpaging';
-  static const String getLeadPaging = '$_prefix2/lead/getlistpaging';
   static String postCustomerNote(String customerId) =>
-      '$_prefix2/customer/$customerId/note';
+      '$_prefix2/lead/$customerId/journey/note';
   static String getJourneyPaging(String id) =>
-      '$_prefix2/customer/$id/journey/getlistpaging';
+      '$_prefix2/lead/$id/journey/getlistpaging';
   static String customerPath(String id) => '$_prefix2/customer/$id';
   static String getListPage(
           String provider, String subscribed, String searchText) =>
@@ -68,6 +67,8 @@ class ApiEndpoints {
   static String postUnArchiveCustomer(String id) =>
       '$_prefix2/customer/$id/archive/restore';
 // API Được sử dụng
+
+  static const String getLeadPaging = '$_prefix2/lead/getlistpagingv2';
   static String businessProcessTask = '$_prefix/businessprocesstask';
   static String order = '$_prefix/order';
   static String linkOrder(String id) => '$businessProcessTask/$id/link-order';
@@ -95,5 +96,5 @@ class ApiEndpoints {
   static String getCalculator(String organizationId, String contactId) =>
       '/Schedule?organizationId=$organizationId&workspaceId=&contactId=$contactId';
   static const String updateNoteMark = '/Schedule/mark-as-done';
-  static const String createReminder = '/Schedule';
+  static const String schedule = '/Schedule';
 }

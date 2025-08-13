@@ -12,6 +12,8 @@
      "check_mail":"Vui lòng kiểm mail để điền mã xác thực",
      "next":"Tiếp theo",
      "not_receive_mail":"Chưa nhận được mail?",
+     "mark_as_completed":"Đánh dấu hoàn thành",
+     "edit_reminder":"Sửa nhắc hẹn",
      "resend_mail":"Ấn vào để gửi lại",
     "back_to_login":"Trở lại trang đăng nhập",
     "view_profile":"Xem hồ sơ của bạn",

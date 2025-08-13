@@ -1,4 +1,4 @@
-import 'package:source_base/data/models/organization_model.dart';
+import 'package:source_base/data/models/customer_service_response.dart'; 
 import 'package:source_base/presentation/screens/shared/widgets/chip_input.dart';
 export 'package:source_base/data/models/organization_model.dart';
 

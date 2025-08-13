@@ -6,12 +6,14 @@ import 'package:source_base/data/datasources/remote/api_calendar_service.dart';
 import 'package:source_base/data/datasources/remote/api_service.dart';
 import 'package:source_base/data/repositories/calendar_repository.dart';
 import 'package:source_base/data/repositories/chat_repository.dart';
+import 'package:source_base/data/repositories/deal_activity_repository.dart';
 import 'package:source_base/data/repositories/final_deal_repository.dart';
 import 'package:source_base/data/repositories/origanzation_repository.dart';
 import 'package:source_base/data/repositories/switch_final_deal_repository.dart';
 import 'package:source_base/data/repositories/user_repository.dart';
 import 'package:source_base/presentation/blocs/auth/auth_bloc.dart';
 import 'package:source_base/presentation/blocs/customer_service/customer_service_bloc.dart';
+import 'package:source_base/presentation/blocs/deal_activity/deal_activity_bloc.dart';
 import 'package:source_base/presentation/blocs/organization/organization_bloc.dart';
 import 'package:source_base/presentation/blocs/theme/theme_bloc.dart';
 
@@ -39,6 +41,7 @@ Future<void> setupServiceLocator() async {
   getIt.registerLazySingleton<ApiService>(() => ApiService(getIt<DioClient>()));
   getIt.registerLazySingleton<ApiCalendarService>(
       () => ApiCalendarService(getIt<DioClient>()));
+
   // Repositories
   getIt.registerLazySingleton<UserRepository>(() => UserRepository(
         apiService: getIt<ApiService>(),
@@ -55,6 +58,10 @@ Future<void> setupServiceLocator() async {
       () => FinalDealRepository(apiService: getIt<ApiService>()));
   getIt.registerLazySingleton<SwitchFinalDealRepository>(
       () => SwitchFinalDealRepository(apiService: getIt<ApiService>()));
+  getIt.registerLazySingleton<DealActivityRepository>(() =>
+      DealActivityRepository(
+          apiService: getIt<ApiService>(),
+          apiCalendarService: getIt<ApiCalendarService>()));
   // BLoCs
   getIt.registerFactory<ThemeBloc>(() => ThemeBloc());
   getIt.registerFactory<AuthBloc>(
@@ -74,4 +81,7 @@ Future<void> setupServiceLocator() async {
   getIt.registerFactory<SwitchFinalDealBloc>(() => SwitchFinalDealBloc(
       repository: getIt<SwitchFinalDealRepository>(),
       finalRepository: getIt<FinalDealRepository>()));
+  getIt.registerFactory<DealActivityBloc>(() => DealActivityBloc(
+      dealActivityRepository: getIt<DealActivityRepository>(),
+      calendarRepository: getIt<CalendarRepository>()));
 }

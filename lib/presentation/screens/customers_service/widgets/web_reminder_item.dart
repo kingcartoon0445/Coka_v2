@@ -56,7 +56,7 @@ class WebReminderItem extends StatelessWidget {
               const SizedBox(width: 4),
 
               // Menu
-              // _buildMenu(),
+              _buildMenu(),
             ],
           ),
         ),

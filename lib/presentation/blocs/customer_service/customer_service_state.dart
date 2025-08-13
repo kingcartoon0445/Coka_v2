@@ -3,18 +3,22 @@
 import 'package:equatable/equatable.dart';
 import 'package:source_base/data/datasources/remote/param_model/lead_paging_request_model.dart';
 import 'package:source_base/data/models/customer_service_response.dart';
-import 'package:source_base/data/models/facebook_chat_response.dart';
+import 'package:source_base/data/models/facebook_chat_response.dart' hide Metadata;
 import 'package:source_base/data/models/schedule_response.dart';
-import 'package:source_base/data/models/service_detail_response.dart';
+import 'package:source_base/data/models/service_detail_response.dart' hide Metadata;
 
 enum CustomerServiceStatus {
   initial,
   loading,
-  loadingUserInfo,
+  loadingUserInfo, 
+  errorCreateReminder,
+  errorUpdateReminder,
+  errorDeleteReminder,
+  error,
+  loadingMore,
   success,
   successStorageCustomer,
-  error,
-  loadingMore
+  successDeleteReminder,
 }
 
 class CustomerServiceState extends Equatable {

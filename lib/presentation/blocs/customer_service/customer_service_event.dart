@@ -4,6 +4,7 @@ import 'package:source_base/data/datasources/remote/param_model/lead_paging_requ
 import 'package:source_base/data/models/customer_service_response.dart';
 import 'package:source_base/data/models/facebook_chat_response.dart';
 import 'package:source_base/data/models/reminder_service_body.dart';
+import 'package:source_base/presentation/blocs/customer_service/customer_service_state.dart';
 
 abstract class CustomerServiceEvent extends Equatable {
   const CustomerServiceEvent();
@@ -191,6 +192,26 @@ class FirebaseConversationUpdated extends CustomerServiceEvent {
   });
 }
 
+class UpdateReminder extends CustomerServiceEvent {
+  final String organizationId;
+  final ReminderServiceBody body;
+
+  const UpdateReminder({
+    required this.organizationId,
+    required this.body,
+  });
+}
+
+class DeleteReminder extends CustomerServiceEvent {
+  final String organizationId;
+  final String reminderId;
+
+  const DeleteReminder({
+    required this.organizationId,
+    required this.reminderId,
+  });
+}
+
 class ToggleFirebaseListenerRequested extends CustomerServiceEvent {
   final String organizationId;
   final bool isEnabled;
@@ -226,5 +247,15 @@ class DeleteCustomer extends CustomerServiceEvent {
   const DeleteCustomer({
     required this.customerId,
     required this.organizationId,
+  });
+}
+
+class ShowError extends CustomerServiceEvent {
+  final String error;
+  final CustomerServiceStatus status;
+
+  const ShowError({
+    required this.error,
+    required this.status,
   });
 }

@@ -8,6 +8,7 @@ import 'package:source_base/data/models/customer_service_response.dart';
 import 'package:source_base/presentation/blocs/organization/organization_bloc.dart';
 import 'package:source_base/presentation/screens/customer/customer_screen.dart';
 import 'package:source_base/presentation/screens/customers_service/customer_service_detail/widgets/customer_journey.dart';
+
 import 'package:source_base/presentation/screens/shared/widgets/avatar_widget.dart';
 import '../../../blocs/customer_service/customer_service_action.dart';
 import 'widgets/assign_to_bottomsheet.dart';
@@ -719,7 +720,7 @@ class _CustomerDetailPageState extends State<CustomerDetailPage>
                 ? _buildLoadingSkeleton()
                 : TabBarView(
                     controller: _tabController,
-                    children: const [
+                    children: [
                       // Tab 1: Hành trình
                       CustomerJourney(),
 

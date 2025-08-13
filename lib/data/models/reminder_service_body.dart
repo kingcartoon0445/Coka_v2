@@ -1,4 +1,5 @@
 class ReminderServiceBody {
+  String? id;
   String? startTime;
   String? endTime;
   List<RepeatRule>? repeatRule;
@@ -13,9 +14,11 @@ class ReminderServiceBody {
   int? priority;
   String? schedulesType;
   List<RelatedProfiles>? relatedProfiles;
+  String? workspaceId;
 
   ReminderServiceBody(
-      {this.startTime,
+      {this.id,
+      this.startTime,
       this.endTime,
       this.repeatRule,
       this.title,
@@ -28,7 +31,8 @@ class ReminderServiceBody {
       this.reminders,
       this.priority,
       this.schedulesType,
-      this.relatedProfiles});
+      this.relatedProfiles,
+      this.workspaceId});
 
   ReminderServiceBody.fromJson(Map<String, dynamic> json) {
     startTime = json['StartTime'];
@@ -76,6 +80,7 @@ class ReminderServiceBody {
       data[key] = value;
     }
 
+    addIfNotNullOrEmpty('Id', this.id);
     addIfNotNullOrEmpty('StartTime', this.startTime);
     addIfNotNullOrEmpty('EndTime', this.endTime);
 
@@ -83,7 +88,11 @@ class ReminderServiceBody {
       final repeatRuleList = this.repeatRule!.map((v) => v.toJson()).toList();
       if (repeatRuleList.isNotEmpty) {
         data['RepeatRule'] = repeatRuleList;
+      } else {
+        data['RepeatRule'] = [];
       }
+    } else {
+      data['RepeatRule'] = [];
     }
 
     addIfNotNullOrEmpty('Title', this.title);
@@ -91,13 +100,17 @@ class ReminderServiceBody {
     addIfNotNullOrEmpty('IsReminder', this.isReminder);
     addIfNotNullOrEmpty('IsDone', this.isDone);
     addIfNotNullOrEmpty('OrganizationId', this.organizationId);
-    // addIfNotNullOrEmpty('WorkspaceId', this.workspaceId);
+    addIfNotNullOrEmpty('WorkspaceId', this.workspaceId);
 
     if (this.contact != null && this.contact!.isNotEmpty) {
       final contactList = this.contact!.map((v) => v.toJson()).toList();
       if (contactList.isNotEmpty) {
         data['Contact'] = contactList;
+      } else {
+        data['Contact'] = [];
       }
+    } else {
+      data['Contact'] = [];
     }
 
     addIfNotNullOrEmpty('Notes', this.notes);
@@ -106,7 +119,11 @@ class ReminderServiceBody {
       final remindersList = this.reminders!.map((v) => v.toJson()).toList();
       if (remindersList.isNotEmpty) {
         data['Reminders'] = remindersList;
+      } else {
+        data['Reminders'] = [];
       }
+    } else {
+      data['Reminders'] = [];
     }
 
     addIfNotNullOrEmpty('Priority', this.priority);
@@ -117,7 +134,11 @@ class ReminderServiceBody {
           this.relatedProfiles!.map((v) => v.toJson()).toList();
       if (relatedProfilesList.isNotEmpty) {
         data['RelatedProfiles'] = relatedProfilesList;
+      } else {
+        data['RelatedProfiles'] = [];
       }
+    } else {
+      data['RelatedProfiles'] = [];
     }
 
     // Remove any key with value null or empty string (redundant, but for extra safety)

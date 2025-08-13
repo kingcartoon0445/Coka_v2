@@ -4,6 +4,7 @@ import 'package:source_base/presentation/screens/auth/login_screen.dart';
 import 'package:source_base/presentation/screens/auth/verify_otp_page.dart';
 import 'package:source_base/presentation/screens/chat_detail_page/chat_detail_page.dart';
 import 'package:source_base/presentation/screens/customers_service/customer_service_detail/customer_detail_page.dart';
+import 'package:source_base/presentation/screens/deal_activity/deal_activity_screen.dart';
 import 'package:source_base/presentation/screens/home/home_screen.dart';
 import 'package:source_base/presentation/screens/organization/organization_page.dart';
 
@@ -30,6 +31,7 @@ class AppPaths {
   static String organization(String organizationId) =>
       '/organization/$organizationId';
   static const String customerService = '/customerService';
+  static const String dealActivity = '/dealActivity';
   // Messages paths
   static String messages(String organizationId) =>
       '/organization/$organizationId/messages';
@@ -301,6 +303,12 @@ final GoRouter router = GoRouter(
       path: AppPaths.customerService,
       name: 'customers',
       builder: (context, state) => const CustomerDetailPage(),
+    ),
+
+    GoRoute(
+      path: AppPaths.dealActivity,
+      name: 'dealActivity',
+      builder: (context, state) => const DealActivityScreen(),
     ),
     GoRoute(
         path: AppPaths.completeProfile,

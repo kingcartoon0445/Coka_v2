@@ -1,33 +1,35 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:source_base/data/models/schedule_response.dart';
 import 'package:source_base/data/models/service_detail_response.dart';
 import 'package:source_base/data/models/stage.dart';
-import 'package:source_base/presentation/screens/customers_service/customer_service_detail/widgets/reminder/customer_reminder_card.dart';
+import 'package:source_base/presentation/blocs/customer_service/customer_service_action.dart';
+import 'package:source_base/presentation/blocs/deal_activity/deal_activity_action.dart';
+import 'package:source_base/presentation/blocs/organization/organization_bloc.dart';
+import 'package:source_base/presentation/blocs/organization/organization_state.dart';
+import 'package:source_base/presentation/screens/customers_service/customer_service_detail/widgets/journey_item.dart';
+import 'package:source_base/presentation/screens/customers_service/customer_service_detail/widgets/reminder/add_reminder_dialog.dart';
+import 'package:source_base/presentation/screens/customers_service/customer_service_detail/widgets/stage_select.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../../blocs/customer_service/customer_service_action.dart';
-import '../../../../blocs/organization/organization_action_bloc.dart';
-import 'stage_select.dart';
-import 'journey_item.dart';
+import 'activy_widget.dart';
 
-/// Refactored & optimized version of CustomerJourney
+/// Refactored & optimized version of CustomerJourneyScreen
 /// - Extracted widgets
 /// - Heavier use of consts
 /// - Reduced rebuilds via smaller widgets & Bloc selectors
 /// - Safer scroll pagination (guarded & debounced)
 /// - Cleaner date grouping/formatting
-class CustomerJourney extends StatefulWidget {
+class CustomerJourneyScreen extends StatefulWidget {
   final bool onlyNote;
-  const CustomerJourney({super.key, this.onlyNote = false});
+  const CustomerJourneyScreen({super.key, this.onlyNote = false});
 
   @override
-  State<CustomerJourney> createState() => _CustomerJourneyState();
+  State<CustomerJourneyScreen> createState() => _CustomerJourneyScreenState();
 }
 
-class _CustomerJourneyState extends State<CustomerJourney>
+class _CustomerJourneyScreenState extends State<CustomerJourneyScreen>
     with SingleTickerProviderStateMixin {
   final TextEditingController _noteCtrl = TextEditingController();
   final ScrollController _scrollCtrl = ScrollController();
@@ -178,22 +180,24 @@ class _CustomerJourneyState extends State<CustomerJourney>
             onTap: () => FocusScope.of(context).unfocus(),
             child: RefreshIndicator(
               onRefresh: () async {
-                context.read<CustomerServiceBloc>().add(
-                      LoadJourneyPaging(
+                context.read<DealActivityBloc>().add(
+                      LoadDealActivity(
                         organizationId: context
                                 .read<OrganizationBloc>()
                                 .state
                                 .organizationId ??
                             '',
+                        businessProcessTask: null,
+                        workspaceId: null,
                       ),
                     );
               },
-              child: BlocBuilder<CustomerServiceBloc, CustomerServiceState>(
+              child: BlocBuilder<DealActivityBloc, DealActivityState>(
                 buildWhen: (prev, next) =>
-                    prev.serviceDetails != next.serviceDetails ||
+                    prev.scheduleModels != next.scheduleModels ||
                     prev.status != next.status,
                 builder: (context, state) {
-                  final journeys = state.serviceDetails;
+                  final noteSimpleModels = state.noteSimpleModels;
 
                   return ListView(
                     controller: _scrollCtrl,
@@ -201,12 +205,40 @@ class _CustomerJourneyState extends State<CustomerJourney>
                     padding:
                         EdgeInsets.only(bottom: _isInputFocused ? 240 : 140),
                     children: [
-                      if (!widget.onlyNote)
-                        CustomerReminderCard(
-                          customerData: state.customerService,
-                          onAddReminder: () {},
+                      if (!widget.onlyNote) ...[
+                        ActivityWidget(
+                          onAddReminder: () {
+                            _showAddReminderDialog(null);
+                          },
+                          onToggleDone: (reminder, isDone) {},
+                          onEdit: (reminder) {
+                            _showAddReminderDialog(reminder);
+                          },
+                          onDelete: (reminder) {
+                            context.read<DealActivityBloc>().add(
+                                  DeleteReminderWorkspace(
+                                    reminderId: reminder.id ?? '',
+                                  ),
+                                );
+                          },
+                          scheduleDetails: state.scheduleModels,
+                          isLoading: state.status == DealActivityStatus.loading,
+                          isError: state.status == DealActivityStatus.error,
+                          onReload: () {
+                            context
+                                .read<DealActivityBloc>()
+                                .add(LoadDealActivity(
+                                  organizationId: context
+                                          .read<OrganizationBloc>()
+                                          .state
+                                          .organizationId ??
+                                      '',
+                                  businessProcessTask: null,
+                                  workspaceId: null,
+                                ));
+                          },
                         )
-                      else
+                      ] else ...[
                         _NoteComposer(
                           focusNode: _focusNode,
                           controller: _noteCtrl,
@@ -261,38 +293,39 @@ class _CustomerJourneyState extends State<CustomerJourney>
                             FocusScope.of(context).unfocus();
                           },
                         ),
+                      ],
                       const _HistoryHeader(),
-                      if (journeys.isEmpty)
+                      if (noteSimpleModels.isEmpty)
                         const Center(
                             child: Padding(
                           padding: EdgeInsets.symmetric(vertical: 12),
                           child: Text('Chưa có hành trình nào'),
                         ))
                       else
-                        ..._buildGroupedJourneys(journeys),
-                      if (state.hasMoreServiceDetails)
-                        Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Center(
-                            child: state.status ==
-                                    CustomerServiceStatus.loadingMore
-                                ? Column(
-                                    children: const [
-                                      SizedBox(
-                                          width: 20,
-                                          height: 20,
-                                          child: CircularProgressIndicator(
-                                              strokeWidth: 2)),
-                                      SizedBox(height: 8),
-                                      Text('Đang tải thêm...',
-                                          style: TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.grey)),
-                                    ],
-                                  )
-                                : const SizedBox.shrink(),
-                          ),
-                        ),
+                        ..._buildGroupedJourneys(noteSimpleModels),
+                      // if (state.hasMoreServiceDetails)
+                      //   Padding(
+                      //     padding: const EdgeInsets.all(16),
+                      //     child: Center(
+                      //       child: state.status ==
+                      //               CustomerServiceStatus.loadingMore
+                      //           ? const Column(
+                      //               children: [
+                      //                 SizedBox(
+                      //                     width: 20,
+                      //                     height: 20,
+                      //                     child: CircularProgressIndicator(
+                      //                         strokeWidth: 2)),
+                      //                 SizedBox(height: 8),
+                      //                 Text('Đang tải thêm...',
+                      //                     style: TextStyle(
+                      //                         fontSize: 12,
+                      //                         color: Colors.grey)),
+                      //               ],
+                      //             )
+                      //           : const SizedBox.shrink(),
+                      //     ),
+                      //   ),
                     ],
                   );
                 },
@@ -339,8 +372,36 @@ class _CustomerJourneyState extends State<CustomerJourney>
     );
   }
 
-  List<Widget> _buildGroupedJourneys(List<ServiceDetailModel> journeys) {
-    final grouped = _groupJourneysByDate(journeys);
+  void _showAddReminderDialog(ScheduleModel? editingReminder) {
+    showDialog(
+      context: context,
+      builder: (context) => AddReminderDialog(
+        onCreateReminder: (reminderBody) {
+          context.read<DealActivityBloc>().add(CreateReminderWorkspace(
+                reminder: reminderBody!,
+              ));
+        },
+        onUpdateReminder: (reminderBody) {
+          context.read<DealActivityBloc>().add(UpdateReminderWorkspace(
+                reminder: reminderBody!,
+              ));
+        },
+        organizationId:
+            context.read<OrganizationBloc>().state.organizationId.toString(),
+        workspaceId: context.read<DealActivityBloc>().state.workspaceId ?? '',
+        contactId: '',
+        editingReminder: editingReminder,
+        contactData: null,
+      ),
+    ).then((_) {
+      // Reload reminders after dialog closes
+      // _loadReminders();
+    });
+  }
+
+  List<Widget> _buildGroupedJourneys(
+      List<ServiceDetailModel> noteSimpleModels) {
+    final grouped = _groupJourneysByDate(noteSimpleModels);
     final dates = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
 
     final widgets = <Widget>[];

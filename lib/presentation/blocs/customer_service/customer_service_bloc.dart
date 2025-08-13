@@ -32,6 +32,7 @@ class CustomerServiceBloc
     on<PostCustomerNote>(_onPostCustomerNote);
     on<UpdateNoteMark>(_onUpdateNoteMark);
     on<CreateReminder>(_onCreateReminder);
+    on<UpdateReminder>(_onUpdateReminder);
     on<ChangeStatusRead>(_onChangeStatusRead);
     on<LoadFirstProviderChat>(_onLoadFirstProviderChat);
     on<LoadMoreProviderChats>(_onLoadMoreProviderChats);
@@ -42,8 +43,24 @@ class CustomerServiceBloc
     on<DisableFirebaseListenerRequested>(_onDisableFirebaseListenerRequested);
     on<LoadFacebookChat>(_onLoadFacebookChat);
     on<DeleteCustomer>(_onDeleteCustomer);
+    on<DeleteReminder>(_onDeleteReminder);
+    on<ShowError>(_onShowError);
   }
 
+  // -------------------- Helpers --------------------
+  bool _ok(dynamic data) => Helpers.isResponseSuccess(data);
+
+  String _currentCustomerServiceId(CustomerServiceModel? cs) =>
+      cs?.id ?? state.customerService?.id ?? '';
+
+  bool _hasMore(int? offset, int? count, int? total) {
+    final o = offset ?? 0;
+    final c = count ?? 0;
+    final t = total ?? 0;
+    return o + c < t;
+  }
+
+  // -------------------- Event Handlers --------------------
   Future<void> _onLoadFacebookChat(
     LoadFacebookChat event,
     Emitter<CustomerServiceState> emit,
@@ -56,29 +73,37 @@ class CustomerServiceBloc
     Emitter<CustomerServiceState> emit,
   ) async {
     emit(state.copyWith(status: CustomerServiceStatus.loadingUserInfo));
+
     final response = await organizationRepository.getCustomerService(
-        event.organizationId, event.pagingRequest ?? state.pagingRequest!);
-    final bool isSuccess = Helpers.isResponseSuccess(response.data);
-    if (isSuccess) {
-      final CustomerServiceResponse customerServiceResponse =
+      event.organizationId,
+      event.pagingRequest ?? state.pagingRequest!,
+    );
+
+    if (_ok(response.data)) {
+      final CustomerServiceResponse parsed =
           CustomerServiceResponse.fromJson(response.data);
+      final hasMore = _hasMore(
+        parsed.metadata?.offset,
+        parsed.metadata?.count,
+        parsed.metadata?.total,
+      );
 
-      // Calculate if there are more customers to load
-      final hasMore = customerServiceResponse.metadata != null &&
-          (customerServiceResponse.metadata!.offset ?? 0) +
-                  (customerServiceResponse.metadata!.count ?? 0) <
-              (customerServiceResponse.metadata!.total ?? 0);
-
-      emit(state.copyWith(
+      emit(
+        state.copyWith(
           status: CustomerServiceStatus.success,
-          customerServices: customerServiceResponse.content ?? [],
-          customersMetadata: customerServiceResponse.metadata,
+          customerServices: parsed.content ?? [],
+          customersMetadata: parsed.metadata,
           pagingRequest: event.pagingRequest ?? state.pagingRequest,
-          hasMoreCustomers: hasMore));
+          hasMoreCustomers: hasMore,
+        ),
+      );
     } else {
-      emit(state.copyWith(
+      emit(
+        state.copyWith(
           status: CustomerServiceStatus.error,
-          error: response.data['message'] as String? ?? 'Unknown error'));
+          error: (response.data['message'] as String?) ?? 'Unknown error',
+        ),
+      );
     }
   }
 
@@ -87,57 +112,62 @@ class CustomerServiceBloc
     Emitter<CustomerServiceState> emit,
   ) async {
     try {
-      emit(state.copyWith(
+      emit(
+        state.copyWith(
           status: CustomerServiceStatus.loading,
-          customerService: event.customerService));
+          customerService: event.customerService,
+        ),
+      );
 
+      // Calendar (schedule)
       final responseCalendar = await calendarRepository.getCalculator(
-          event.organizationId,
-          event.customerService == null
-              ? state.customerService?.id ?? ''
-              : event.customerService!.id ?? '');
-      final bool isSuccessCalendar =
-          Helpers.isResponseSuccess(responseCalendar.data);
-      if (isSuccessCalendar) {
-        final ScheduleResponse journeyPagingResponse =
+        event.organizationId,
+        _currentCustomerServiceId(event.customerService),
+      );
+      if (_ok(responseCalendar.data)) {
+        final ScheduleResponse schedule =
             ScheduleResponse.fromJson(responseCalendar.data);
-        emit(state.copyWith(scheduleDetails: journeyPagingResponse.data));
+        emit(state.copyWith(scheduleDetails: schedule.data));
       }
 
+      // Journey/service details
       final response = await organizationRepository.getLeadPagingArchive(
-          event.customerService == null
-              ? state.customerService?.id ?? ''
-              : event.customerService!.id ?? '',
-          event.organizationId,
-          type: event.type);
-      final bool isSuccess = Helpers.isResponseSuccess(response.data);
-      if (isSuccess) {
-        final service_detail.ServiceDetailResponse journeyPagingResponse =
+        _currentCustomerServiceId(event.customerService),
+        event.organizationId,
+        type: event.type,
+      );
+
+      if (_ok(response.data)) {
+        final service_detail.ServiceDetailResponse parsed =
             service_detail.ServiceDetailResponse.fromJson(response.data);
 
-        // Calculate if there are more items to load
-        final hasMore = journeyPagingResponse.metadata != null &&
-            (journeyPagingResponse.metadata!.offset ?? 0) +
-                    (journeyPagingResponse.metadata!.count ?? 0) <
-                (journeyPagingResponse.metadata!.total ?? 0);
+        final hasMore = _hasMore(
+          parsed.metadata?.offset,
+          parsed.metadata?.count,
+          parsed.metadata?.total,
+        );
 
-        emit(state.copyWith(
+        emit(
+          state.copyWith(
             status: CustomerServiceStatus.success,
             customerService: event.customerService,
-            serviceDetails: journeyPagingResponse.content ?? [],
-            serviceDetailsMetadata: journeyPagingResponse.metadata,
-            hasMoreServiceDetails: hasMore));
+            serviceDetails: parsed.content ?? [],
+            serviceDetailsMetadata: parsed.metadata,
+            hasMoreServiceDetails: hasMore,
+          ),
+        );
       } else {
-        emit(state.copyWith(
-          status: CustomerServiceStatus.error,
-          error: response.data['message'] as String? ?? 'Unknown error',
-        ));
+        emit(
+          state.copyWith(
+            status: CustomerServiceStatus.error,
+            error: (response.data['message'] as String?) ?? 'Unknown error',
+          ),
+        );
       }
-    } catch (e) {
+    } catch (e, st) {
+      log('LoadJourneyPaging error', error: e, stackTrace: st);
       emit(state.copyWith(
-        status: CustomerServiceStatus.error,
-        error: e.toString(),
-      ));
+          status: CustomerServiceStatus.error, error: e.toString()));
     }
   }
 
@@ -149,41 +179,47 @@ class CustomerServiceBloc
       emit(state.copyWith(status: CustomerServiceStatus.loadingMore));
 
       final response = await organizationRepository.getLeadPagingArchive(
-          state.customerService?.id ?? '', event.organizationId,
-          limit: event.limit, offset: event.offset, type: event.type);
+        state.customerService?.id ?? '',
+        event.organizationId,
+        limit: event.limit,
+        offset: event.offset,
+        type: event.type,
+      );
 
-      final bool isSuccess = Helpers.isResponseSuccess(response.data);
-      if (isSuccess) {
-        final service_detail.ServiceDetailResponse serviceDetailResponse =
+      if (_ok(response.data)) {
+        final service_detail.ServiceDetailResponse parsed =
             service_detail.ServiceDetailResponse.fromJson(response.data);
 
-        // Append new items to existing list
-        final updatedServiceDetails =
+        final updated =
             List<service_detail.ServiceDetailModel>.from(state.serviceDetails)
-              ..addAll(serviceDetailResponse.content ?? []);
+              ..addAll(parsed.content ?? []);
 
-        // Calculate if there are more items to load
-        final hasMore = serviceDetailResponse.metadata != null &&
-            (serviceDetailResponse.metadata!.offset ?? 0) +
-                    (serviceDetailResponse.metadata!.count ?? 0) <
-                (serviceDetailResponse.metadata!.total ?? 0);
+        final hasMore = _hasMore(
+          parsed.metadata?.offset,
+          parsed.metadata?.count,
+          parsed.metadata?.total,
+        );
 
-        emit(state.copyWith(
+        emit(
+          state.copyWith(
             status: CustomerServiceStatus.success,
-            serviceDetails: updatedServiceDetails,
-            serviceDetailsMetadata: serviceDetailResponse.metadata,
-            hasMoreServiceDetails: hasMore));
+            serviceDetails: updated,
+            serviceDetailsMetadata: parsed.metadata,
+            hasMoreServiceDetails: hasMore,
+          ),
+        );
       } else {
-        emit(state.copyWith(
-          status: CustomerServiceStatus.error,
-          error: response.data['message'] as String? ?? 'Unknown error',
-        ));
+        emit(
+          state.copyWith(
+            status: CustomerServiceStatus.error,
+            error: (response.data['message'] as String?) ?? 'Unknown error',
+          ),
+        );
       }
-    } catch (e) {
+    } catch (e, st) {
+      log('LoadMoreServiceDetails error', error: e, stackTrace: st);
       emit(state.copyWith(
-        status: CustomerServiceStatus.error,
-        error: e.toString(),
-      ));
+          status: CustomerServiceStatus.error, error: e.toString()));
     }
   }
 
@@ -195,51 +231,48 @@ class CustomerServiceBloc
       emit(state.copyWith(status: CustomerServiceStatus.loadingMore));
 
       final response = await organizationRepository.getCustomerService(
-          event.organizationId, event.pagingRequest ?? state.pagingRequest!);
+        event.organizationId,
+        event.pagingRequest ?? state.pagingRequest!,
+      );
 
-      final bool isSuccess = Helpers.isResponseSuccess(response.data);
-      if (isSuccess) {
-        final CustomerServiceResponse customerServiceResponse =
+      if (_ok(response.data)) {
+        final CustomerServiceResponse parsed =
             CustomerServiceResponse.fromJson(response.data);
 
-        // Append new items to existing list
-        final updatedCustomers =
-            List<CustomerServiceModel>.from(state.customerServices)
-              ..addAll(customerServiceResponse.content ?? []);
+        final updated = List<CustomerServiceModel>.from(state.customerServices)
+          ..addAll(parsed.content ?? []);
 
-        // Calculate if there are more items to load
-        final hasMore = customerServiceResponse.metadata != null &&
-            (customerServiceResponse.metadata!.offset ?? 0) +
-                    (customerServiceResponse.metadata!.count ?? 0) <
-                (customerServiceResponse.metadata!.total ?? 0);
+        final hasMore = _hasMore(
+          parsed.metadata?.offset,
+          parsed.metadata?.count,
+          parsed.metadata?.total,
+        );
 
-        emit(state.copyWith(
+        emit(
+          state.copyWith(
             status: CustomerServiceStatus.success,
-            customerServices: updatedCustomers,
-            customersMetadata: customerServiceResponse.metadata,
-            hasMoreCustomers: hasMore));
+            customerServices: updated,
+            customersMetadata: parsed.metadata,
+            hasMoreCustomers: hasMore,
+          ),
+        );
       } else {
-        // Chỉ set error nếu đây là lần load đầu tiên
+        // If first load failed -> show error; otherwise keep current list
+        final message =
+            (response.data['message'] as String?) ?? 'Unknown error';
         if (state.customerServices.isEmpty) {
           emit(state.copyWith(
-            status: CustomerServiceStatus.error,
-            error: response.data['message'] as String? ?? 'Unknown error',
-          ));
+              status: CustomerServiceStatus.error, error: message));
         } else {
-          // Nếu đã có dữ liệu, chỉ log error mà không thay đổi status
-          print('Load more error: ${response.data['message']}');
+          log('Load more customers error: $message');
         }
       }
-    } catch (e) {
-      // Chỉ set error nếu đây là lần load đầu tiên
+    } catch (e, st) {
       if (state.customerServices.isEmpty) {
         emit(state.copyWith(
-          status: CustomerServiceStatus.error,
-          error: e.toString(),
-        ));
+            status: CustomerServiceStatus.error, error: e.toString()));
       } else {
-        // Nếu đã có dữ liệu, chỉ log error mà không thay đổi status
-        print('Load more exception: $e');
+        log('Load more customers exception', error: e, stackTrace: st);
       }
     }
   }
@@ -248,33 +281,36 @@ class CustomerServiceBloc
     PostCustomerNote event,
     Emitter<CustomerServiceState> emit,
   ) async {
-    // emit(state.copyWith(status: CustomerServiceStatus.loading));
     final response = await organizationRepository.postCustomerNote(
-        event.customerId, event.note, event.organizationId ?? '');
-    final bool isSuccess = Helpers.isResponseSuccess(response.data);
-    if (isSuccess) {
-      String fullName = event.customerName;
-      // Parse the new note as a ScheduleModel and add it to scheduleDetails
-      if (response.data['content'] != null) {
+      event.customerId,
+      event.note,
+      event.organizationId ?? '',
+    );
+
+    if (_ok(response.data)) {
+      final fullName = event.customerName;
+      final content = response.data['content'];
+      if (content != null) {
         final newSchedule = service_detail.ServiceDetailModel(
-          id: response.data['content']['id'],
-          summary: "Thêm ghi chú: ${event.note}",
-          createdDate: response.data['content']['createdDate'],
+          id: content['id'],
+          summary: 'Thêm ghi chú: ${event.note}',
+          createdDate: content['createdDate'],
           createdByName: fullName,
-          type: response.data['content']['type'],
-          icon: "",
+          type: content['type'],
+          icon: '',
         );
-        final updatedScheduleDetails =
+        final updated =
             List<service_detail.ServiceDetailModel>.from(state.serviceDetails)
               ..insert(0, newSchedule);
-        emit(state.copyWith(serviceDetails: updatedScheduleDetails));
+        emit(state.copyWith(serviceDetails: updated));
       }
-      // emit(state.copyWith(
-      //     status: CustomerServiceStatus.postCustomerNoteSuccess));
     } else {
-      emit(state.copyWith(
+      emit(
+        state.copyWith(
           status: CustomerServiceStatus.error,
-          error: response.data['message'] as String? ?? 'Unknown error'));
+          error: (response.data['message'] as String?) ?? 'Unknown error',
+        ),
+      );
     }
   }
 
@@ -283,13 +319,18 @@ class CustomerServiceBloc
     Emitter<CustomerServiceState> emit,
   ) async {
     final response = await calendarRepository.updateNoteMark(
-        event.ScheduleId, event.isDone, event.Notes);
-    final bool isSuccess = Helpers.isResponseSuccess(response.data);
-    if (isSuccess) {
-      emit(state.copyWith(status: CustomerServiceStatus.success));
-    } else {
-      emit(state.copyWith(status: CustomerServiceStatus.error));
-    }
+      event.ScheduleId,
+      event.isDone,
+      event.Notes,
+    );
+
+    emit(
+      state.copyWith(
+        status: _ok(response.data)
+            ? CustomerServiceStatus.success
+            : CustomerServiceStatus.error,
+      ),
+    );
   }
 
   Future<void> _onCreateReminder(
@@ -297,84 +338,113 @@ class CustomerServiceBloc
     Emitter<CustomerServiceState> emit,
   ) async {
     try {
-      // emit(state.copyWith(status: CustomerServiceStatus.loading));
-
-      // TODO: Gọi API thực tế khi có
       final response = await calendarRepository.createReminder(
-          event.organizationId, event.body);
-      final bool isSuccess = Helpers.isResponseSuccess(response.data);
-      if (isSuccess) {
-        final fakeReminder = ScheduleModel(
-          id: response.data['content']?['id']?.toString() ??
-              DateTime.now().millisecondsSinceEpoch.toString(),
-          title: event.body.title,
-          // description: event.body.description,
-          startTime: event.body.startTime,
-          endTime: event.body.endTime,
-          isDone: false,
-          content: event.body.content,
-          // createdByName: "", // hoặc lấy từ user hiện tại nếu có
-          // : DateTime.now().toIso8601String(),
-          // type: event.body.,
-          // Thêm các trường khác nếu ScheduleModel có
-        );
+        event.organizationId,
+        event.body,
+      );
 
-        // Thêm reminder mới vào đầu danh sách serviceDetails
-        final updatedServiceDetails =
-            List<ScheduleModel>.from(state.scheduleDetails)
-              ..insert(0, fakeReminder);
-
-        emit(state.copyWith(
-          status: CustomerServiceStatus.success,
-          scheduleDetails: updatedServiceDetails,
-        ));
+      if (_ok(response.data)) {
+        add(LoadJourneyPaging(organizationId: event.organizationId));
+        emit(state.copyWith(status: CustomerServiceStatus.success));
       } else {
-        emit(state.copyWith(status: CustomerServiceStatus.error));
+        emit(
+          state.copyWith(
+            status: CustomerServiceStatus.errorCreateReminder,
+            error: (response.data['message'] as String?) ?? 'Unknown error',
+          ),
+        );
       }
-
-      // Tạo dữ liệu ảo cho reminder
     } catch (e) {
       emit(state.copyWith(
-        status: CustomerServiceStatus.error,
-        error: e.toString(),
-      ));
+          status: CustomerServiceStatus.errorCreateReminder,
+          error: e.toString()));
     }
+  }
+
+  Future<void> _onUpdateReminder(
+    UpdateReminder event,
+    Emitter<CustomerServiceState> emit,
+  ) async {
+    final response = await calendarRepository.updateReminder(
+      event.organizationId,
+      event.body,
+    );
+
+    if (_ok(response.data)) {
+      final updated = List<ScheduleModel>.from(state.scheduleDetails)
+        ..removeWhere((e) => e.id == event.body.id);
+      add(LoadJourneyPaging(organizationId: event.organizationId));
+      emit(
+        state.copyWith(
+          status: CustomerServiceStatus.successStorageCustomer,
+          scheduleDetails: updated,
+        ),
+      );
+    } else {
+      emit(state.copyWith(status: CustomerServiceStatus.errorUpdateReminder));
+    }
+  }
+
+  Future<void> _onDeleteReminder(
+    DeleteReminder event,
+    Emitter<CustomerServiceState> emit,
+  ) async {
+    final response = await calendarRepository.deleteReminder(
+      event.organizationId,
+      event.reminderId,
+    );
+
+    if (response.statusCode == 200) {
+      add(LoadJourneyPaging(organizationId: event.organizationId));
+      emit(state.copyWith(status: CustomerServiceStatus.successDeleteReminder));
+    } else {
+      emit(state.copyWith(status: CustomerServiceStatus.errorDeleteReminder));
+    }
+  }
+
+  Future<void> _onShowError(
+    ShowError event,
+    Emitter<CustomerServiceState> emit,
+  ) async {
+    emit(state.copyWith(status: event.status, error: event.error));
   }
 
   Future<void> _onLoadFirstProviderChat(
     LoadFirstProviderChat event,
     Emitter<CustomerServiceState> emit,
   ) async {
-    print(
-        '🔍 Loading Facebook chats for organization: ${event.organizationId}');
+    log('Loading Facebook chats for organization: ${event.organizationId}');
     emit(state.copyWith(status: CustomerServiceStatus.loading));
+
     final response = await organizationRepository.getFacebookChatPaging(
-        event.organizationId, 20, 0, event.provider);
-    final bool isSuccess = Helpers.isResponseSuccess(response.data);
-    print('🔍 API Response success: $isSuccess');
-    print('🔍 API Response data: ${response.data}');
+      event.organizationId,
+      20,
+      0,
+      event.provider,
+    );
 
-    if (isSuccess) {
-      final FacebookChatResponse facebookChatResponse =
+    final success = _ok(response.data);
+    log('API Response success: $success');
+
+    if (success) {
+      final FacebookChatResponse parsed =
           FacebookChatResponse.fromJson(response.data);
+      final hasMore = _hasMore(
+        parsed.metadata?.offset,
+        parsed.metadata?.count,
+        parsed.metadata?.total,
+      );
 
-      print(
-          '🔍 Parsed Facebook chats count: ${facebookChatResponse.content?.length ?? 0}');
-      print('🔍 Facebook chats: ${facebookChatResponse.content}');
-
-      // Calculate if there are more Facebook chats to load
-      final hasMore = facebookChatResponse.metadata != null &&
-          (facebookChatResponse.metadata!.offset ?? 0) +
-                  (facebookChatResponse.metadata!.count ?? 0) <
-              (facebookChatResponse.metadata!.total ?? 0);
-
-      emit(state.copyWith(
+      emit(
+        state.copyWith(
           status: CustomerServiceStatus.success,
-          facebookChats: facebookChatResponse.content ?? [],
-          facebookChatsMetadata: facebookChatResponse.metadata,
-          hasMoreFacebookChats: hasMore));
+          facebookChats: parsed.content ?? [],
+          facebookChatsMetadata: parsed.metadata,
+          hasMoreFacebookChats: hasMore,
+        ),
+      );
     } else {
-      print('❌ API Error: ${response.data}');
+      log('API Error: ${response.data}');
       emit(state.copyWith(status: CustomerServiceStatus.error));
     }
   }
@@ -384,52 +454,52 @@ class CustomerServiceBloc
     Emitter<CustomerServiceState> emit,
   ) async {
     try {
-      print(
-          '🔍 Loading more Facebook chats - offset: ${event.offset}, limit: ${event.limit}');
+      log('Loading more Facebook chats - offset: ${event.offset}, limit: ${event.limit}');
       emit(state.copyWith(status: CustomerServiceStatus.loadingMore));
 
       final response = await organizationRepository.getFacebookChatPaging(
-          event.organizationId, event.limit, event.offset, event.provider);
+        event.organizationId,
+        event.limit,
+        event.offset,
+        event.provider,
+      );
 
-      final bool isSuccess = Helpers.isResponseSuccess(response.data);
-      if (isSuccess) {
-        final FacebookChatResponse facebookChatResponse =
+      if (_ok(response.data)) {
+        final FacebookChatResponse parsed =
             FacebookChatResponse.fromJson(response.data);
 
-        // Append new items to existing list
-        final updatedFacebookChats =
-            List<FacebookChatModel>.from(state.facebookChats)
-              ..addAll(facebookChatResponse.content ?? []);
+        final updated = List<FacebookChatModel>.from(state.facebookChats)
+          ..addAll(parsed.content ?? []);
 
-        // Calculate if there are more items to load
-        final hasMore = facebookChatResponse.metadata != null &&
-            (facebookChatResponse.metadata!.offset ?? 0) +
-                    (facebookChatResponse.metadata!.count ?? 0) <
-                (facebookChatResponse.metadata!.total ?? 0);
+        final hasMore = _hasMore(
+          parsed.metadata?.offset,
+          parsed.metadata?.count,
+          parsed.metadata?.total,
+        );
 
-        print(
-            '🔍 Loaded ${facebookChatResponse.content?.length ?? 0} more Facebook chats');
-        print('🔍 Total Facebook chats now: ${updatedFacebookChats.length}');
-        print('🔍 Has more: $hasMore');
+        log('Loaded ${parsed.content?.length ?? 0} more Facebook chats');
+        log('Total Facebook chats now: ${updated.length}');
+        log('Has more: $hasMore');
 
-        emit(state.copyWith(
+        emit(
+          state.copyWith(
             status: CustomerServiceStatus.success,
-            facebookChats: updatedFacebookChats,
-            facebookChatsMetadata: facebookChatResponse.metadata,
-            hasMoreFacebookChats: hasMore));
+            facebookChats: updated,
+            facebookChatsMetadata: parsed.metadata,
+            hasMoreFacebookChats: hasMore,
+          ),
+        );
       } else {
-        print('❌ Load more API Error: ${response.data}');
+        final message =
+            (response.data['message'] as String?) ?? 'Unknown error';
+        log('Load more API Error: $message');
         emit(state.copyWith(
-          status: CustomerServiceStatus.error,
-          error: response.data['message'] as String? ?? 'Unknown error',
-        ));
+            status: CustomerServiceStatus.error, error: message));
       }
-    } catch (e) {
-      print('❌ Load more exception: $e');
+    } catch (e, st) {
+      log('Load more provider chats exception', error: e, stackTrace: st);
       emit(state.copyWith(
-        status: CustomerServiceStatus.error,
-        error: e.toString(),
-      ));
+          status: CustomerServiceStatus.error, error: e.toString()));
     }
   }
 
@@ -438,16 +508,22 @@ class CustomerServiceBloc
     Emitter<CustomerServiceState> emit,
   ) async {
     emit(state.copyWith(status: CustomerServiceStatus.loading));
+
     final response = await organizationRepository.postStorageConvertToCustomer(
-        event.customerId, event.organizationId);
-    final bool isSuccess = Helpers.isResponseSuccess(response.data);
-    if (isSuccess) {
+      event.customerId,
+      event.organizationId,
+    );
+
+    if (_ok(response.data)) {
       emit(
           state.copyWith(status: CustomerServiceStatus.successStorageCustomer));
     } else {
-      emit(state.copyWith(
+      emit(
+        state.copyWith(
           status: CustomerServiceStatus.error,
-          error: response.data['message'] as String? ?? 'Unknown error'));
+          error: (response.data['message'] as String?) ?? 'Unknown error',
+        ),
+      );
     }
   }
 
@@ -456,16 +532,22 @@ class CustomerServiceBloc
     Emitter<CustomerServiceState> emit,
   ) async {
     emit(state.copyWith(status: CustomerServiceStatus.loading));
+
     final response = await organizationRepository.postUnArchiveCustomer(
-        event.customerId, event.organizationId);
-    final bool isSuccess = Helpers.isResponseSuccess(response.data);
-    if (isSuccess) {
+      event.customerId,
+      event.organizationId,
+    );
+
+    if (_ok(response.data)) {
       emit(
           state.copyWith(status: CustomerServiceStatus.successStorageCustomer));
     } else {
-      emit(state.copyWith(
+      emit(
+        state.copyWith(
           status: CustomerServiceStatus.error,
-          error: response.data['message'] as String? ?? 'Unknown error'));
+          error: (response.data['message'] as String?) ?? 'Unknown error',
+        ),
+      );
     }
   }
 
@@ -474,23 +556,24 @@ class CustomerServiceBloc
     Emitter<CustomerServiceState> emit,
   ) async {
     final response = await organizationRepository.updateStatusRead(
-        event.conversationId, event.organizationId);
-    final bool isSuccess = Helpers.isResponseSuccess(response.data);
-    if (isSuccess) {
-      final updatedChats = List<FacebookChatModel>.from(state.facebookChats);
-      final index = updatedChats
-          .indexWhere((element) => element.id == event.conversationId);
+      event.conversationId,
+      event.organizationId,
+    );
+
+    if (_ok(response.data)) {
+      final updated = List<FacebookChatModel>.from(state.facebookChats);
+      final index = updated.indexWhere((e) => e.id == event.conversationId);
       if (index != -1) {
-        updatedChats[index] = updatedChats[index].copyWith(isRead: true);
+        updated[index] = updated[index].copyWith(isRead: true);
+        emit(state.copyWith(facebookChats: updated));
       }
-      emit(state.copyWith(facebookChats: updatedChats));
     }
   }
 
   void _onDisableFirebaseListenerRequested(
     DisableFirebaseListenerRequested event,
     Emitter<CustomerServiceState> emit,
-  ) async {
+  ) {
     disableFirebaseListener();
   }
 
@@ -500,34 +583,33 @@ class CustomerServiceBloc
   ) async {
     final ref = FirebaseDatabase.instance
         .ref('root/OrganizationId: ${event.organizationId}');
+
     await _firebaseListener?.cancel();
     _firebaseListener = ref.onValue.listen((eventListen) {
       final data = (eventListen.snapshot.value ?? {}) as Map;
-      log('🔍 Firebase data: $data');
-      if (!data.containsKey("CreateOrUpdateConversation")) return;
+      log('Firebase data: $data');
+      if (!data.containsKey('CreateOrUpdateConversation')) return;
+
       try {
-        final outerKey = data["CreateOrUpdateConversation"].keys.first;
-        // final conversationId = outerKey.split(': ').last;
-        // final isDetailUpdate = event.currentConversationId == conversationId;
+        final outerKey = data['CreateOrUpdateConversation'].keys.first;
+        final rawData = data['CreateOrUpdateConversation'][outerKey];
 
-        final rawData = data["CreateOrUpdateConversation"][outerKey];
-
-        log('🔍 Firebase data: $rawData');
-        final jsonString = jsonEncode(rawData);
         final FacebookChatModel newConversation =
-            FacebookChatModel.fromFirebase(jsonDecode(jsonString));
+            FacebookChatModel.fromFirebase(jsonDecode(jsonEncode(rawData)));
+
         if (newConversation.conversationId == state.facebookChat?.id) {
           newConversation.isRead = true;
         }
 
-        add(FirebaseConversationUpdated(
-          organizationId: event.organizationId,
-          conversation: newConversation,
-          isUpdate: true,
-          // isRead: isDetailUpdate,
-        ));
-      } catch (e) {
-        print("Error parsing Firebase message: $e");
+        add(
+          FirebaseConversationUpdated(
+            organizationId: event.organizationId,
+            conversation: newConversation,
+            isUpdate: true,
+          ),
+        );
+      } catch (e, st) {
+        log('Error parsing Firebase message', error: e, stackTrace: st);
       }
     });
   }
@@ -538,30 +620,32 @@ class CustomerServiceBloc
   ) async {
     final existingIndex = state.facebookChats
         .indexWhere((e) => e.id == event.conversation.conversationId);
-    List<FacebookChatModel> updatedChats = List.from(state.facebookChats);
-    bool isRead = false;
-    //Nếu đang ở trong chi tiết chat thì đánh đấu đã đọc
+
+    var updatedChats = List<FacebookChatModel>.from(state.facebookChats);
+    var isRead = false;
+
+    // If in detail view or same page, mark as read
     if (state.facebookChat?.id == event.conversation.conversationId) {
       isRead = true;
-      if (updatedChats.first.isRead == true) {
-        add(ChangeStatusRead(
+      if (updatedChats.isNotEmpty && updatedChats.first.isRead == true) {
+        add(
+          ChangeStatusRead(
             conversationId: updatedChats.first.id ?? '',
-            organizationId: event.organizationId));
+            organizationId: event.organizationId,
+          ),
+        );
       }
     }
     if (state.facebookChat?.pageId == event.conversation.pageId) {
       isRead = true;
     }
+
     if (existingIndex != -1) {
-      log('🔍 updatedChats[existingIndex].pageId: ${updatedChats[existingIndex].pageId}');
-      log('🔍 event.conversation.pageId: ${event.conversation.pageId}');
       if (updatedChats[existingIndex].pageId == event.conversation.pageId) {
         isRead = true;
       }
-      // Nếu đã có, xóa ở vị trí cũ và chèn lên đầu
-      updatedChats[existingIndex].isRead = event.conversation.isRead;
-      updatedChats[existingIndex].snippet = event.conversation.snippet;
-      // Copy all values from updatedChats[existingIndex] to event.conversation, except isRead and snippet
+
+      // Preserve immutable fields from existing item
       event.conversation
         ..id = updatedChats[existingIndex].id
         ..integrationAuthId = updatedChats[existingIndex].integrationAuthId
@@ -572,13 +656,11 @@ class CustomerServiceBloc
         ..personId = updatedChats[existingIndex].personId
         ..personName = updatedChats[existingIndex].personName
         ..personAvatar = updatedChats[existingIndex].personAvatar
-        // snippet: keep event.conversation.snippet
         ..unreadCount = updatedChats[existingIndex].unreadCount
         ..canReply = updatedChats[existingIndex].canReply
         ..updatedTime = updatedChats[existingIndex].updatedTime
         ..gptStatus = updatedChats[existingIndex].gptStatus
         ..isRead = isRead
-        // isRead: keep event.conversation.isRead
         ..type = updatedChats[existingIndex].type
         ..provider = updatedChats[existingIndex].provider
         ..status = updatedChats[existingIndex].status
@@ -587,30 +669,16 @@ class CustomerServiceBloc
         ..assignTo = updatedChats[existingIndex].assignTo
         ..assignName = updatedChats[existingIndex].assignName
         ..assignAvatar = updatedChats[existingIndex].assignAvatar;
-      final existingChat = updatedChats.removeAt(existingIndex);
-      updatedChats.insert(0, event.conversation);
+
+      updatedChats
+        ..removeAt(existingIndex)
+        ..insert(0, event.conversation);
     } else {
-      // Nếu chưa có, thêm mới vào đầu danh sách
-      updatedChats.insert(
-          0,
-          event.conversation.copyWith(
-            isRead: isRead,
-          ));
+      updatedChats.insert(0, event.conversation.copyWith(isRead: isRead));
     }
 
-    log('🔍 updatedChats: $updatedChats');
-
+    log('updatedChats length: ${updatedChats.length}');
     emit(state.copyWith(facebookChats: updatedChats));
-    // return;
-    // final updated = event.conversation.copyWith(isRead: event.isRead);
-    // final index = state.facebookChats.indexWhere((e) => e.id == updated.id);
-    // final newList = [...state.facebookChats];
-    // if (index != -1) {
-    //   newList[index] = updated;
-    // } else {
-    //   newList.insert(0, updated);
-    // }
-    // emit(state.copyWith(facebookChats: newList));
   }
 
   Future<void> _onDeleteCustomer(
@@ -618,15 +686,20 @@ class CustomerServiceBloc
     Emitter<CustomerServiceState> emit,
   ) async {
     final response = await organizationRepository.deleteCustomerService(
-        event.customerId, event.organizationId);
-    final bool isSuccess = Helpers.isResponseSuccess(response.data);
-    if (isSuccess) {
-      final updatedCustomers = state.customerServices
-          .where((element) => element.id != event.customerId)
+      event.customerId,
+      event.organizationId,
+    );
+
+    if (_ok(response.data)) {
+      final updated = state.customerServices
+          .where((e) => e.id != event.customerId)
           .toList();
-      emit(state.copyWith(
+      emit(
+        state.copyWith(
           status: CustomerServiceStatus.success,
-          customerServices: updatedCustomers));
+          customerServices: updated,
+        ),
+      );
     } else {
       emit(state.copyWith(status: CustomerServiceStatus.error));
     }

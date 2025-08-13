@@ -1,4 +1,4 @@
-import 'package:source_base/data/models/organization_model.dart';
+import 'package:source_base/data/models/customer_service_response.dart'; 
 export 'package:source_base/data/models/organization_model.dart';
 
 class ServiceDetailResponse {
@@ -13,6 +13,12 @@ class ServiceDetailResponse {
     if (json['content'] != null) {
       content = <ServiceDetailModel>[];
       json['content'].forEach((v) {
+        content!.add(new ServiceDetailModel.fromJson(v));
+      });
+    }
+       if (json['data'] != null) {
+      content = <ServiceDetailModel>[];
+      json['data'].forEach((v) {
         content!.add(new ServiceDetailModel.fromJson(v));
       });
     }

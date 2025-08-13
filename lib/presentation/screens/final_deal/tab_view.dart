@@ -2,11 +2,15 @@ import 'dart:developer';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:source_base/config/app_color.dart';
 import 'package:source_base/config/helper.dart';
+import 'package:source_base/config/routes.dart';
 import 'package:source_base/presentation/blocs/final_deal/model/business_process_task_response.dart';
+import 'package:source_base/presentation/blocs/organization/organization_bloc.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
+import '../../blocs/deal_activity/deal_activity_action.dart';
 import '../../blocs/final_deal/final_deal_action.dart';
 
 class TabView extends StatefulWidget {
@@ -25,6 +29,11 @@ class _TabViewState extends State<TabView> {
         builder: (context, state) {
       List<BusinessProcessTaskModel> businessProcessTasks =
           state.businessProcessTasks;
+      if (businessProcessTasks.isEmpty) {
+        return const Center(
+          child: Text('Không có giao dịch'),
+        );
+      }
       return ListView.builder(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         itemCount: businessProcessTasks.length,
@@ -39,11 +48,32 @@ class _TabViewState extends State<TabView> {
             child: InkWell(
               onTap: () {
                 log('tap');
-
-                // Navigator.push(
-                //   context,
-                //   MaterialPageRoute(builder: (context) => const TransactionDetailScreen()),
-                // );
+                context.read<DealActivityBloc>().add(LoadDealActivity(
+                      organizationId: context
+                              .read<OrganizationBloc>()
+                              .state
+                              .organizationId ??
+                          '',
+                      businessProcesses: state.businessProcesses,
+                      businessProcessTask: businessProcessTask,
+                      workspaceId: state.selectedWorkspace?.id ?? '',
+                    ));
+                context
+                    .push(
+                  AppPaths.dealActivity,
+                )
+                    .then((value) {
+                  context
+                      .read<FinalDealBloc>()
+                      .add(FinalDealSelectBusinessProcess(
+                        businessProcess: state.selectedBusinessProcess!,
+                        organizationId: context
+                                .read<OrganizationBloc>()
+                                .state
+                                .organizationId ??
+                            '',
+                      ));
+                });
               },
               onTapDown: _storeTapPosition,
               onLongPress: () {

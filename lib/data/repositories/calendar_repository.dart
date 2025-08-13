@@ -67,4 +67,32 @@ class CalendarRepository {
       );
     }
   }
+
+  Future<Response> updateReminder(
+      String organizationId, ReminderServiceBody data) async {
+    try {
+      Map<String, dynamic> body = data.toJson();
+      final response =
+          await apiCalendarService.updateReminderService(organizationId, body);
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.login),
+      );
+    }
+  }
+
+  Future<Response> deleteReminder(
+      String organizationId, String reminderId) async {
+    final response = await apiCalendarService.deleteReminderService(
+        organizationId, reminderId);
+    return response;
+  }
 }

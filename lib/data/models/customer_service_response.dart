@@ -1,6 +1,3 @@
-import 'package:source_base/data/models/organization_model.dart';
-export 'package:source_base/data/models/organization_model.dart';
-
 class CustomerServiceResponse {
   int? code;
   List<CustomerServiceModel>? content;
@@ -36,26 +33,34 @@ class CustomerServiceResponse {
 
 class CustomerServiceModel {
   String? id;
-  String? title;
   String? fullName;
+  String? avatar;
   List<Assignees>? assignees;
   String? createdDate;
   String? lastModifiedDate;
   String? snippet;
+  String? channel;
+  String? pageName;
+  String? pageAvatar;
+  String? title;
 
   CustomerServiceModel(
       {this.id,
-      this.title,
       this.fullName,
+      this.avatar,
       this.assignees,
       this.createdDate,
       this.lastModifiedDate,
-      this.snippet});
+      this.snippet,
+      this.channel,
+      this.pageName,
+      this.pageAvatar,
+      this.title});
 
   CustomerServiceModel.fromJson(Map<String, dynamic> json) {
     id = json['id'];
-    title = json['title'];
     fullName = json['fullName'];
+    avatar = json['avatar'];
     if (json['assignees'] != null) {
       assignees = <Assignees>[];
       json['assignees'].forEach((v) {
@@ -65,19 +70,27 @@ class CustomerServiceModel {
     createdDate = json['createdDate'];
     lastModifiedDate = json['lastModifiedDate'];
     snippet = json['snippet'];
+    channel = json['channel'];
+    pageName = json['pageName'];
+    pageAvatar = json['pageAvatar'];
+    title = json['title'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['id'] = this.id;
-    data['title'] = this.title;
     data['fullName'] = this.fullName;
+    data['avatar'] = this.avatar;
     if (this.assignees != null) {
       data['assignees'] = this.assignees!.map((v) => v.toJson()).toList();
     }
     data['createdDate'] = this.createdDate;
     data['lastModifiedDate'] = this.lastModifiedDate;
     data['snippet'] = this.snippet;
+    data['channel'] = this.channel;
+    data['pageName'] = this.pageName;
+    data['pageAvatar'] = this.pageAvatar;
+    data['title'] = this.title;
     return data;
   }
 }
@@ -107,6 +120,31 @@ class Assignees {
     data['profileName'] = this.profileName;
     data['avatar'] = this.avatar;
     data['type'] = this.type;
+    return data;
+  }
+}
+
+class Metadata {
+  int? total;
+  int? count;
+  int? offset;
+  int? limit;
+
+  Metadata({this.total, this.count, this.offset, this.limit});
+
+  Metadata.fromJson(Map<String, dynamic> json) {
+    total = json['total'];
+    count = json['count'];
+    offset = json['offset'];
+    limit = json['limit'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['total'] = this.total;
+    data['count'] = this.count;
+    data['offset'] = this.offset;
+    data['limit'] = this.limit;
     return data;
   }
 }

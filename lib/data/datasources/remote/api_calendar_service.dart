@@ -23,7 +23,8 @@ class ApiCalendarService {
         },
         statusCode: 500,
         statusMessage: 'Unknown error',
-        requestOptions: RequestOptions(path: ApiEndpoints.login),
+        requestOptions: RequestOptions(
+            path: ApiEndpoints.getCalculator(organizationId, contactId)),
       );
     }
   }
@@ -48,7 +49,7 @@ class ApiCalendarService {
         },
         statusCode: 500,
         statusMessage: 'Unknown error',
-        requestOptions: RequestOptions(path: ApiEndpoints.login),
+        requestOptions: RequestOptions(path: ApiEndpoints.updateNoteMark),
       );
     }
   }
@@ -57,7 +58,7 @@ class ApiCalendarService {
       String organizationId, ReminderServiceBody body) async {
     try {
       final response = await _dioClient.postCalendar(
-        ApiEndpoints.createReminder,
+        ApiEndpoints.schedule,
         data: body.toJson(),
       );
       return response;
@@ -70,7 +71,153 @@ class ApiCalendarService {
         },
         statusCode: 500,
         statusMessage: 'Unknown error',
-        requestOptions: RequestOptions(path: ApiEndpoints.login),
+        requestOptions: RequestOptions(path: ApiEndpoints.schedule),
+      );
+    }
+  }
+
+  Future<Response> updateReminderService(
+      String organizationId, Map<String, dynamic> data) async {
+    try {
+      final response = await _dioClient.putCalendar(ApiEndpoints.schedule,
+          data: data,
+          options: Options(
+            headers: {
+              'organizationId': organizationId,
+            },
+          ));
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.schedule),
+      );
+    }
+  }
+
+  Future<Response> deleteReminderService(
+      String organizationId, String reminderId) async {
+    try {
+      final response = await _dioClient.deleteCalendar(
+        '${ApiEndpoints.schedule}/$reminderId',
+        options: Options(
+          headers: {
+            'organizationId': organizationId,
+          },
+        ),
+      );
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.schedule),
+      );
+    }
+  }
+
+  Future<Response> getActivityService(
+      String organizationId, String workspaceId) async {
+    try {
+      final response =
+          await _dioClient.getCalendar(ApiEndpoints.schedule, queryParameters: {
+        'organizationId': organizationId,
+        'workspaceId': workspaceId,
+      });
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.schedule),
+      );
+    }
+  }
+
+  Future<Response> getHistoryService(
+      String organizationId, String taskId) async {
+    try {
+      final response = await _dioClient.getProducts(
+          "${ApiEndpoints.businessProcessTask}/$taskId/notes-simple",
+          options: Options(headers: {'organizationid': organizationId}),
+          queryParameters: {
+            'page': 1,
+            'pageSize': 20,
+            'type': '',
+          });
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.businessProcessTask),
+      );
+    }
+  }
+
+  Future<Response> updateStageGiveTaskService(
+      String organizationId, String taskId, String newStageId) async {
+    try {
+      final response = await _dioClient.putProducts(
+          "${ApiEndpoints.businessProcessTask}/$taskId/move",
+          options: Options(headers: {'organizationid': organizationId}),
+          data: {
+            'newStageId': newStageId,
+          });
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.businessProcessTask),
+      );
+    }
+  }
+
+  Future<Response> updateStatusService(
+      String organizationId, String taskId, bool isSuccess) async {
+    try {
+      final response = await _dioClient.putProducts(
+          "${ApiEndpoints.businessProcessTask}/$taskId/status",
+          options: Options(headers: {'organizationid': organizationId}),
+          data: {'isSuccess': isSuccess});
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.businessProcessTask),
       );
     }
   }

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:source_base/data/models/reminder_service_body.dart';
 
 class Reminder {
   final String id;
@@ -67,9 +68,23 @@ class Reminder {
         contactInfo = ContactInfo.fromJson(json['Contact']);
       }
     }
-
+    String timeString = '';
     // Generate time string from StartTime and EndTime if Time is not provided
-    String timeString = json['Time'] ?? '';
+    if (json['time'] != null) {
+      try {
+        final timeParts = json['time'].toString().split(':');
+        if (timeParts.length == 2) {
+          final hours = int.parse(timeParts[0]);
+          final mins = int.parse(timeParts[1]);
+          timeString = ((hours * 60) + mins).toString();
+        }
+      } catch (e) {
+        // If parsing fails, use default 0
+      }
+    } else if (json['minutes'] != null) {
+      timeString = json['minutes'];
+    }
+
     if (timeString.isEmpty && json['StartTime'] != null) {
       try {
         final startDateTime = DateTime.parse(json['StartTime']);
@@ -195,20 +210,6 @@ class ContactInfo {
       'phone': phone,
       'Avatar': avatar,
     };
-  }
-}
-
-class RepeatRule {
-  final String day;
-
-  RepeatRule({required this.day});
-
-  factory RepeatRule.fromJson(Map<String, dynamic> json) {
-    return RepeatRule(day: json['day'] ?? '');
-  }
-
-  Map<String, dynamic> toJson() {
-    return {'day': day};
   }
 }
 

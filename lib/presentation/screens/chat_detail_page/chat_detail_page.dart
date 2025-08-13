@@ -287,11 +287,19 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
           backgroundColor: Colors.white,
           appBar: AppBar(
             backgroundColor: Colors.white,
+
             leading: IconButton(
               icon: const Icon(Icons.arrow_back),
               onPressed: () => context.pop(),
             ),
             titleSpacing: 0,
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(0.5),
+              child: Container(
+                height: 0.5,
+                color: Colors.grey,
+              ),
+            ),
             title: Row(
               children: [
                 AppAvatar(
@@ -320,29 +328,29 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
                 ),
               ],
             ),
-            actions: [
-              IconButton(
-                onPressed: () => _showAssignBottomSheet(conversation!),
-                icon: const Icon(Icons.swap_horiz),
-              ),
-              PopupMenuButton<String>(
-                onSelected: (value) {
-                  // TODO: Handle menu actions
-                },
-                itemBuilder: (context) => [
-                  const PopupMenuItem(
-                    value: 'info',
-                    child: Row(
-                      children: [
-                        Icon(Icons.info),
-                        SizedBox(width: 8),
-                        Text('Thông tin khách hàng'),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ],
+            // actions: [
+            //   IconButton(
+            //     onPressed: () => _showAssignBottomSheet(conversation!),
+            //     icon: const Icon(Icons.swap_horiz),
+            //   ),
+            //   PopupMenuButton<String>(
+            //     onSelected: (value) {
+            //       // TODO: Handle menu actions
+            //     },
+            //     itemBuilder: (context) => [
+            //       const PopupMenuItem(
+            //         value: 'info',
+            //         child: Row(
+            //           children: [
+            //             Icon(Icons.info),
+            //             SizedBox(width: 8),
+            //             Text('Thông tin khách hàng'),
+            //           ],
+            //         ),
+            //       ),
+            //     ],
+            //   ),
+            // ],
           ),
           body: Column(
             children: [

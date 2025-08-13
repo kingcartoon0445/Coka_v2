@@ -65,20 +65,27 @@ class FinalDealBloc extends Bloc<FinalDealEvent, FinalDealState> {
     if (isSuccess) {
       BusinessProcessResponse businessProcessResponse =
           BusinessProcessResponse.fromJson(response.data);
-      add(FinalDealGetBusinessProcessTask(
-        organizationId: event.organizationId,
-        processId: '',
-        stage: businessProcessResponse.data?.first,
-        customerId: '',
-        assignedTo: '',
-        status: '',
-        includeHistory: false,
-        page: 1,
-        pageSize: 10,
-      ));
-      emit(state.copyWith(
-          status: FinalDealStatus.successBusinessProcessTask,
-          businessProcesses: businessProcessResponse.data ?? []));
+
+      if (businessProcessResponse.data?.isNotEmpty ?? false) {
+        add(FinalDealGetBusinessProcessTask(
+          organizationId: event.organizationId,
+          processId: '',
+          stage: businessProcessResponse.data?.first,
+          customerId: '',
+          assignedTo: '',
+          status: '',
+          includeHistory: false,
+          page: 1,
+          pageSize: 10,
+        ));
+        emit(state.copyWith(
+            status: FinalDealStatus.successBusinessProcessTask,
+            businessProcesses: businessProcessResponse.data ?? []));
+      } else {
+        emit(state.copyWith(
+            status: FinalDealStatus.successBusinessProcessTask,
+            businessProcesses: []));
+      }
     } else {
       emit(state.copyWith(status: FinalDealStatus.error));
     }

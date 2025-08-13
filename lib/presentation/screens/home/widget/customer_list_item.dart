@@ -268,6 +268,82 @@ class CustomerListItem extends StatelessWidget {
       items: items,
     );
   }
+  // void _handleTap(
+  //   BuildContext context,
+  // ) {
+  //   // if (!isRead) {
+  //   //   context.read<CustomerServiceBloc>().add(
+  //   //       ChangeStatusRead(organizationId: organizationId, conversationId: id));
+  //   // }
+  //   // context.read<ChatBloc>().add(LoadFacebookChat(facebookChat: facebookChat));
+  //   context
+  //       .read<CustomerServiceBloc>()
+  //       .add(LoadFacebookChat(facebookChat: facebookChat));
+  //   context.read<ChatBloc>().add(ToolListenFirebase(
+  //         organizationId: organizationId ?? '',
+  //         conversationId: id,
+  //       ));
+  //   context.push(AppPaths.chatDetail).then((v) {
+  //     context
+  //         .read<CustomerServiceBloc>()
+  //         .add(const LoadFacebookChat(facebookChat: null));
+  //     // ignore: use_build_context_synchronously
+  //     context.read<ChatBloc>().add(DisableFirebaseListener());
+  //   });
+  //   // Kiểm tra conversation trong state tương ứng và cập nhật selected conversation
+  //   // if (platform == 'FACEBOOK') {
+  //   //   if (ref
+  //   //       .read(facebookMessageProvider)
+  //   //       .conversations
+  //   //       .any((c) => c.id == id)) {
+  //   //     if (!isRead) {
+  //   //       ref
+  //   //           .read(facebookMessageProvider.notifier)
+  //   //           .updateStatusRead(organizationId, id);
+  //   //       ref
+  //   //           .read(allMessageProvider.notifier)
+  //   //           .updateStatusRead(organizationId, id);
+  //   //     }
+  //   //     ref.read(facebookMessageProvider.notifier).selectConversation(id);
+  //   //     ref.read(allMessageProvider.notifier).selectConversation(id);
+  //   //   } else if (ref
+  //   //       .read(allMessageProvider)
+  //   //       .conversations
+  //   //       .any((c) => c.id == id)) {
+  //   //     if (!isRead) {
+  //   //       ref
+  //   //           .read(allMessageProvider.notifier)
+  //   //           .updateStatusRead(organizationId, id);
+  //   //     }
+  //   //     ref.read(allMessageProvider.notifier).selectConversation(id);
+  //   //   }
+  //   // }
+  //   // if (platform == 'ZALO') {
+  //   //   if (ref.read(zaloMessageProvider).conversations.any((c) => c.id == id)) {
+  //   //     if (!isRead) {
+  //   //       ref
+  //   //           .read(zaloMessageProvider.notifier)
+  //   //           .updateStatusRead(organizationId, id);
+  //   //     }
+  //   //     ref.read(zaloMessageProvider.notifier).selectConversation(id);
+  //   //   } else {
+  //   //     if (ref.read(allMessageProvider).conversations.any((c) => c.id == id)) {
+  //   //       if (!isRead) {
+  //   //         ref
+  //   //             .read(allMessageProvider.notifier)
+  //   //             .updateStatusRead(organizationId, id);
+  //   //       }
+  //   //       ref.read(allMessageProvider.notifier).selectConversation(id);
+  //   //     }
+  //   //     // Nếu không tìm thấy conversation trong state, có thể là do chưa tải dữ liệu
+  //   //     // Bạn có thể thêm logic để tải dữ liệu nếu cần thiết
+  //   //     print('Conversation with id $id not found in allMessageProvider');
+  //   //   }
+  //   // }
+
+  //   // Điều hướng đến trang chi tiết
+  //   // context.push('/organization/$organizationId/messages/detail/$id');
+  // }
 
   @override
   Widget build(
@@ -287,6 +363,7 @@ class CustomerListItem extends StatelessWidget {
       builder: (BuildContext context) {
         return InkWell(
           onTap: () {
+            if (customer.channel == 'FACEBOOK') {}
             context.read<CustomerServiceBloc>().add(LoadJourneyPaging(
                   organizationId: organizationId,
                   customerService: customer,
@@ -294,6 +371,7 @@ class CustomerListItem extends StatelessWidget {
             context.push(
               AppPaths.customerService,
             );
+            //đây
           },
           onLongPress: () {
             // Debug message
@@ -313,13 +391,15 @@ class CustomerListItem extends StatelessWidget {
             child: Column(
               children: [
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    AppAvatar(
-                      size: 48,
-                      shape: AvatarShape.circle,
-                      // imageUrl: customer.ava,
-                      fallbackText: customer.fullName,
+                    Center(
+                      child: AppAvatar(
+                        size: 48,
+                        shape: AvatarShape.circle,
+                        // imageUrl: customer.ava,
+                        fallbackText: customer.fullName,
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -357,50 +437,46 @@ class CustomerListItem extends StatelessWidget {
                                 color: Color(0xFF828489),
                               ),
                               const SizedBox(width: 4),
-                              Text(
-                                customer.snippet ?? '',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w500,
-                                  color: Color(0xFF828489),
+                              Flexible(
+                                child: Text(
+                                  customer.snippet ?? '',
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w500,
+                                    color: Color(0xFF828489),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
                               ),
                             ],
                           ),
-
-                          // if (stage != null)
-                          //   Row(
-                          //     children: [
-                          //       Container(
-                          //         width: 4,
-                          //         height: 4,
-                          //         decoration: BoxDecoration(
-                          //           shape: BoxShape.circle,
-                          //           color: Helpers.getTabBadgeColor(
-                          //             Helpers.getStageGroupName(stage['id']) ?? '',
-                          //           ),
-                          //         ),
-                          //       ),
-                          //       const SizedBox(width: 4),
-                          //       Text(
-                          //         stage['name'] ?? '',
-                          //         style: TextStyle(
-                          //           fontSize: 10,
-                          //           fontWeight: isNewStage
-                          //               ? FontWeight.w500
-                          //               : FontWeight.w400,
-                          //           color: AppColors.text,
-                          //         ),
-                          //       ),
-                          //     ],
-                          //   ),
-
                           const SizedBox(height: 3),
                           Row(
                             children: [
                               Expanded(
                                 child: _buildAssigneeInfo(),
                               ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  // shape: BoxShape.circle,
+                                  borderRadius: BorderRadius.circular(16),
+                                  color:
+                                      const Color.fromARGB(255, 181, 180, 180)
+                                          .withValues(alpha: 0.2),
+                                ),
+                                child: Text(
+                                  customer.channel ?? '',
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    color: Color.fromARGB(255, 10, 141, 248),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              )
                             ],
                           ),
                         ],

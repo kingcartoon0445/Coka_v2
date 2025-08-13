@@ -148,7 +148,7 @@ String? getSubtitle(type, oldValue, newValue) {
       return "<div class='column'>Trạng thái: <a>${translateCallStatus(newData["CallStatus"])}</a>${newData["RecordingFile"] != null && newData["RecordingFile"] != "" ? "\n<audio controls> <source src='${newData["RecordingFile"]}' type='audio/mpeg'>Audio</audio>" : ""}</div>";
     }
   } catch (e) {
-    print(e);
+    // print(e);
   }
 
   return null;
@@ -201,12 +201,12 @@ class JourneyItem extends StatelessWidget {
     // ??
     //     "Data được thêm vào bởi ${dataItem["data"]["sourceName"]}";
     final byName = dataItem.createdByName ?? '';
-    final oldValue = 'dataItem["data"]["oldValue"]';
-    final newValue = 'dataItem["data"]["newValue"]';
-    final noteText = 'dataItem["data"]["note"]';
+    final oldValue = dataItem.summary ?? '';
+    final newValue = dataItem.summary ?? '';
+    final noteText = dataItem.summary ?? '';
 
-    final utmSrc = 'dataItem["data"]["utmSource"]'?.toUpperCase();
-    final website = 'dataItem["data"]["website"]';
+    final utmSrc = '  '?.toUpperCase();
+    final website = ' ';
     String subTitle = getSubtitle(type, oldValue, newValue) ??
         ((utmSrc == null || utmSrc == "") ? "" : "Nguồn: <a>$utmSrc</a>");
 
@@ -217,9 +217,6 @@ class JourneyItem extends StatelessWidget {
     if (noteText != null && noteText != '') {
       subTitle += "</br>Nội dung: <a>$noteText</a>";
     }
-
-    final name = 'dataItem["createdBy"]["fullName"]';
-    final avatar = 'dataItem["createdBy"]["avatar"]';
     final iconPath = getIconPath(type?.toUpperCase(), isSource);
 
     return Padding(

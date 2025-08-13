@@ -1,4 +1,4 @@
-import 'package:source_base/data/models/organization_model.dart';
+import 'package:source_base/data/models/customer_service_response.dart';
 export 'package:source_base/data/models/organization_model.dart';
 
 class FacebookChatResponse {

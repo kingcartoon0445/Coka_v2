@@ -1,15 +1,11 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:source_base/data/models/customer_service_response.dart';
-import 'package:source_base/data/models/reminder.dart';
 import 'package:source_base/data/models/schedule_response.dart';
-import 'package:source_base/data/models/reminder_service_body.dart'
-    as reminder_body;
-import 'package:source_base/presentation/blocs/customer_service/customer_service_bloc.dart';
-import 'package:source_base/presentation/blocs/customer_service/customer_service_event.dart';
+import 'package:source_base/data/models/reminder_service_body.dart';
 import 'package:source_base/presentation/widget/reminder_constants.dart';
+
+import '../../../../../blocs/customer_service/customer_service_action.dart';
 
 class AddReminderDialog extends StatefulWidget {
   final String organizationId;
@@ -17,6 +13,8 @@ class AddReminderDialog extends StatefulWidget {
   final String? contactId;
   final CustomerServiceModel? contactData;
   final ScheduleModel? editingReminder;
+  final Function(ReminderServiceBody?) onCreateReminder;
+  final Function(ReminderServiceBody?) onUpdateReminder;
 
   const AddReminderDialog({
     super.key,
@@ -25,6 +23,8 @@ class AddReminderDialog extends StatefulWidget {
     this.contactId,
     this.contactData,
     this.editingReminder,
+    required this.onCreateReminder,
+    required this.onUpdateReminder,
   });
 
   @override
@@ -98,7 +98,7 @@ class _AddReminderDialogState extends State<AddReminderDialog> {
         _notifyBeforeList = reminder.reminders!.asMap().entries.map((entry) {
           final index = entry.key;
           final notify = entry.value;
-          final totalMinutes = int.parse(notify.time ?? '0');
+          final totalMinutes = notify.time != "" ? int.parse(notify.time!) : 0;
           final hours = totalMinutes ~/ 60;
           final minutes = totalMinutes % 60;
 
@@ -114,42 +114,6 @@ class _AddReminderDialogState extends State<AddReminderDialog> {
       _contentController = TextEditingController();
 
       // If contactData is provided directly, use it
-      if (widget.contactData != null) {
-        _selectedContact = {
-          'id': widget.contactData!.id,
-          'fullName': widget.contactData!.fullName ?? '',
-          // 'avatar': widget.contactData!.avatar ?? '',
-          // 'phone': widget.contactData! ?? '',
-        };
-      }
-      // If only contactId is provided, load contact info
-      else if (widget.contactId != null) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _loadContactInfo();
-        });
-      }
-    }
-  }
-
-  Future<void> _loadContactInfo() async {
-    try {
-      // final customerListAsync = ref.read(customerListProvider);
-      // final customers = customerListAsync.value ?? [];
-      // final customerIndex = customers.indexWhere((c) => c['id'] == widget.contactId);
-
-      // if (customerIndex != -1) {
-      //   final customer = customers[customerIndex];
-      //   setState(() {
-      //     _selectedContact = {
-      //       'id': customer['id'],
-      //       'fullName': customer['fullName'] ?? '',
-      //       'avatar': customer['avatar'],
-      //       'phone': customer['phone'],
-      //     };
-      //   });
-      // }
-    } catch (e) {
-      // Handle error silently
     }
   }
 
@@ -356,29 +320,46 @@ class _AddReminderDialogState extends State<AddReminderDialog> {
                 border: Border(
                     bottom: BorderSide(color: Color(0xFFE4E7EC), width: 1)),
               ),
-              child: Row(
+              child: Column(
                 children: [
-                  Text(
-                    widget.editingReminder != null
-                        ? "edit_reminder".tr()
-                        : "add_reminder".tr(),
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF101828),
-                    ),
+                  Row(
+                    children: [
+                      Text(
+                        widget.editingReminder != null
+                            ? "edit_reminder".tr()
+                            : "add_reminder".tr(),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF101828),
+                        ),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.close,
+                            color: Color(0xFF6B7280), size: 20),
+                        onPressed: () => Navigator.pop(context),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    ],
                   ),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Icons.close,
-                        color: Color(0xFF6B7280), size: 20),
-                    onPressed: () => Navigator.pop(context),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
+                  BlocBuilder<CustomerServiceBloc, CustomerServiceState>(
+                    builder: (context, state) {
+                      if (state.status ==
+                          CustomerServiceStatus.errorCreateReminder) {
+                        return Text(
+                          state.error ?? '',
+                          style: const TextStyle(color: Colors.red),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    },
                   ),
                 ],
               ),
             ),
+
             // Form content
             Expanded(
               child: Container(
@@ -466,7 +447,7 @@ class _AddReminderDialogState extends State<AddReminderDialog> {
                         const SizedBox(height: 16),
 
                         // Contact selection
-                        if (_selectedContact != null) ...[
+                        if (widget.contactData != null) ...[
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -490,7 +471,7 @@ class _AddReminderDialogState extends State<AddReminderDialog> {
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
-                                  _selectedContact!['fullName'],
+                                  widget.contactData!.fullName ?? '',
                                   style: const TextStyle(
                                     fontSize: 14,
                                     color: Color(0xFF6B7280),
@@ -738,14 +719,17 @@ class _AddReminderDialogState extends State<AddReminderDialog> {
                                             ),
                                           ),
                                           const SizedBox(width: 6),
-                                          Text(
-                                            priority.name,
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color:
-                                                  _selectedPriority == priority
-                                                      ? const Color(0xFF4F46E5)
-                                                      : const Color(0xFF6B7280),
+                                          Flexible(
+                                            child: Text(
+                                              priority.name,
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                overflow: TextOverflow.ellipsis,
+                                                color: _selectedPriority ==
+                                                        priority
+                                                    ? const Color(0xFF4F46E5)
+                                                    : const Color(0xFF6B7280),
+                                              ),
                                             ),
                                           ),
                                         ],
@@ -963,6 +947,8 @@ class _AddReminderDialogState extends State<AddReminderDialog> {
                                                       ),
                                                       keyboardType:
                                                           TextInputType.number,
+                                                      textAlign:
+                                                          TextAlign.center,
                                                       validator: (value) {
                                                         if (value == null ||
                                                             value.isEmpty) {
@@ -1015,6 +1001,8 @@ class _AddReminderDialogState extends State<AddReminderDialog> {
                                                       initialValue:
                                                           notify['minute']
                                                               .toString(),
+                                                      textAlign:
+                                                          TextAlign.center,
                                                       decoration:
                                                           InputDecoration(
                                                         border:
@@ -1187,6 +1175,7 @@ class _AddReminderDialogState extends State<AddReminderDialog> {
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                             color: Color(0xFF374151),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
@@ -1348,95 +1337,53 @@ class _AddReminderDialogState extends State<AddReminderDialog> {
         );
       }
       if (startDateTime == null || endDateTime == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Ngày bắt đầu và ngày kết thúc không hợp lệ'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        context.read<CustomerServiceBloc>().add(const ShowError(
+            status: CustomerServiceStatus.errorCreateReminder,
+            error: 'Ngày bắt đầu và ngày kết thúc không hợp lệ'));
         return;
       }
       // Convert local time to UTC for API
       final startDateTimeUtc = startDateTime.toUtc();
       final endDateTimeUtc = endDateTime?.toUtc();
-
-      // final data = <String, dynamic>{
-      //   if (widget.editingReminder != null) 'Id': widget.editingReminder!.id,
-      //   'Title': _titleController.text.trim(),
-      //   'Content': _contentController.text.trim(),
-      //   'StartTime': '${startDateTimeUtc.toIso8601String().substring(0, 23)}Z',
-      //   if (endDateTimeUtc != null)
-      //     'EndTime': '${endDateTimeUtc.toIso8601String().substring(0, 23)}Z',
-      //   'RepeatRule': <dynamic>[],
-      //   'IsDone': _isDone,
-      //   'SchedulesType': _selectedType.id,
-      //   'Priority': _selectedPriority.value,
-      //   'OrganizationId': widget.organizationId,
-      //   'WorkspaceId': widget.workspaceId,
-      //   'Reminders': _notifyBeforeList.map((notify) {
-      //     final totalMinutes = (notify['hour']! * 60) + notify['minute']!;
-      //     final hours = totalMinutes ~/ 60;
-      //     final minutes = totalMinutes % 60;
-      //     return {
-      //       'Time':
-      //           '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}'
-      //     };
-      //   }).toList(),
-      //   'RelatedProfiles': <dynamic>[],
-      //   if (_selectedContact != null)
-      //     'Contact': [
-      //       {
-      //         'id': _selectedContact!['id'],
-      //         'fullName': _selectedContact!['fullName'],
-      //         'phone': _selectedContact!['phone'],
-      //         'avatar': _selectedContact!['avatar'],
-      //       }
-      //     ],
-      // };
+      final reminderBody = ReminderServiceBody(
+        title: _titleController.text.trim(),
+        content: _contentController.text.trim(),
+        startTime: '${startDateTimeUtc.toIso8601String().substring(0, 23)}Z',
+        endTime: endDateTimeUtc != null
+            ? '${endDateTimeUtc.toIso8601String().substring(0, 23)}Z'
+            : null,
+        repeatRule: <RepeatRule>[],
+        isDone: _isDone,
+        schedulesType: _selectedType.id,
+        priority: _selectedPriority.value,
+        organizationId: widget.organizationId,
+        reminders: _notifyBeforeList.map((notify) {
+          final totalMinutes = (notify['hour']! * 60) + notify['minute']!;
+          final hours = totalMinutes ~/ 60;
+          final minutes = totalMinutes % 60;
+          return Reminders(
+              time:
+                  '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}');
+        }).toList(),
+        relatedProfiles: <RelatedProfiles>[],
+        contact: widget.contactData != null
+            ? [
+                Contact(
+                  id: widget.contactData!.id,
+                  fullName: widget.contactData!.fullName ?? '',
+                  phone: '',
+                )
+              ]
+            : null,
+        workspaceId: widget.workspaceId,
+      );
 
       if (widget.editingReminder != null) {
-        // await ref.read(reminderListProvider.notifier).updateReminder(data);
+        reminderBody.id = widget.editingReminder!.id;
+        widget.onUpdateReminder(reminderBody);
+        setState(() {});
       } else {
-        // Tạo ReminderServiceBody từ data
-        final reminderBody = reminder_body.ReminderServiceBody(
-          title: _titleController.text.trim(),
-          content: _contentController.text.trim(),
-          startTime: '${startDateTimeUtc.toIso8601String().substring(0, 23)}Z',
-          endTime: endDateTimeUtc != null
-              ? '${endDateTimeUtc.toIso8601String().substring(0, 23)}Z'
-              : null,
-          repeatRule: <reminder_body.RepeatRule>[],
-          isDone: _isDone,
-          schedulesType: _selectedType.id,
-          priority: _selectedPriority.value,
-          organizationId: widget.organizationId,
-          reminders: _notifyBeforeList.map((notify) {
-            final totalMinutes = (notify['hour']! * 60) + notify['minute']!;
-            final hours = totalMinutes ~/ 60;
-            final minutes = totalMinutes % 60;
-            return reminder_body.Reminders(
-                time:
-                    '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}');
-          }).toList(),
-          relatedProfiles: <reminder_body.RelatedProfiles>[],
-          contact: _selectedContact != null
-              ? [
-                  reminder_body.Contact(
-                    id: _selectedContact!['id'],
-                    fullName: _selectedContact!['fullName'],
-                    phone: _selectedContact!['phone'],
-                  )
-                ]
-              : null,
-        );
-
-        // Dispatch CreateReminder event
-        context.read<CustomerServiceBloc>().add(
-              CreateReminder(
-                organizationId: widget.organizationId,
-                body: reminderBody,
-              ),
-            );
+        widget.onCreateReminder(reminderBody);
         setState(() {});
       }
 

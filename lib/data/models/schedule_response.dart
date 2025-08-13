@@ -1,4 +1,5 @@
 import 'package:source_base/data/models/reminder.dart';
+import 'package:source_base/data/models/reminder_service_body.dart';
 
 class ScheduleResponse {
   List<ScheduleModel>? data;

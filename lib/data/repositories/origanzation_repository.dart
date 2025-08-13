@@ -160,7 +160,7 @@ class OrganizationRepository {
     try {
       final response =
           await apiService.getConversationListService(organizationId, {
-        'provider': provider,
+        'channels': provider,
         'offset': offset,
         'limit': limit,
         'sort': '[{ Column: "CreatedDate", Dir: "DESC" }]',
@@ -240,9 +240,11 @@ class OrganizationRepository {
     }
   }
 
-  Future<Response> deleteCustomerService(String id, String organizationId) async {
+  Future<Response> deleteCustomerService(
+      String id, String organizationId) async {
     try {
-      final response = await apiService.deleteCustomerService(id, organizationId);
+      final response =
+          await apiService.deleteCustomerService(id, organizationId);
       return response;
     } catch (e) {
       return Response<Map<String, dynamic>>(

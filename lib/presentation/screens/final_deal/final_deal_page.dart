@@ -44,8 +44,7 @@ class _FinalDealScreenState extends State<FinalDealScreen>
             );
           }
           if (state.status == FinalDealStatus.success) {}
-          if (state.businessProcesses.isNotEmpty &&
-              state.status == FinalDealStatus.successBusinessProcessTask) {
+          if (state.status == FinalDealStatus.successBusinessProcessTask) {
             setState(() {
               _tabController = TabController(
                 length: state.businessProcesses.length,
@@ -72,104 +71,111 @@ class _FinalDealScreenState extends State<FinalDealScreen>
             });
           }
         },
-        child: Column(
-          children: [
-            // Tab Bar
-            Container(
-              color: Colors.white,
-              child: TabBar(
-                padding: EdgeInsets.zero,
-                //  labelPadding: EdgeInsets.symmetric(horizontal: 12),
-                tabAlignment: TabAlignment.start,
-                labelPadding: const EdgeInsets.only(left: 6, right: 10),
-                isScrollable: true,
-                controller: _tabController,
-                indicatorColor: AppColors.primary,
-                indicatorWeight: 2,
-                labelColor: AppColors.primary,
-                unselectedLabelColor: Colors.grey,
-                labelStyle: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                ),
-                unselectedLabelStyle: const TextStyle(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 14,
-                ),
-                tabs: businessProcesses
-                    .map((businessProcess) => Tab(
-                          text: businessProcess.name,
-                        ))
-                    .toList(),
-              ),
-            ),
-
-            // Summary Section
-            BlocBuilder<FinalDealBloc, FinalDealState>(
-                builder: (context, state) {
-              if (state.status == FinalDealStatus.loadingBusinessProcess) {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              }
-              return Container(
-                color: Colors.white,
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    Text(
-                      Helpers.formatCurrency(
-                        state.businessProcessTasks
-                            .map((e) => e.orderValue)
-                            .fold(0, (sum, item) => sum + (item ?? 0)),
-                      ),
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    Container(
-                      margin: const EdgeInsets.only(left: 10, right: 10),
-                      height: 5,
-                      width: 5,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.textTertiary,
-                      ),
-                    ),
-                    Text(
-                      '${state.businessProcessTasks.length} Giao dịch',
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }),
-
-            const SizedBox(height: 8),
-
-            // TabBarView for different content
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
+        child: businessProcesses.isEmpty
+            ? const Center(
+                child: Text('Nhóm này chưa được chia giai đoạn!'),
+              )
+            : Column(
                 children: [
-                  for (var businessProcess in businessProcesses) ...[TabView()]
-                  // Tab 1: Khách quan tâm
+                  // Tab Bar
+                  Container(
+                    color: Colors.white,
+                    child: TabBar(
+                      padding: EdgeInsets.zero,
+                      //  labelPadding: EdgeInsets.symmetric(horizontal: 12),
+                      tabAlignment: TabAlignment.start,
+                      labelPadding: const EdgeInsets.only(left: 6, right: 10),
+                      isScrollable: true,
+                      controller: _tabController,
+                      indicatorColor: AppColors.primary,
+                      indicatorWeight: 2,
+                      labelColor: AppColors.primary,
+                      unselectedLabelColor: Colors.grey,
+                      labelStyle: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                      unselectedLabelStyle: const TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14,
+                      ),
+                      tabs: businessProcesses
+                          .map((businessProcess) => Tab(
+                                text: businessProcess.name,
+                              ))
+                          .toList(),
+                    ),
+                  ),
 
-                  // Tab 2: Gửi thông tin chi tiết
-                  // _buildSendInfoContent(),
+                  // Summary Section
+                  BlocBuilder<FinalDealBloc, FinalDealState>(
+                      builder: (context, state) {
+                    if (state.status ==
+                        FinalDealStatus.loadingBusinessProcess) {
+                      return const Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    }
+                    return Container(
+                      color: Colors.white,
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          Text(
+                            Helpers.formatCurrency(
+                              state.businessProcessTasks
+                                  .map((e) => e.orderValue)
+                                  .fold(0, (sum, item) => sum + (item ?? 0)),
+                            ),
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          Container(
+                            margin: const EdgeInsets.only(left: 10, right: 10),
+                            height: 5,
+                            width: 5,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppColors.textTertiary,
+                            ),
+                          ),
+                          Text(
+                            '${state.businessProcessTasks.length} Giao dịch',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
 
-                  // // Tab 3: Đặt lịch đi xem dự án
-                  // _buildScheduleContent(),
+                  const SizedBox(height: 8),
+
+                  // TabBarView for different content
+                  Expanded(
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        for (var businessProcess in businessProcesses) ...[
+                          TabView()
+                        ]
+                        // Tab 1: Khách quan tâm
+
+                        // Tab 2: Gửi thông tin chi tiết
+                        // _buildSendInfoContent(),
+
+                        // // Tab 3: Đặt lịch đi xem dự án
+                        // _buildScheduleContent(),
+                      ],
+                    ),
+                  ),
                 ],
-              ),
-            ),
-          ],
-        ));
+              ));
   }
 
   Widget _buildInteractionItem(IconData icon, String count) {

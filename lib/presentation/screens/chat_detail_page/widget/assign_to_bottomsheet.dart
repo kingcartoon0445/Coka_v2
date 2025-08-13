@@ -236,7 +236,7 @@ class _AssignToBottomSheetState extends State<AssignToBottomSheet>
     try {
       setState(() => _isLoadingTeams = true);
 
-      final response =  {};
+      final response = {};
 
       if (mounted && !_teamsCancelToken!.isCancelled) {
         final allTeams = (response['content'] as List).map((team) {
@@ -309,7 +309,7 @@ class _AssignToBottomSheetState extends State<AssignToBottomSheet>
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: AppColors.primary), 
+            borderSide: const BorderSide(color: AppColors.primary),
           ),
         ),
         onChanged: onChanged,
@@ -377,7 +377,7 @@ class _AssignToBottomSheetState extends State<AssignToBottomSheet>
             setState(() => _orgMemberSearchText = value);
             _orgSearchDebounce?.cancel();
             _orgSearchDebounce = Timer(const Duration(milliseconds: 500), () {
-              _loadOrgMembers();
+              // _loadOrgMembers();
             });
           } else {
             setState(() => _salesMemberSearchText = value);
