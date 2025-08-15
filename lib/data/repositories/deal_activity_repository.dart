@@ -34,4 +34,15 @@ class DealActivityRepository {
     return await apiCalendarService.updateStatusService(
         organizationId, taskId, isSuccess);
   }
+
+  Future<Response> getDetailTask(String organizationId, String taskId) async {
+    return await apiService.getBusinessProcessTaskService(
+        organizationId, null, taskId: taskId);
+  }
+
+  Future<Response> getOrderDetailWithProduct(
+      String organizationId, String taskId) async {
+    return await apiCalendarService.getOrderDetailWithProduct(
+        organizationId, taskId);
+  }
 }

@@ -11,6 +11,15 @@ import 'package:source_base/presentation/screens/shared/widgets/date_picker_btn.
 
 import '../../../blocs/filter_item/filter_item_aciton.dart';
 
+class SystemFilterModel {
+  final String name;
+  bool value;
+  final Map<String, dynamic> field;
+
+  SystemFilterModel(
+      {required this.name, this.value = false, required this.field});
+}
+
 class Rating extends ChipData {
   Rating({required String id, required String name}) : super(id, name);
 }
@@ -19,12 +28,37 @@ class Category extends ChipData {
   Category({required String id, required String name}) : super(id, name);
 }
 
+class Condition {
+  final String field;
+  final String operation;
+
+  Condition({
+    required this.field,
+    required this.operation,
+  });
+
+  factory Condition.fromJson(Map<String, dynamic> json) {
+    return Condition(
+      field: json['field'] as String,
+      operation: json['operation'] as String,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'field': field,
+      'operation': operation,
+    };
+  }
+}
+
 class FilterResult {
   final List<MemberModel> assignees;
   final List<Category> categories;
   final List<UtmSourceModel> sources;
   final List<PagingModel> tags;
   final List<Rating> ratings;
+  final List<Condition> conditions;
   final DateTimeRange? dateRange;
 
   FilterResult({
@@ -33,6 +67,7 @@ class FilterResult {
     required this.sources,
     required this.tags,
     required this.ratings,
+    required this.conditions,
     this.dateRange,
   });
 
@@ -42,6 +77,7 @@ class FilterResult {
         sources.isNotEmpty ||
         tags.isNotEmpty ||
         ratings.isNotEmpty ||
+        conditions.isNotEmpty ||
         dateRange != null;
   }
 
@@ -90,6 +126,12 @@ class FilterResult {
         //   assignToIndex++;
         // }
       }
+    }
+
+    if (conditions.isNotEmpty) {
+      conditions.asMap().forEach((index, condition) {
+        params['conditions[$index]'] = condition.toJson();
+      });
     }
 
     return params;
@@ -209,6 +251,17 @@ class _FilterModalState extends State<FilterModal> {
     Rating(id: '5', name: '5 star'.tr()),
   ];
 
+  final systemFilters = [
+    SystemFilterModel(
+        name: "Khách hàng có mail",
+        value: false,
+        field: {'field': "email", 'operation': "IS NOT NULL"}),
+    SystemFilterModel(
+        name: "Khách hàng có số điện thoại",
+        value: false,
+        field: {"field": "phone", "operation": "IS NOT NULL"}),
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -217,6 +270,13 @@ class _FilterModalState extends State<FilterModal> {
         ));
     // _workspaceRepository = WorkspaceRepository(ApiClient());
     if (widget.initialValue != null) {
+      for (var filter in systemFilters) {
+        if (widget.initialValue!.conditions.any((e) =>
+            e.field == filter.field['field'] &&
+            e.operation == filter.field['operation'])) {
+          filter.value = true;
+        }
+      }
       _selectedAssignees.addAll(widget.initialValue!.assignees);
       _assigneesNotifier.value = List.from(widget.initialValue!.assignees);
       _selectedCategories = List.from(widget.initialValue!.categories);
@@ -305,14 +365,22 @@ class _FilterModalState extends State<FilterModal> {
   }
 
   void _applyFilters() {
+    List<Condition> conditions = [];
+    for (var filter in systemFilters) {
+      if (filter.value) {
+        conditions.add(Condition(
+            field: filter.field['field'],
+            operation: filter.field['operation']));
+      }
+    }
     final result = FilterResult(
-      assignees: List.from(_selectedAssignees),
-      categories: List.from(_selectedCategories),
-      sources: List.from(_selectedSources),
-      tags: List.from(_selectedPagingModels),
-      ratings: List.from(_selectedRatings),
-      dateRange: _selectedDateRange,
-    );
+        assignees: List.from(_selectedAssignees),
+        categories: List.from(_selectedCategories),
+        sources: List.from(_selectedSources),
+        tags: List.from(_selectedPagingModels),
+        ratings: List.from(_selectedRatings),
+        dateRange: _selectedDateRange,
+        conditions: conditions);
     Navigator.of(context).pop(result);
   }
 
@@ -889,10 +957,19 @@ class _FilterModalState extends State<FilterModal> {
                               ],
                             ),
                           ),
-                          Container(
-                            width: double.infinity,
-                            height: 1,
-                            color: const Color(0xFFE4E7EC),
+                          ListView.builder(
+                            itemCount: systemFilters.length,
+                            itemBuilder: (context, index) {
+                              return CheckboxListTile(
+                                value: systemFilters[index].value,
+                                onChanged: (value) {
+                                  setState(() {
+                                    systemFilters[index].value = value ?? false;
+                                  });
+                                },
+                                title: Text(systemFilters[index].name),
+                              );
+                            },
                           ),
                         ],
                       ),

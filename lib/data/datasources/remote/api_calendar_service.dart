@@ -221,4 +221,26 @@ class ApiCalendarService {
       );
     }
   }
+
+  Future<Response> getOrderDetailWithProduct(
+      String organizationId, String taskId) async {
+    try {
+      final response = await _dioClient.getProducts(
+          ApiEndpoints.getOrderDetailWithProduct(taskId),
+          options: Options(headers: {'organizationid': organizationId}));
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(
+            path: ApiEndpoints.getOrderDetailWithProduct(taskId)),
+      );
+    }
+  }
 }

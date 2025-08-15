@@ -4,16 +4,19 @@ import 'package:source_base/core/api/dio_client.dart';
 import 'package:source_base/data/datasources/local/shared_preferences_service.dart';
 import 'package:source_base/data/datasources/remote/api_calendar_service.dart';
 import 'package:source_base/data/datasources/remote/api_service.dart';
+import 'package:source_base/data/models/notification_repository.dart';
 import 'package:source_base/data/repositories/calendar_repository.dart';
 import 'package:source_base/data/repositories/chat_repository.dart';
 import 'package:source_base/data/repositories/deal_activity_repository.dart';
 import 'package:source_base/data/repositories/final_deal_repository.dart';
+import 'package:source_base/data/repositories/message_repository.dart';
 import 'package:source_base/data/repositories/origanzation_repository.dart';
 import 'package:source_base/data/repositories/switch_final_deal_repository.dart';
 import 'package:source_base/data/repositories/user_repository.dart';
 import 'package:source_base/presentation/blocs/auth/auth_bloc.dart';
 import 'package:source_base/presentation/blocs/customer_service/customer_service_bloc.dart';
 import 'package:source_base/presentation/blocs/deal_activity/deal_activity_bloc.dart';
+import 'package:source_base/presentation/blocs/message/message_bloc.dart';
 import 'package:source_base/presentation/blocs/organization/organization_bloc.dart';
 import 'package:source_base/presentation/blocs/theme/theme_bloc.dart';
 
@@ -43,9 +46,14 @@ Future<void> setupServiceLocator() async {
       () => ApiCalendarService(getIt<DioClient>()));
 
   // Repositories
+  getIt.registerLazySingleton<NotificationRepository>(
+      () => NotificationRepository(getIt<DioClient>()));
   getIt.registerLazySingleton<UserRepository>(() => UserRepository(
         apiService: getIt<ApiService>(),
         // storageService: getIt<StorageService>(),
+      ));
+  getIt.registerLazySingleton<MessageRepository>(() => MessageRepository(
+        getIt<DioClient>(),
       ));
   getIt.registerLazySingleton<OrganizationRepository>(
       () => OrganizationRepository(apiService: getIt<ApiService>()));
@@ -64,8 +72,9 @@ Future<void> setupServiceLocator() async {
           apiCalendarService: getIt<ApiCalendarService>()));
   // BLoCs
   getIt.registerFactory<ThemeBloc>(() => ThemeBloc());
-  getIt.registerFactory<AuthBloc>(
-      () => AuthBloc(userRepository: getIt<UserRepository>()));
+  getIt.registerFactory<AuthBloc>(() => AuthBloc(
+      userRepository: getIt<UserRepository>(),
+      organizationRepository: getIt<OrganizationRepository>()));
   getIt.registerFactory<OrganizationBloc>(() => OrganizationBloc(
       organizationRepository: getIt<OrganizationRepository>()));
   getIt.registerFactory<CustomerServiceBloc>(() => CustomerServiceBloc(
@@ -84,4 +93,7 @@ Future<void> setupServiceLocator() async {
   getIt.registerFactory<DealActivityBloc>(() => DealActivityBloc(
       dealActivityRepository: getIt<DealActivityRepository>(),
       calendarRepository: getIt<CalendarRepository>()));
+  getIt.registerFactory<MessageBloc>(() => MessageBloc(
+        repository: getIt<MessageRepository>(),
+      ));
 }

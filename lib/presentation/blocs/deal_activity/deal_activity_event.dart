@@ -14,13 +14,13 @@ class LoadDealActivity extends DealActivityEvent {
   final String organizationId;
   final List<BusinessProcessModel>? businessProcesses;
 
-  final BusinessProcessTaskModel? businessProcessTask;
+  final TaskModel? task;
   final String? workspaceId;
 
   const LoadDealActivity({
     required this.organizationId,
     this.businessProcesses,
-    this.businessProcessTask,
+    this.task,
     this.workspaceId,
   });
 }
@@ -55,4 +55,16 @@ class DeleteReminderWorkspace extends DealActivityEvent {
   const DeleteReminderWorkspace({required this.reminderId});
 }
 
-  class RemoveState extends DealActivityEvent {}
+class LoadDetailTask extends DealActivityEvent {
+  final String organizationId;
+  final String taskId;
+  final String? orderId;
+
+  const LoadDetailTask({
+    required this.organizationId,
+    required this.taskId,
+    this.orderId,
+  });
+}
+
+class RemoveState extends DealActivityEvent {}

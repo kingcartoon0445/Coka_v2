@@ -103,15 +103,18 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
     brightness: Brightness.dark,
     primarySwatch: Colors.blue,
     scaffoldBackgroundColor: Colors.grey[900],
+    fontFamily: 'GoogleSans',
     appBarTheme: AppBarTheme(
       color: Colors.grey[800],
       elevation: 0,
     ),
     textTheme: const TextTheme(
-      headlineLarge: TextStyle(color: Colors.white),
-      headlineMedium: TextStyle(color: Colors.white),
-      bodyLarge: TextStyle(color: Colors.white),
-      bodyMedium: TextStyle(color: Colors.white),
+      headlineLarge:
+          TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+      headlineMedium:
+          TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+      bodyLarge: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+      bodyMedium: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
     ),
   );
 }

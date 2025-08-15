@@ -1,10 +1,21 @@
+import 'package:dio/dio.dart';
+import 'package:source_base/core/api/api_endpoints.dart';
 import 'package:source_base/core/api/dio_client.dart';
-import 'package:source_base/data/models/conversation_model.dart';
 
 class MessageRepository {
   final DioClient _dioClient;
 
   MessageRepository(this._dioClient);
+  Future<Map<String, dynamic>> connectFacebook(
+      String organizationId, dynamic data) async {
+    final response = await _dioClient.post(
+      ApiEndpoints.fbConnect,
+      data: data,
+      options: Options(headers: {'organizationid': organizationId}),
+    );
+
+    return response.data;
+  }
 
   Future<Map<String, dynamic>> getConversationList(
     String organizationId, {
@@ -58,7 +69,8 @@ class MessageRepository {
 
   Future<Map<String, dynamic>> getOData() async {
     try {
-      final response = await _dioClient.get('/api/organizations');
+      final response =
+          await _dioClient.get('/api/v1/organization/getlistpaging');
       return response.data;
     } catch (e) {
       throw Exception('Failed to get organization data: $e');

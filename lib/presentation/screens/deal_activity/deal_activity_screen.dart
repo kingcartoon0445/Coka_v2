@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:source_base/config/app_color.dart';
 import 'package:source_base/presentation/blocs/deal_activity/deal_activity_action.dart';
 import 'package:source_base/presentation/screens/deal_activity/widget/customer_journey_screen.dart';
+import 'package:source_base/presentation/screens/final_deal/detail_deal_page.dart';
 import 'package:source_base/presentation/widget/dialog_member.dart';
 
 import 'widget/stage_progress_bar.dart';
@@ -46,7 +47,7 @@ class _DealActivityScreenState extends State<DealActivityScreen>
             Navigator.maybePop(context);
           });
         }
-        
+
         if (state.status == DealActivityStatus.successUpdateStatus) {
           _dealActivityBloc.add(RemoveState());
 
@@ -68,14 +69,26 @@ class _DealActivityScreenState extends State<DealActivityScreen>
           ),
           centerTitle: true,
           title: Text(
-            _dealActivityBloc.state.businessProcessTask?.name ?? '',
+            _dealActivityBloc.state.task?.name ?? '',
             style: const TextStyle(
                 fontSize: 16, color: Colors.black, fontWeight: FontWeight.w500),
           ),
           actions: [
             IconButton(
               icon: const Icon(Icons.more_horiz_rounded, color: Colors.black),
-              onPressed: () {},
+              onPressed: () {
+                _dealActivityBloc.add(LoadDetailTask(
+                  organizationId: _dealActivityBloc.state.organizationId ?? '',
+                  taskId: _dealActivityBloc.state.task?.id ?? '',
+                  orderId: _dealActivityBloc.state.task?.orderId ?? '',
+                ));
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const DetailDealPage(),
+                  ),
+                );
+              },
             ),
           ],
         ),

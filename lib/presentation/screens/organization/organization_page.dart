@@ -8,10 +8,12 @@ import 'package:source_base/config/app_color.dart';
 import 'package:source_base/config/helper.dart';
 import 'package:source_base/config/routes.dart';
 import 'package:source_base/config/test_style.dart';
+import 'package:source_base/core/api/dio_client.dart';
 import 'package:source_base/data/datasources/local/shared_preferences_service.dart';
 import 'package:source_base/data/datasources/remote/param_model/lead_paging_request_model.dart';
 import 'package:source_base/data/models/organization_model.dart';
 import 'package:source_base/data/models/user_profile.dart';
+import 'package:source_base/data/repositories/message_repository.dart';
 import 'package:source_base/presentation/blocs/auth/auth_bloc.dart';
 import 'package:source_base/presentation/blocs/auth/auth_event.dart';
 import 'package:source_base/presentation/blocs/final_deal/model/workspace_response.dart';
@@ -50,6 +52,11 @@ class _OrganizationPageState extends State<OrganizationPage> {
   @override
   void initState() {
     super.initState();
+    context.read<OrganizationBloc>().add(const LoadOrganizations(
+          limit: '10',
+          offset: '0',
+          searchText: '',
+        ));
     _initData();
   }
 
@@ -66,8 +73,8 @@ class _OrganizationPageState extends State<OrganizationPage> {
 
   Future<void> _initData() async {
     await Future.wait([
-      _loadUserInfo(),
       _loadOrganizations(),
+      _loadUserInfo(),
       _loadUnreadNotificationCount(),
     ]);
   }
@@ -77,27 +84,6 @@ class _OrganizationPageState extends State<OrganizationPage> {
       setState(() {
         _isLoadingOrganizationsError = false;
       });
-    }
-
-    try {
-      context.read<OrganizationBloc>().add(const LoadOrganizations(
-            limit: '10',
-            offset: '0',
-            searchText: '',
-          ));
-    } catch (e) {
-      print('Lỗi khi load organizations: $e');
-      if (mounted) {
-        setState(() {
-          _isLoadingOrganizationsError = true;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Không thể tải danh sách tổ chức'),
-            duration: Duration(seconds: 5),
-          ),
-        );
-      }
     }
   }
 
@@ -207,10 +193,11 @@ class _OrganizationPageState extends State<OrganizationPage> {
 
     if (_organizationInfo == null && widget.organizationId != 'default') {
       return _buildSkeletonTitle();
-    }
+    } else {}
     if (index == 1) {
       return const CustomDropdown();
     }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -239,6 +226,7 @@ class _OrganizationPageState extends State<OrganizationPage> {
 
   int _calculateSelectedIndex(BuildContext context) {
     final location = GoRouterState.of(context).uri.path;
+
     if (location.contains(AppPaths.organization(widget.organizationId))) {
       return 0;
     }
@@ -260,7 +248,7 @@ class _OrganizationPageState extends State<OrganizationPage> {
         context.replace(AppPaths.organization(widget.organizationId));
         break;
       case 1:
-        context.read<FinalDealBloc>().add(FinalDealGetAllWorkspace(
+        context.read<FinalDealBloc>().add(GetAllWorkspace(
               organizationId:
                   context.read<OrganizationBloc>().state.organizationId ?? '',
             ));
@@ -333,11 +321,10 @@ class _OrganizationPageState extends State<OrganizationPage> {
                 (org) => org.id == widget.organizationId,
                 // orElse: () => null,
               );
-              if (mounted) {
-                setState(() {
-                  _organizationInfo = currentOrg;
-                });
-              }
+              setState(() {
+                _organizationInfo = currentOrg;
+              });
+
               print('Lưu organization mặc định: ${widget.organizationId}');
               context.read<OrganizationBloc>().add(
                     ChangeOrganization(
@@ -348,23 +335,7 @@ class _OrganizationPageState extends State<OrganizationPage> {
                 PrefKey.defaultOrganizationId,
                 widget.organizationId,
               );
-              //   await ApiClient.storage.write(
-              //     key: 'default_organization_id',
-              //     value: widget.organizationId,
-              //   );
-              //   final savedOrgId = await ApiClient.storage.read(key: 'default_organization_id');
-              //   print('Kiểm tra lại organization mặc định đã lưu: $savedOrgId');
-              // } else {
-              //   print('Organization ID ${widget.organizationId} không tìm thấy trong danh sách.');
-              //   if (mounted) {
-              //     if (organizations.isNotEmpty) {
-              //       context.go('/organization/${organizations[0]['id']}');
-              //     } else {
-              //       setState(() {
-              //         _isLoadingOrganizationsError = true;
-              //       });
-              //     }
-              //   }
+
               context.read<CustomerServiceBloc>().add(
                     LoadCustomerService(
                       organizationId: widget.organizationId,
@@ -430,6 +401,7 @@ class _OrganizationPageState extends State<OrganizationPage> {
                             ),
                           ),
                         );
+
                     SharedPreferencesService().setString(
                       PrefKey.defaultOrganizationId,
                       _organizationInfo!.id!,
@@ -561,7 +533,7 @@ class _CustomDropdownState extends State<CustomDropdown> {
           },
           onSelected: (WorkspaceModel value) {
             setState(() {
-              context.read<FinalDealBloc>().add(FinalDealSelectWorkspace(
+              context.read<FinalDealBloc>().add(SelectWorkspace(
                     workspace: value,
                     organizationId:
                         context.read<OrganizationBloc>().state.organizationId ??

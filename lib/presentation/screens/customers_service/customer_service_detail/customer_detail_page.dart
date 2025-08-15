@@ -184,7 +184,7 @@ class _CustomerDetailPageState extends State<CustomerDetailPage>
           (displayUsers.length > 1 ? (displayUsers.length - 1) * 10.0 : 0);
 
       return GestureDetector(
-        onTap: showAssignBottomSheet,
+        // onTap: showAssignBottomSheet,
         child: Row(
           children: [
             Text(

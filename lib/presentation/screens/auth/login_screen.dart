@@ -1,10 +1,11 @@
-// lib/pages/auth/login_screen.dart
+// lib/pages/auth/login_screen.dart (refactored)
 
-import 'dart:io' show Platform;
+import 'dart:io' show Platform; // Guarded by !kIsWeb when used
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:source_base/config/app_color.dart';
 import 'package:source_base/config/app_constans.dart';
@@ -27,238 +28,286 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginPage> {
-  final emailController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _emailFocus = FocusNode();
   final _formKey = GlobalKey<FormState>();
-  String baseUrl = DioClient.baseUrl;
+
+  String _baseUrl = DioClient.baseUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    // ✅ Avoid side-effects in build: check auth once here
+    context.read<AuthBloc>().add(CheckAuthStatus());
+  }
+
   @override
   void dispose() {
-    emailController.dispose();
+    _emailController.dispose();
+    _emailFocus.dispose();
     super.dispose();
   }
 
   String? _validateEmail(String? value) {
-    if (value == null || value.isEmpty) return 'Vui lòng nhập email';
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    if (!emailRegex.hasMatch(value)) return 'Email không hợp lệ';
+    if (value == null || value.trim().isEmpty) return 'Vui lòng nhập email';
+    final emailRegex = RegExp(r'^[\w\.-]+@([\w-]+\.)+[\w-]{2,}$');
+    if (!emailRegex.hasMatch(value.trim())) return 'Email không hợp lệ';
     return null;
   }
 
-  Future<void> _handleSubmit(BuildContext context) async {
-    if (!_formKey.currentState!.validate()) return;
+  Future<void> _handleSubmit() async {
+    final form = _formKey.currentState;
+    if (form == null) return;
+    if (!form.validate()) {
+      _emailFocus.requestFocus();
+      return;
+    }
     context
         .read<AuthBloc>()
-        .add(LoginRequested(email: emailController.text.trim()));
+        .add(LoginRequested(email: _emailController.text.trim()));
   }
+
+  bool get _showAppleButton => !kIsWeb && Platform.isIOS; // Safe on web
 
   @override
   Widget build(BuildContext context) {
-    context.watch<AuthBloc>().add(CheckAuthStatus());
     return BlocConsumer<AuthBloc, AuthState>(
+      listenWhen: (prev, next) => prev.status != next.status,
       listener: (context, state) {
-        if (state.status == AuthStatus.authenticated) {
-          context.read<OrganizationBloc>().add(ChangeOrganization(
-                organizationId: state.organizationId!,
-              ));
-          context.go(state.initialLocation ?? '/');
-        }
-        if (state.status == AuthStatus.confirmAccount &&
-            state.organizationId != null) {
-          context.go('/organization/${state.organizationId}');
-        }
+        switch (state.status) {
+          case AuthStatus.authenticated:
+            if (state.organizationId != null) {
+              context.read<OrganizationBloc>().add(
+                  ChangeOrganization(organizationId: state.organizationId!));
+            }
+            context.go(state.initialLocation ?? '/');
+            break;
 
-        if (state.status == AuthStatus.emailDone && state.otpId != null) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => VerifyOtpScreen(
-                email: state.email!,
-                otpId: state.otpId!,
-              ),
-            ),
-          );
-        }
-        if (state.status == AuthStatus.confirmAccount) {
-          context.go(AppPaths.completeProfile);
-        }
-        if (state.status == AuthStatus.success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Đăng nhập thành công'),
-              backgroundColor: AppColors.success,
-            ),
-          );
-          context.go('/organization/default');
-          // context.go(AppPaths.organization());
-        }
-        if (state.status == AuthStatus.error && state.error != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                state.error!,
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-              backgroundColor: AppColors.error,
-            ),
-          );
+          case AuthStatus.confirmAccount:
+            if (state.organizationId != null) {
+              context.go('/organization/${state.organizationId}');
+            } else {
+              context.go(AppPaths.completeProfile);
+            }
+            break;
+
+          case AuthStatus.emailDone:
+            if (state.otpId != null && state.email != null) {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) =>
+                      VerifyOtpScreen(email: state.email!, otpId: state.otpId!),
+                ),
+              );
+            }
+            break;
+
+          case AuthStatus.success:
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                  content: Text('Đăng nhập thành công'),
+                  backgroundColor: AppColors.success),
+            );
+            context.read<OrganizationBloc>().add(const LoadOrganizations(
+                  limit: '10',
+                  offset: '0',
+                  searchText: '',
+                ));
+            context.go('/organization/default');
+            break;
+
+          case AuthStatus.error:
+            final msg = state.error?.trim();
+            if (msg != null && msg.isNotEmpty) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(msg,
+                      style: const TextStyle(fontWeight: FontWeight.w500)),
+                  backgroundColor: AppColors.error,
+                ),
+              );
+            }
+            break;
+
+          case AuthStatus.initial:
+          case AuthStatus.loading:
+          case AuthStatus.unauthenticated:
+          default:
+            break;
         }
       },
       builder: (context, state) {
-        // final isLoading = state.status == AuthStatus.loading;
+        final isLoading = state.status == AuthStatus.loading;
 
-        return Scaffold(
-          backgroundColor: Colors.white,
-          body: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 24.0, left: 16, right: 16),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    const SizedBox(height: 20),
-                    const LanguageDropdown(),
-                    const SizedBox(height: 20),
-                    // 👇 Popup menu debug chọn baseURL
-                    PopupMenuButton<String>(
-                        enabled: kDebugMode,
-                        color: Colors.white,
-                        onSelected: (value) async {
-                          await DioClient().setBaseUrl(value);
-                          setState(() {
-                            baseUrl = value;
-                          });
-                        },
-                        itemBuilder: (context) {
-                          return [
-                            DioClient.baseUrlCoka,
-                            DioClient.baseUrlDev,
-                            DioClient.baseUrl
-                          ].map((base) {
-                            return PopupMenuItem<String>(
-                              value: base,
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    base == baseUrl
-                                        ? Icons.radio_button_checked
-                                        : Icons.radio_button_unchecked,
-                                    color: base == baseUrl
-                                        ? Colors.blueAccent
-                                        : Colors.grey,
-                                    size: 18,
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Text(
-                                      base,
-                                      style: TextStyle(
-                                        fontWeight: base == baseUrl
-                                            ? FontWeight.bold
-                                            : FontWeight.normal,
-                                        color: base == baseUrl
+        return GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: Scaffold(
+            backgroundColor: Colors.white,
+            body: SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.only(
+                    top: 24, left: 16, right: 16, bottom: 24),
+                child: Form(
+                  key: _formKey,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SizedBox(height: 20),
+                      const LanguageDropdown(),
+                      const SizedBox(height: 20),
+
+                      // 👇 Debug baseURL picker (hidden in release)
+                      if (kDebugMode)
+                        PopupMenuButton<String>(
+                          color: Colors.white,
+                          onSelected: (value) async {
+                            await DioClient().setBaseUrl(value);
+                            setState(() => _baseUrl = value);
+                          },
+                          itemBuilder: (context) {
+                            final bases = <String>[
+                              DioClient.baseUrlCoka,
+                              DioClient.baseUrlDev,
+                              DioClient.baseUrl
+                            ];
+                            return bases.map((base) {
+                              final selected = base == _baseUrl;
+                              return PopupMenuItem<String>(
+                                value: base,
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                        selected
+                                            ? Icons.radio_button_checked
+                                            : Icons.radio_button_unchecked,
+                                        color: selected
                                             ? Colors.blueAccent
-                                            : Colors.black87,
+                                            : Colors.grey,
+                                        size: 18),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        base,
+                                        style: TextStyle(
+                                          fontWeight: selected
+                                              ? FontWeight.w700
+                                              : FontWeight.w500,
+                                          color: selected
+                                              ? Colors.blueAccent
+                                              : Colors.black87,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }).toList();
-                        },
-                        child: Assets.images.cokaLogin.image(height: 80)),
-                    const SizedBox(height: 12),
-                    Text('login'.tr(), style: TextStyles.heading1),
-                    const SizedBox(height: 8),
-                    Text('welcome_text'.tr(), style: TextStyles.body),
-                    const SizedBox(height: 28),
+                                  ],
+                                ),
+                              );
+                            }).toList();
+                          },
+                          child: Assets.images.cokaLogin.image(height: 80),
+                        )
+                      else
+                        Assets.images.cokaLogin.image(height: 80),
 
-                    // Input Email
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        RichText(
-                          text: TextSpan(
-                            style: TextStyles.label,
-                            children: [
-                              TextSpan(text: "${'form_email'.tr()} "),
-                              const TextSpan(
-                                  text: '*',
-                                  style: TextStyle(color: AppColors.error)),
-                            ],
-                          ),
+                      const SizedBox(height: 12),
+                      Text('login'.tr(),
+                          style: TextStyles.heading1,
+                          textAlign: TextAlign.center),
+                      const SizedBox(height: 8),
+                      Text('welcome_text'.tr(),
+                          style: TextStyles.body, textAlign: TextAlign.center),
+                      const SizedBox(height: 28),
+
+                      // Email input
+                      Text.rich(
+                        TextSpan(
+                          style: TextStyles.label,
+                          children: [
+                            TextSpan(text: "${'form_email'.tr()} "),
+                            const TextSpan(
+                                text: '*',
+                                style: TextStyle(
+                                    color: AppColors.error,
+                                    fontWeight: FontWeight.w500)),
+                          ],
                         ),
-                        const SizedBox(height: 8),
-                        TextFormField(
-                          controller: emailController,
-                          decoration: InputDecoration(
-                            hintText: 'input_email'.tr(),
-                            filled: true,
-                            fillColor: AppColors.backgroundSecondary,
-                            border: OutlineInputBorder(
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: _emailController,
+                        focusNode: _emailFocus,
+                        decoration: InputDecoration(
+                          hintText: 'input_email'.tr(),
+                          filled: true,
+                          fillColor: AppColors.backgroundSecondary,
+                          border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
-                          ),
-                          keyboardType: TextInputType.emailAddress,
-                          validator: _validateEmail,
+                              borderSide: BorderSide.none),
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
                         ),
-                      ],
-                    ),
+                        textInputAction: TextInputAction.done,
+                        keyboardType: TextInputType.emailAddress,
+                        onFieldSubmitted: (_) => _handleSubmit(),
+                        validator: _validateEmail,
+                        enabled: !isLoading,
+                      ),
 
-                    const SizedBox(height: 16),
-                    LoadingButton(
-                      text: 'login'.tr(),
-                      onPressed: () => _handleSubmit(context),
-                      isLoading: state.status == AuthStatus.loading,
-                      width: double.infinity,
-                    ),
+                      const SizedBox(height: 16),
+                      LoadingButton(
+                        text: 'login'.tr(),
+                        onPressed: _handleSubmit,
+                        isLoading: isLoading,
+                        width: double.infinity,
+                      ),
 
-                    const SizedBox(height: 14),
-                    Row(
-                      children: [
-                        Expanded(
-                            child: Divider(
-                                color: Colors.grey.shade300, thickness: 1)),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          child: Text(
-                            'or_login_with'.tr(),
-                            style: TextStyles.body
-                                .copyWith(color: Colors.grey.shade700),
+                      const SizedBox(height: 14),
+                      Row(
+                        children: [
+                          Expanded(
+                              child: Divider(
+                                  color: Colors.grey.shade300, thickness: 1)),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: Text('or_login_with'.tr(),
+                                style: TextStyles.body
+                                    .copyWith(color: Colors.grey.shade700)),
                           ),
-                        ),
-                        Expanded(
-                            child: Divider(
-                                color: Colors.grey.shade300, thickness: 1)),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
+                          Expanded(
+                              child: Divider(
+                                  color: Colors.grey.shade300, thickness: 1)),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
 
-                    _buildSocialButton(
-                      context,
-                      'google_icon.png',
-                      'Google',
-                      onPressed: () => context
-                          .read<AuthBloc>()
-                          .add(LoginWithGoogleRequested()),
-                      isLoading: state.status == AuthStatus.loading,
-                    ),
-                    const SizedBox(height: 14),
-                    _buildSocialButton(
-                      context,
-                      'facebook_icon.png',
-                      'Facebook',
-                      onPressed: () => context
-                          .read<AuthBloc>()
-                          .add(LoginWithFacebookRequested()),
-                      isLoading: state.status == AuthStatus.loading,
-                    ),
-                    const SizedBox(height: 14),
-                    if (Platform.isIOS)
-                      _buildSocialButton(context, 'apple_icon.png', 'Apple'),
-                  ],
+                      SocialLoginButton(
+                        iconAssetName: 'google_icon.png',
+                        label: 'Google',
+                        onPressed: isLoading
+                            ? null
+                            : () => context
+                                .read<AuthBloc>()
+                                .add(LoginWithGoogleRequested()),
+                      ),
+                      const SizedBox(height: 14),
+                      SocialLoginButton(
+                        iconAssetName: 'facebook_icon.png',
+                        label: 'Facebook',
+                        onPressed: isLoading
+                            ? null
+                            : () => context
+                                .read<AuthBloc>()
+                                .add(LoginWithFacebookRequested()),
+                      ),
+                      const SizedBox(height: 14),
+                      if (_showAppleButton)
+                        SocialLoginButton(
+                          iconAssetName: 'apple_icon.png',
+                          label: 'Apple',
+                          onPressed: isLoading ? null : () {},
+                        ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -267,16 +316,24 @@ class _LoginScreenState extends State<LoginPage> {
       },
     );
   }
+}
 
-  Widget _buildSocialButton(
-    BuildContext context,
-    String iconName,
-    String label, {
-    VoidCallback? onPressed,
-    bool isLoading = false,
-  }) {
+class SocialLoginButton extends StatelessWidget {
+  const SocialLoginButton({
+    super.key,
+    required this.iconAssetName,
+    required this.label,
+    this.onPressed,
+  });
+
+  final String iconAssetName;
+  final String label;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
     return FilledButton.tonal(
-      onPressed: isLoading ? null : onPressed,
+      onPressed: onPressed,
       style: FilledButton.styleFrom(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         backgroundColor: Colors.white,
@@ -287,11 +344,8 @@ class _LoginScreenState extends State<LoginPage> {
       ),
       child: Row(
         children: [
-          Image.asset(
-            '${AppConstants.imagePath}/$iconName',
-            height: 24,
-            width: 24,
-          ),
+          Image.asset('${AppConstants.imagePath}/$iconAssetName',
+              height: 24, width: 24),
           Expanded(
             child: Text(
               '${'login_with'.tr()} $label',

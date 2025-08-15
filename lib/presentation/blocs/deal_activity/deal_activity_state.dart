@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:source_base/data/models/schedule_response.dart';
 import 'package:source_base/data/models/service_detail_response.dart';
+import 'package:source_base/presentation/blocs/deal_activity/model/order_detail_responese.dart';
 import 'package:source_base/presentation/blocs/final_deal/model/business_process_response.dart';
 import 'package:source_base/presentation/blocs/final_deal/model/business_process_task_response.dart';
 
@@ -17,7 +18,7 @@ enum DealActivityStatus {
 }
 
 class DealActivityState extends Equatable {
-  final BusinessProcessTaskModel? businessProcessTask;
+  final TaskModel? task;
   final String? workspaceId;
   final DealActivityStatus status;
   final List<BusinessProcessModel> businessProcesses;
@@ -26,6 +27,7 @@ class DealActivityState extends Equatable {
   final String? organizationId;
   final List<ServiceDetailModel> noteSimpleModels;
   final List<ScheduleModel> scheduleModels;
+  final CustomerOrderDataModel? customerOrderDataModel;
   final String? error;
   final String? errorTitle;
 
@@ -40,8 +42,9 @@ class DealActivityState extends Equatable {
     this.organizationId,
     this.noteSimpleModels = const [],
     this.scheduleModels = const [],
-    this.businessProcessTask,
+    this.task,
     this.workspaceId,
+    this.customerOrderDataModel,
   })  : error = _normalizeError(status, error),
         errorTitle = _normalizeErrorTitle(status, errorTitle);
 
@@ -58,8 +61,9 @@ class DealActivityState extends Equatable {
     String? error,
     String? errorTitle,
     String? organizationId,
-    BusinessProcessTaskModel? businessProcessTask,
+    TaskModel? task,
     String? workspaceId,
+    CustomerOrderDataModel? customerOrderDataModel,
   }) {
     final nextStatus = status ?? this.status;
     final nextError = _normalizeError(nextStatus, error ?? this.error);
@@ -77,8 +81,10 @@ class DealActivityState extends Equatable {
       error: nextError,
       errorTitle: nextErrorTitle,
       organizationId: organizationId ?? this.organizationId,
-      businessProcessTask: businessProcessTask ?? this.businessProcessTask,
+      task: task ?? this.task,
       workspaceId: workspaceId ?? this.workspaceId,
+      customerOrderDataModel:
+          customerOrderDataModel ?? this.customerOrderDataModel,
     );
   }
 
@@ -110,7 +116,8 @@ class DealActivityState extends Equatable {
         organizationId,
         noteSimpleModels,
         scheduleModels,
-        businessProcessTask,
+        task,
         workspaceId,
+        customerOrderDataModel,
       ];
 }

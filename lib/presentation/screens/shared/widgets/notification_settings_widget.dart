@@ -33,7 +33,7 @@
 //               'Cài đặt thông báo',
 //               style: TextStyle(
 //                 fontSize: 18,
-//                 fontWeight: FontWeight.bold,
+//                 fontWeight: FontWeight.w700,
 //                 color: AppColors.text,
 //               ),
 //             ),

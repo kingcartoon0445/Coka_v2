@@ -1,4 +1,4 @@
-import 'package:source_base/data/models/customer_service_response.dart'; 
+import 'package:source_base/data/models/customer_service_response.dart';
 export 'package:source_base/data/models/organization_model.dart';
 
 class ServiceDetailResponse {
@@ -16,7 +16,7 @@ class ServiceDetailResponse {
         content!.add(new ServiceDetailModel.fromJson(v));
       });
     }
-       if (json['data'] != null) {
+    if (json['data'] != null) {
       content = <ServiceDetailModel>[];
       json['data'].forEach((v) {
         content!.add(new ServiceDetailModel.fromJson(v));
@@ -45,6 +45,7 @@ class ServiceDetailModel {
   String? summary;
   String? createdDate;
   String? createdByName;
+  String? jsonSummary;
   String? type;
   String? icon;
 
@@ -54,7 +55,8 @@ class ServiceDetailModel {
       this.createdDate,
       this.createdByName,
       this.type,
-      this.icon});
+      this.icon,
+      this.jsonSummary});
 
   ServiceDetailModel.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -63,6 +65,7 @@ class ServiceDetailModel {
     createdByName = json['createdByName'];
     type = json['type'];
     icon = json['icon'];
+    jsonSummary = json['jsonSummary'];
   }
 
   Map<String, dynamic> toJson() {
@@ -73,6 +76,7 @@ class ServiceDetailModel {
     data['createdByName'] = this.createdByName;
     data['type'] = this.type;
     data['icon'] = this.icon;
+    data['jsonSummary'] = this.jsonSummary;
     return data;
   }
 }

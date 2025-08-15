@@ -1,30 +1,4 @@
-// 1. Model classes
-
-class CustomCondition {
-  final String field;
-  final String operator;
-  final String value;
-
-  CustomCondition({
-    required this.field,
-    required this.operator,
-    required this.value,
-  });
-
-  factory CustomCondition.fromJson(Map<String, dynamic> json) {
-    return CustomCondition(
-      field: json['field'],
-      operator: json['operator'],
-      value: json['value'],
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-        'field': field,
-        'operator': operator,
-        'value': value,
-      };
-}
+import 'package:source_base/presentation/screens/home/widget/filter_modal.dart';
 
 class LeadPagingRequest {
   final String? searchText;
@@ -43,7 +17,7 @@ class LeadPagingRequest {
   final List<String>? tags;
   final bool? isBusiness;
   final bool? isArchive;
-  // final List<CustomCondition> customConditions;
+  final List<Condition>? customConditions;
 
   LeadPagingRequest({
     this.searchText,
@@ -62,7 +36,7 @@ class LeadPagingRequest {
     this.tags,
     this.isBusiness,
     this.isArchive,
-    // required this.customConditions,
+    this.customConditions,
   });
 
   factory LeadPagingRequest.fromJson(Map<String, dynamic> json) {
@@ -72,20 +46,29 @@ class LeadPagingRequest {
       fields: json['fields'] != null ? List<String>.from(json['fields']) : null,
       offset: json['offset'] as int,
       status: json['status'] as int?,
-      startDate: json['startDate'] != null ? DateTime.parse(json['startDate']) : null,
+      startDate:
+          json['startDate'] != null ? DateTime.parse(json['startDate']) : null,
       endDate: json['endDate'] != null ? DateTime.parse(json['endDate']) : null,
-      stageIds: json['stageIds'] != null ? List<String>.from(json['stageIds']) : null,
-      sourceIds: json['sourceIds'] != null ? List<String>.from(json['sourceIds']) : null,
-      utmSources: json['utmSources'] != null ? List<String>.from(json['utmSources']) : null,
+      stageIds:
+          json['stageIds'] != null ? List<String>.from(json['stageIds']) : null,
+      sourceIds: json['sourceIds'] != null
+          ? List<String>.from(json['sourceIds'])
+          : null,
+      utmSources: json['utmSources'] != null
+          ? List<String>.from(json['utmSources'])
+          : null,
       ratings: json['ratings'] != null ? List<int>.from(json['ratings']) : null,
-      teamIds: json['teamIds'] != null ? List<String>.from(json['teamIds']) : null,
-      assignees: json['assignees'] != null ? List<String>.from(json['assignees']) : null,
+      teamIds:
+          json['teamIds'] != null ? List<String>.from(json['teamIds']) : null,
+      assignees: json['assignees'] != null
+          ? List<String>.from(json['assignees'])
+          : null,
       tags: json['tags'] != null ? List<String>.from(json['tags']) : null,
       isBusiness: json['isBusiness'] as bool?,
       isArchive: json['isArchive'] as bool?,
-      // customConditions: (json['customConditions'] as List)
-      //     .map((e) => CustomCondition.fromJson(e))
-      //     .toList(),
+      customConditions: (json['customConditions'] as List)
+          .map((e) => Condition.fromJson(e))
+          .toList(),
     );
   }
 
@@ -106,7 +89,7 @@ class LeadPagingRequest {
     List<String>? tags,
     bool? isBusiness,
     bool? isArchive,
-    // List<CustomCondition>? customConditions,
+    List<Condition>? customConditions,
   }) {
     return LeadPagingRequest(
       searchText: searchText ?? this.searchText,
@@ -125,7 +108,7 @@ class LeadPagingRequest {
       tags: tags ?? this.tags,
       isBusiness: isBusiness ?? this.isBusiness,
       isArchive: isArchive ?? this.isArchive,
-      // customConditions: customConditions ?? this.customConditions,
+      customConditions: customConditions ?? this.customConditions,
     );
   }
 
@@ -148,6 +131,7 @@ class LeadPagingRequest {
       'tags': tags,
       'isBusiness': isBusiness,
       'isArchive': isArchive,
+      'customCondition': customConditions?.map((e) => e.toJson()).toList(),
     };
 
     // 2. Loại bỏ tất cả key có value == null

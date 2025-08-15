@@ -31,6 +31,7 @@ class MessageBloc extends Bloc<MessageEvent, MessageState> {
     on<AddConversation>(_onAddConversation);
     on<ClearConversations>(_onClearConversations);
     on<SetupFirebaseListener>(_onSetupFirebaseListener);
+    on<DissTabRequested>(_onDissTabRequested);
   }
 
   @override
@@ -272,11 +273,8 @@ class MessageBloc extends Bloc<MessageEvent, MessageState> {
     SetupFirebaseListener event,
     Emitter<MessageState> emit,
   ) async {
-    // TODO: Add firebase_database dependency to pubspec.yaml before using this
-    // TODO: Uncomment and implement when firebase_database is added to dependencies
-
     final oData = await _repository.getOData();
-    final oId = oData["id"];
+    final oId = oData['content'][0]["id"];
 
     // Cancel listener cũ nếu có
     await _onChangedListener?.cancel();
@@ -384,5 +382,18 @@ class MessageBloc extends Bloc<MessageEvent, MessageState> {
 
     // Placeholder implementation - remove this when Firebase is implemented
     log("Firebase listener setup - Firebase not yet implemented");
+  }
+
+  void disableFirebaseListener() {
+    _onChangedListener?.cancel();
+    _onChangedListener = null;
+  }
+
+  void _onDissTabRequested(
+    DissTabRequested event,
+    Emitter<MessageState> emit,
+  ) {
+    emit(state.copyWith(status: MessageStatus.initial));
+    disableFirebaseListener();
   }
 }

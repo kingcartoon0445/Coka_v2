@@ -25,17 +25,23 @@ class FinalDealRepository {
     String status,
     bool includeHistory,
     int page,
-    int pageSize,
-  ) async {
-    return await apiService.getBusinessProcessTaskService(organizationId, {
-      'stageId': stageId,
-      'processId': processId,
-      'customerId': customerId,
-      'assignedTo': assignedTo,
-      'status': status,
-      'includeHistory': includeHistory,
-      'page': page,
-      'pageSize': pageSize,
-    });
+    int pageSize, {
+    String? taskId,
+  }) async {
+    return await apiService.getBusinessProcessTaskService(
+        organizationId,
+        taskId != null
+            ? null
+            : {
+                'stageId': stageId,
+                'processId': processId,
+                'customerId': customerId,
+                'assignedTo': assignedTo,
+                'status': status,
+                'includeHistory': includeHistory,
+                'page': page,
+                'pageSize': pageSize,
+              },
+        taskId: taskId);
   }
 }

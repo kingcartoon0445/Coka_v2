@@ -5,7 +5,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:source_base/config/app_color.dart';
 import 'package:source_base/config/app_constans.dart';
@@ -18,12 +17,26 @@ import 'package:source_base/presentation/blocs/organization/organization_action_
 import 'package:source_base/presentation/screens/customers_service/tabs/facebook_chat.dart';
 import 'package:source_base/presentation/screens/home/widget/customers_list.dart';
 import 'package:source_base/presentation/screens/home/widget/filter_modal.dart';
-import 'package:source_base/presentation/screens/shared/widgets/dropdown_button_widget.dart';
 import 'package:source_base/presentation/widget/error_widget.dart';
 
+/// Nhỏ gọn hoá debounce nhập liệu
+class _Debouncer {
+  _Debouncer(this.duration);
+  final Duration duration;
+  Timer? _t;
+  void call(VoidCallback action) {
+    _t?.cancel();
+    _t = Timer(duration, action);
+  }
+
+  void dispose() => _t?.cancel();
+}
+
+enum _TabKey { all, fb, zalo, chat, undefined }
+
 class CustomersPage extends StatefulWidget {
-  final String organizationId;
   const CustomersPage({super.key, required this.organizationId});
+  final String organizationId;
 
   @override
   State<CustomersPage> createState() => _CustomersPageState();
@@ -33,46 +46,126 @@ class _CustomersPageState extends State<CustomersPage>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
 
-  final TextEditingController _searchController = TextEditingController();
-  Timer? _debounce;
+  final _searchController = TextEditingController();
+  late final _Debouncer _debounce =
+      _Debouncer(const Duration(milliseconds: 450));
+
   bool _showClearButton = false;
   String? _searchQuery;
 
   FilterResult? _currentFilter;
   bool _isArchive = false;
 
-  static final Map<String, ({String name, Color badgeColor})> _tabConfig = {
-    'all': (name: 'all'.tr(), badgeColor: const Color(0xFF5C33F0)),
-    'fb': (name: 'Facebook Messenger', badgeColor: const Color(0xFF92F7A8)),
-    'zalo': (name: 'Zalo OA', badgeColor: const Color(0xFFA4F3FF)),
-    'chat': (name: 'Live chat', badgeColor: const Color(0xFFFEC067)),
-    'undefined': (name: 'Chưa xác định', badgeColor: const Color(0xFF9F87FF)),
+  static final Map<_TabKey, ({String name, Color badgeColor})> _tabConfig = {
+    _TabKey.all: (name: 'all'.tr(), badgeColor: const Color(0xFF5C33F0)),
+    _TabKey.fb: (
+      name: 'Facebook Messenger',
+      badgeColor: const Color(0xFF92F7A8)
+    ),
+    _TabKey.zalo: (name: 'Zalo OA', badgeColor: const Color(0xFFA4F3FF)),
+    _TabKey.chat: (name: 'Live chat', badgeColor: const Color(0xFFFEC067)),
+    _TabKey.undefined: (
+      name: 'Chưa xác định',
+      badgeColor: const Color(0xFF9F87FF)
+    ),
   };
-  bool showFilter = true;
+
+  int _lastIndex = 0;
+
+  bool get _showFilter => _tabController.index == 0;
+
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: _tabConfig.length, vsync: this)
-      ..addListener(() {
-        if (!_tabController.indexIsChanging) {
-          _fetchCustomerCounts();
-        }
-        if (_tabController.index == 0) {
-          setState(() => showFilter = true);
-        } else {
-          setState(() => showFilter = false);
-        }
-      });
 
-    _fetchCustomerCounts();
+    // Bật listener FB khi vào trang (giữ hành vi cũ)
+    context.read<CustomerServiceBloc>().add(
+          ToggleFirebaseListenerRequested(
+            organizationId: widget.organizationId,
+            isEnabled: true,
+            platform: PlatformSocial.facebook,
+            userId: context.read<OrganizationBloc>().state.user?.id ?? '',
+          ),
+        );
+
+    _tabController = TabController(length: _tabConfig.length, vsync: this)
+      ..addListener(_onTabChangedOncePerChange);
+
+    _fetchCustomerCounts(); // stub
     _searchController.addListener(() {
-      setState(() => _showClearButton = _searchController.text.isNotEmpty);
+      final hasText = _searchController.text.isNotEmpty;
+      if (hasText != _showClearButton) {
+        setState(() => _showClearButton = hasText);
+      }
     });
+
+    // Load mặc định cho tab 0
+    // _loadCustomerService();
   }
+
+  void _onTabChangedOncePerChange() {
+    // Chỉ xử lý khi đổi tab hoàn tất, tránh spam khi vuốt
+    if (_tabController.indexIsChanging) return;
+    final i = _tabController.index;
+    if (i == _lastIndex) return;
+    _lastIndex = i;
+
+    // Tắt tất cả listener trước khi bật cái cần thiết
+    context.read<CustomerServiceBloc>().add(DisableFirebaseListenerRequested(
+        organizationId: widget.organizationId));
+
+    switch (_indexToKey(i)) {
+      case _TabKey.all:
+        _loadCustomerService();
+        break;
+      case _TabKey.fb:
+        context.read<CustomerServiceBloc>().add(
+              LoadFirstProviderChat(
+                organizationId: widget.organizationId,
+                provider: 'FACEBOOK',
+              ),
+            );
+        context.read<CustomerServiceBloc>().add(
+              ToggleFirebaseListenerRequested(
+                organizationId: widget.organizationId,
+                isEnabled: true,
+                platform: PlatformSocial.facebook,
+                userId: context.read<OrganizationBloc>().state.user?.id ?? '',
+              ),
+            );
+        break;
+      case _TabKey.zalo:
+        context.read<CustomerServiceBloc>().add(
+              LoadFirstProviderChat(
+                organizationId: widget.organizationId,
+                provider: 'ZALO',
+              ),
+            );
+        context.read<CustomerServiceBloc>().add(
+              ToggleFirebaseListenerRequested(
+                organizationId: widget.organizationId,
+                isEnabled: true,
+                platform: PlatformSocial.zalo,
+                userId: context.read<OrganizationBloc>().state.user?.id ?? '',
+              ),
+            );
+        break;
+      case _TabKey.chat:
+      case _TabKey.undefined:
+        // Giữ nguyên như All (CustomersList), tái dùng _loadCustomerService
+        _loadCustomerService();
+        break;
+    }
+
+    // Cập nhật UI filter bar nếu cần
+    setState(() {});
+  }
+
+  _TabKey _indexToKey(int i) => _TabKey.values[i];
 
   @override
   void dispose() {
-    _debounce?.cancel();
+    _debounce.dispose();
     _searchController.dispose();
     _tabController.dispose();
     super.dispose();
@@ -81,92 +174,71 @@ class _CustomersPageState extends State<CustomersPage>
   @override
   void didUpdateWidget(CustomersPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _fetchCustomerCounts();
+    if (oldWidget.organizationId != widget.organizationId) {
+      _fetchCustomerCounts();
+      _loadCustomerService();
+    }
+  }
+
+  // ---------------- Actions ----------------
+
+  void _onSearchChanged(String query) {
+    _debounce(() {
+      if (!mounted) return;
+      _searchQuery = query.trim().isEmpty ? null : query.trim();
+      _loadCustomerService();
+    });
+  }
+
+  Future<void> _fetchCustomerCounts() async {
+    // TODO: Plug real API when available.
+    developer.log('Fetching customer counts (stub)');
+  }
+
+  void _showWorkspaceList() {
+    // TODO: Implement workspace list modal if needed.
+  }
+
+  Future<void> _showFilterModal() async {
+    final result = await FilterModal.show(
+      context,
+      widget.organizationId,
+      '',
+      initialValue: _currentFilter,
+    );
+    if (!mounted || result == null) return;
+    setState(() => _currentFilter = result);
+    _loadCustomerService();
+  }
+
+  void _loadCustomerService() {
+    final orgId = context.read<OrganizationBloc>().state.organizationId ??
+        widget.organizationId;
+
+    context.read<CustomerServiceBloc>().add(
+          LoadCustomerService(
+            organizationId: orgId,
+            pagingRequest: LeadPagingRequest(
+              limit: 20,
+              offset: 0,
+              searchText: _searchQuery,
+              startDate: _currentFilter?.dateRange?.start,
+              endDate: _currentFilter?.dateRange?.end,
+              sourceIds: _currentFilter?.categories.map((e) => e.id).toList(),
+              utmSources: _currentFilter?.sources.map((e) => e.name).toList(),
+              assignees: _currentFilter?.assignees
+                  .map((e) => e.profileId ?? '')
+                  .toList(),
+              tags: _currentFilter?.tags.map((e) => e.name ?? '').toList(),
+              customConditions: _currentFilter?.conditions ?? [],
+              isBusiness: null,
+              isArchive: _isArchive,
+            ),
+          ),
+        );
   }
 
   // ---------------- UI Builders ----------------
-  Widget _buildSearchBar() {
-    return Container(
-      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8, top: 16),
-      color: Colors.white,
-      child: Container(
-        height: 40,
-        decoration: BoxDecoration(
-          color: AppColors.backgroundSecondary,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          children: [
-            const SizedBox(width: 12),
-            const Icon(Icons.search, color: AppColors.text, size: 20),
-            const SizedBox(width: 8),
-            Expanded(
-              child: TextField(
-                controller: _searchController,
-                onChanged: _onSearchChanged,
-                style: const TextStyle(fontSize: 14, height: 1.0),
-                decoration: const InputDecoration(
-                  hintText: 'Tìm kiếm',
-                  border: InputBorder.none,
-                  isDense: true,
-                  contentPadding: EdgeInsets.symmetric(vertical: 8),
-                  hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
-                ),
-              ),
-            ),
-            if (_showClearButton)
-              IconButton(
-                icon: const Icon(Icons.clear, size: 20),
-                color: Colors.grey,
-                onPressed: () {
-                  _searchController.clear();
-                  _onSearchChanged('');
-                },
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                splashRadius: 20,
-              ),
-            IconButton(
-              icon: SvgPicture.asset(
-                'assets/icons/page_info.svg',
-                width: 20,
-                colorFilter:
-                    const ColorFilter.mode(AppColors.primary, BlendMode.srcIn),
-              ),
-              onPressed: _showFilterModal,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-              splashRadius: 20,
-            ),
-            const SizedBox(width: 4),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTitle(Map<String, dynamic>? currentWorkspace, bool isLoading) {
-    if (isLoading) {
-      return Shimmer.fromColors(
-        baseColor: Colors.grey[300]!,
-        highlightColor: Colors.grey[100]!,
-        child: Container(
-          width: 150,
-          height: 20,
-          decoration: BoxDecoration(
-              color: Colors.white, borderRadius: BorderRadius.circular(4)),
-        ),
-      );
-    }
-    return StandardDropdownButton(
-      text: currentWorkspace?['name'] ?? 'Không có tên',
-      onTap: _showWorkspaceList,
-      isEnabled: !isLoading,
-      iconSize: 24,
-      spaceBetweenTextAndIcon: 4,
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-    );
-  }
 
   Widget _buildTabBar() {
     return Column(
@@ -177,44 +249,6 @@ class _CustomersPageState extends State<CustomersPage>
           tabAlignment: TabAlignment.start,
           dividerColor: Colors.transparent,
           indicatorSize: TabBarIndicatorSize.label,
-          onTap: (value) {
-            context.read<CustomerServiceBloc>().add(
-                  DisableFirebaseListenerRequested(
-                      organizationId: widget.organizationId),
-                );
-            switch (value) {
-              case 1:
-                context.read<CustomerServiceBloc>().add(
-                      LoadFirstProviderChat(
-                          organizationId: widget.organizationId,
-                          provider: 'FACEBOOK'),
-                    );
-                context.read<CustomerServiceBloc>().add(
-                      ToggleFirebaseListenerRequested(
-                        organizationId: widget.organizationId,
-                        isEnabled: true,
-                        platform: PlatformSocial.facebook,
-                      ),
-                    );
-                break;
-              case 2:
-                context.read<CustomerServiceBloc>().add(
-                      LoadFirstProviderChat(
-                          organizationId: widget.organizationId,
-                          provider: 'ZALO'),
-                    );
-                context.read<CustomerServiceBloc>().add(
-                      ToggleFirebaseListenerRequested(
-                        organizationId: widget.organizationId,
-                        isEnabled: true,
-                        platform: PlatformSocial.zalo,
-                      ),
-                    );
-                break;
-              default:
-                break;
-            }
-          },
           padding: EdgeInsets.zero,
           labelPadding: const EdgeInsets.symmetric(horizontal: 16),
           labelColor: AppColors.primary,
@@ -226,9 +260,11 @@ class _CustomersPageState extends State<CustomersPage>
               const TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
           tabs: _tabConfig.values
               .map((config) => Tab(
-                  child: Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
-                      children: [Text(config.name), const SizedBox(width: 4)])))
+                      children: [Text(config.name), const SizedBox(width: 4)],
+                    ),
+                  ))
               .toList(),
         ),
         Container(height: 1, color: const Color(0xFFE1E1E1)),
@@ -291,29 +327,19 @@ class _CustomersPageState extends State<CustomersPage>
         child: Row(
           children: [
             Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20))),
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                  color: Colors.white, borderRadius: BorderRadius.circular(20)),
+            ),
             const SizedBox(width: 12),
-            Expanded(
+            const Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                      width: double.infinity,
-                      height: 14,
-                      decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(4))),
-                  const SizedBox(height: 8),
-                  Container(
-                      width: 100,
-                      height: 12,
-                      decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(4))),
+                  _ShimmerLine(width: double.infinity, height: 14),
+                  SizedBox(height: 8),
+                  _ShimmerLine(width: 100, height: 12),
                 ],
               ),
             ),
@@ -323,123 +349,68 @@ class _CustomersPageState extends State<CustomersPage>
     );
   }
 
-  // ---------------- Actions ----------------
-  void _onSearchChanged(String query) {
-    _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 500), () {
-      if (!mounted) return;
-      setState(() => _searchQuery = query);
-      _loadCustomerService();
-    });
-  }
-
-  Future<void> _fetchCustomerCounts() async {
-    // TODO: Plug real API when available. Kept minimal to avoid unnecessary calls.
-    developer.log('Fetching customer counts (stub)');
-  }
-
-  void _showWorkspaceList() {
-    // TODO: Implement workspace list modal if needed.
-  }
-
-  void _showFilterModal() async {
-    final result = await FilterModal.show(context, widget.organizationId, '',
-        initialValue: _currentFilter);
-    if (!mounted || result == null) return;
-    setState(() => _currentFilter = result);
-    _loadCustomerService();
-  }
-
-  void _loadCustomerService() {
-    context.read<CustomerServiceBloc>().add(
-          LoadCustomerService(
-            organizationId:
-                context.read<OrganizationBloc>().state.organizationId ?? '',
-            pagingRequest: LeadPagingRequest(
-              limit: 20,
-              offset: 0,
-              searchText: _searchQuery,
-              fields: null,
-              status: null,
-              startDate: _currentFilter?.dateRange?.start,
-              endDate: _currentFilter?.dateRange?.end,
-              stageIds: null,
-              sourceIds: _currentFilter?.categories.map((e) => e.id).toList(),
-              utmSources: _currentFilter?.sources.map((e) => e.name).toList(),
-              ratings: null,
-              teamIds: null,
-              assignees: _currentFilter?.assignees
-                  .map((e) => e.profileId ?? '')
-                  .toList(),
-              tags: _currentFilter?.tags.map((e) => e.name ?? '').toList(),
-              isBusiness: null,
-              isArchive: _isArchive,
-            ),
-          ),
-        );
-  }
-
   @override
   Widget build(BuildContext context) {
+    final stageGroupId = AppConstants.stageObject.entries
+        .firstWhere(
+          (entry) => entry.value['name'] == 'all'.tr(),
+          orElse: () => const MapEntry('', {}),
+        )
+        .key;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         // title: _buildTitle(null, false),
         bottom: PreferredSize(
-          preferredSize: Size.fromHeight(showFilter ? 56 : 0),
-          child: Column(children: [
-            _buildTabBar(),
-            if (showFilter) _buildActiveFiltersBar(),
-          ]),
+          preferredSize: Size.fromHeight(_showFilter ? 56 : 0),
+          child: Column(
+            children: [
+              _buildTabBar(),
+              if (_showFilter) _buildActiveFiltersBar(),
+            ],
+          ),
         ),
       ),
       body: BlocBuilder<CustomerServiceBloc, CustomerServiceState>(
         builder: (context, state) {
-          if (state.status == CustomerServiceStatus.loading)
-            return _buildShimmerItem();
-          if (state.status == CustomerServiceStatus.error) {
-            return ErrorMessageWidget(
-              message: state.error ?? '',
-              onRetry: _fetchCustomerCounts,
-            );
+          switch (state.status) {
+            case CustomerServiceStatus.loading:
+              return _buildShimmerItem();
+            case CustomerServiceStatus.error:
+              return ErrorMessageWidget(
+                message: state.error ?? '',
+                onRetry: _fetchCustomerCounts,
+              );
+            case CustomerServiceStatus.success:
+            default:
+              final stageId = stageGroupId.isEmpty ? null : stageGroupId;
+              final customersList = CustomersList(
+                organizationId: widget.organizationId,
+                stageGroupId: stageId,
+                searchQuery: _searchQuery,
+                queryParams: state.customerServices,
+                onRefresh: _loadCustomerService,
+              );
+              return TabBarView(
+                controller: _tabController,
+                children: const [
+                  // 0: All
+                  // 1: Facebook
+                  // 2: Zalo
+                  // 3: Live chat (reused list)
+                  // 4: Undefined (reused list)
+                ].isEmpty
+                    ? [
+                        customersList,
+                        const FacebookMessagesTab(provider: 'FACEBOOK'),
+                        const FacebookMessagesTab(provider: 'ZALO'),
+                        customersList,
+                        customersList,
+                      ]
+                    : [],
+              );
           }
-
-          String? stageGroupId = AppConstants.stageObject.entries
-              .firstWhere(
-                (entry) => entry.value['name'] == 'all'.tr(),
-                orElse: () => const MapEntry('', {}),
-              )
-              .key;
-          stageGroupId = stageGroupId.isEmpty ? null : stageGroupId;
-
-          return TabBarView(
-            controller: _tabController,
-            children: [
-              CustomersList(
-                organizationId: widget.organizationId,
-                stageGroupId: stageGroupId,
-                searchQuery: _searchQuery,
-                queryParams: state.customerServices,
-                onRefresh: _loadCustomerService,
-              ),
-              const FacebookMessagesTab(provider: 'FACEBOOK'),
-              const FacebookMessagesTab(provider: 'ZALO'),
-              CustomersList(
-                organizationId: widget.organizationId,
-                stageGroupId: stageGroupId,
-                searchQuery: _searchQuery,
-                queryParams: state.customerServices,
-                onRefresh: _loadCustomerService,
-              ),
-              CustomersList(
-                organizationId: widget.organizationId,
-                stageGroupId: stageGroupId,
-                searchQuery: _searchQuery,
-                queryParams: state.customerServices,
-                onRefresh: _loadCustomerService,
-              ),
-            ],
-          );
         },
       ),
       floatingActionButton: SpeedDial(
@@ -482,12 +453,6 @@ class _CustomersPageState extends State<CustomersPage>
 }
 
 class _FilterToggle extends StatelessWidget {
-  final String label;
-  final bool active;
-  final IconData icon;
-  final Color? activeColor;
-  final VoidCallback onTap;
-
   const _FilterToggle({
     required this.label,
     required this.active,
@@ -495,6 +460,12 @@ class _FilterToggle extends StatelessWidget {
     required this.onTap,
     this.activeColor,
   });
+
+  final String label;
+  final bool active;
+  final IconData icon;
+  final Color? activeColor;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -519,6 +490,24 @@ class _FilterToggle extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ShimmerLine extends StatelessWidget {
+  const _ShimmerLine({required this.width, required this.height});
+  final double width;
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: width,
+      height: height,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+            color: Colors.white, borderRadius: BorderRadius.circular(4)),
       ),
     );
   }

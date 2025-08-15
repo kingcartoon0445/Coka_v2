@@ -1,15 +1,23 @@
+import 'dart:developer';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:source_base/config/helper.dart';
 import 'package:source_base/data/datasources/local/shared_preferences_service.dart';
+import 'package:source_base/data/models/organization_model.dart';
 import 'package:source_base/data/models/user_profile.dart';
+import 'package:source_base/data/repositories/origanzation_repository.dart';
 import 'package:source_base/data/repositories/user_repository.dart';
 import 'package:source_base/presentation/blocs/auth/auth_event.dart';
 import 'package:source_base/presentation/blocs/auth/auth_state.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final UserRepository userRepository;
+  final OrganizationRepository organizationRepository;
 
-  AuthBloc({required this.userRepository}) : super(const AuthState()) {
+  AuthBloc({
+    required this.userRepository,
+    required this.organizationRepository,
+  }) : super(const AuthState()) {
     on<CheckAuthStatus>(_onCheckAuthStatus);
     on<LoginRequested>(_onLoginRequested);
     on<ReSendOtpRequested>(_onReSendOTPId);
@@ -130,6 +138,22 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             response.data['metadata']['email']) {
           emit(state.copyWith(status: AuthStatus.confirmAccount));
         } else {
+          emit(state.copyWith(status: AuthStatus.loading));
+          final responseOrganization =
+              await organizationRepository.getOrganizations(
+            limit: '10',
+            offset: '0',
+            searchText: '',
+          );
+          if (Helpers.isResponseSuccess(responseOrganization.data)) {
+            final OrganizationResponse organization =
+                OrganizationResponse.fromJson(responseOrganization.data);
+            emit(state.copyWith(
+                status: AuthStatus.success,
+                organizationId: organization.content?.first.id));
+          } else {
+            emit(state.copyWith(status: AuthStatus.error));
+          }
           emit(state.copyWith(status: AuthStatus.success));
           // Chuyển đến trang chủ và xóa stack điều hướng
         }
@@ -203,6 +227,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         forceNewAccount: true,
       );
       if (Helpers.isResponseSuccess(response.data)) {
+        bool result = await SharedPreferencesService().setString(
+          PrefKey.accessToken,
+          response.data['content']['accessToken'],
+        );
+        bool result2 = await SharedPreferencesService().setString(
+          PrefKey.refreshToken,
+          response.data['content']['refreshToken'],
+        );
+        if (result && result2) {
+          log('Đăng nhập thành công');
+        }
         emit(state.copyWith(status: AuthStatus.success));
       } else {
         emit(state.copyWith(
@@ -221,6 +256,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         forceNewAccount: true,
       );
       if (Helpers.isResponseSuccess(response.data)) {
+        await SharedPreferencesService().setString(
+          PrefKey.accessToken,
+          response.data['content']['accessToken'],
+        );
+        await SharedPreferencesService().setString(
+          PrefKey.refreshToken,
+          response.data['content']['refreshToken'],
+        );
         emit(state.copyWith(status: AuthStatus.success));
       } else {
         emit(state.copyWith(

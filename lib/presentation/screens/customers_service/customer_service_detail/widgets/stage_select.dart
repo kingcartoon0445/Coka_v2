@@ -96,7 +96,7 @@ class _StageSelectState extends State<StageSelect>
                   ],
                   Text(
                     widget.stage?.name ?? "Chọn trạng thái",
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(width: 8),
                   const Icon(

@@ -7,6 +7,7 @@ import 'model/workspace_response.dart';
 enum FinalDealStatus {
   initial,
   loading,
+  loadingListTask,
   loadingBusinessProcess,
   successBusinessProcessTask,
   success,
@@ -18,16 +19,18 @@ class FinalDealState extends Equatable {
   final List<WorkspaceModel> workspaces;
   final WorkspaceModel? selectedWorkspace;
   final List<BusinessProcessModel> businessProcesses;
-  final List<BusinessProcessTaskModel> businessProcessTasks;
+  final List<TaskModel> taskes;
   final BusinessProcessModel? selectedBusinessProcess;
+  final TaskModel? taskModel;
   final String? error;
   const FinalDealState({
     this.status = FinalDealStatus.initial,
     this.workspaces = const [],
     this.selectedWorkspace,
     this.businessProcesses = const [],
-    this.businessProcessTasks = const [],
+    this.taskes = const [],
     this.selectedBusinessProcess,
+    this.taskModel,
     this.error,
   });
 
@@ -37,8 +40,9 @@ class FinalDealState extends Equatable {
     List<WorkspaceModel>? workspaces,
     WorkspaceModel? selectedWorkspace,
     List<BusinessProcessModel>? businessProcesses,
-    List<BusinessProcessTaskModel>? businessProcessTasks,
+    List<TaskModel>? taskes,
     BusinessProcessModel? selectedBusinessProcess,
+    TaskModel? taskModel,
     String? error,
   }) {
     return FinalDealState(
@@ -46,12 +50,11 @@ class FinalDealState extends Equatable {
       workspaces: workspaces ?? this.workspaces,
       selectedWorkspace: selectedWorkspace ?? this.selectedWorkspace,
       businessProcesses: businessProcesses ?? this.businessProcesses,
-      businessProcessTasks: isDelete == true
-          ? []
-          : businessProcessTasks ?? this.businessProcessTasks,
+      taskes: isDelete == true ? [] : taskes ?? this.taskes,
       selectedBusinessProcess: isDelete == true
           ? null
           : selectedBusinessProcess ?? this.selectedBusinessProcess,
+      taskModel: taskModel ?? this.taskModel,
       error: error ?? this.error,
     );
   }
@@ -62,8 +65,9 @@ class FinalDealState extends Equatable {
         workspaces,
         selectedWorkspace,
         businessProcesses,
-        businessProcessTasks,
+        taskes,
         selectedBusinessProcess,
+        taskModel,
         error,
       ];
 }

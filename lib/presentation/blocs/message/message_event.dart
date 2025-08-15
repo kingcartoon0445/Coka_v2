@@ -116,3 +116,5 @@ class SetupFirebaseListener extends MessageEvent {
   @override
   List<Object?> get props => [organizationId, context];
 }
+
+class DissTabRequested extends MessageEvent {}

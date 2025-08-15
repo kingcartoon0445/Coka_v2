@@ -1,3 +1,9 @@
+import 'dart:io';
+
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 class AppConstants {
   // API endpoints
   static const String baseUrl = 'https://api.example.com';
@@ -8,6 +14,28 @@ class AppConstants {
 
   // Shared Preferences keys
   static const String tokenKey = 'token';
+  Future<String?> getDeviceId() async {
+    var deviceInfo = DeviceInfoPlugin();
+
+    if (Platform.isIOS) {
+      var iosDeviceInfo = await deviceInfo.iosInfo;
+
+      return iosDeviceInfo.identifierForVendor; // unique ID on iOS
+    } else if (Platform.isAndroid) {
+      var androidDeviceInfo = await deviceInfo.androidInfo;
+
+      return androidDeviceInfo.id; // unique ID on Android
+    }
+
+    return null;
+  }
+
+  Future getVersion() async {
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    final prefs = await SharedPreferences.getInstance();
+
+    return prefs.getString('version');
+  }
 
   static const stageObject = {
     "47ae12c7-8203-42c2-9374-85d05dca862e": {
@@ -16,16 +44,28 @@ class AppConstants {
         {"id": "7393c211-d4fc-48db-8091-ddd70aa9004a", "name": "Gửi thông tin"},
         {"id": "76580f68-d4e2-4566-a3ef-7b4f693ec084", "name": "Quan tâm"},
         {"id": "9b6927e5-b6dc-4249-9e5f-1bab9750cd6c", "name": "Hẹn gặp"},
-        {"id": "f0c1bd4f-a823-4521-b547-5eb0cf607f78", "name": "Tham quan dự án"},
+        {
+          "id": "f0c1bd4f-a823-4521-b547-5eb0cf607f78",
+          "name": "Tham quan dự án"
+        },
         {"id": "f0c1bd4f-a823-4521-b547-5eb0cf607f79", "name": "Hẹn xem dự án"}
       ]
     },
     "637c8daa-7bc8-4766-a254-2c2cfb449915": {
       "name": "Không tiềm năng",
       "data": [
-        {"id": "4fb8b6c4-be9a-47c2-8cb6-261f0649e285", "name": "Không có nhu cầu"},
-        {"id": "8780f70c-db39-46bc-9354-184e8fbe3aaf", "name": "Sai số điện thoại"},
-        {"id": "9b483dc8-a806-437a-be8f-8721b756508b", "name": "Không liên lạc được"},
+        {
+          "id": "4fb8b6c4-be9a-47c2-8cb6-261f0649e285",
+          "name": "Không có nhu cầu"
+        },
+        {
+          "id": "8780f70c-db39-46bc-9354-184e8fbe3aaf",
+          "name": "Sai số điện thoại"
+        },
+        {
+          "id": "9b483dc8-a806-437a-be8f-8721b756508b",
+          "name": "Không liên lạc được"
+        },
         {"id": "e6a87dfa-a9dd-4c67-9a84-a9130ce12f9b", "name": "Không quan tâm"}
       ]
     },

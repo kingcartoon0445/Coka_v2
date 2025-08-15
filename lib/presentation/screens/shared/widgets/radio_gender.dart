@@ -25,7 +25,7 @@ class _RadioGenderState extends State<RadioGender> {
             "Giới tính",
             style: TextStyle(
                 color: Color(0xFF1F2329),
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w700,
                 fontSize: 16),
           ),
           const SizedBox(
@@ -39,7 +39,8 @@ class _RadioGenderState extends State<RadioGender> {
                   Text(
                     "Nam",
                     style: TextStyle(
-                        color: Colors.black.withValues(alpha: 0.7), fontSize: 14),
+                        color: Colors.black.withValues(alpha: 0.7),
+                        fontSize: 14),
                   ),
                   Radio(
                     value: 1,
@@ -58,7 +59,8 @@ class _RadioGenderState extends State<RadioGender> {
                   Text(
                     "Nữ",
                     style: TextStyle(
-                        color: Colors.black.withValues(alpha: 0.7), fontSize: 14),
+                        color: Colors.black.withValues(alpha: 0.7),
+                        fontSize: 14),
                   ),
                   Radio(
                     value: 0,
@@ -77,7 +79,8 @@ class _RadioGenderState extends State<RadioGender> {
                   Text(
                     "Khác",
                     style: TextStyle(
-                        color: Colors.black.withValues(alpha: 0.7), fontSize: 14),
+                        color: Colors.black.withValues(alpha: 0.7),
+                        fontSize: 14),
                   ),
                   Radio(
                     value: 2,

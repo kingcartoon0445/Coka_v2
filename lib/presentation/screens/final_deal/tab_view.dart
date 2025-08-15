@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:source_base/config/app_color.dart';
 import 'package:source_base/config/helper.dart';
 import 'package:source_base/config/routes.dart';
@@ -20,6 +21,57 @@ class TabView extends StatefulWidget {
   State<TabView> createState() => _TabViewState();
 }
 
+Widget _buildSkeletonTitle() {
+  return Shimmer.fromColors(
+    baseColor: Colors.grey[300]!,
+    highlightColor: Colors.grey[100]!,
+    child: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 260,
+            height: 14,
+            color: Colors.white,
+          ),
+          const SizedBox(height: 2),
+          Container(
+            width: 160,
+            height: 12,
+            color: Colors.white,
+          ),
+          const SizedBox(height: 2),
+          Container(
+            width: 100,
+            height: 12,
+            color: Colors.white,
+          ),
+          const SizedBox(height: 12),
+          Container(
+            width: 260,
+            height: 14,
+            color: Colors.white,
+          ),
+          const SizedBox(height: 2),
+          Container(
+            width: 160,
+            height: 12,
+            color: Colors.white,
+          ),
+          const SizedBox(height: 2),
+          Container(
+            width: 100,
+            height: 12,
+            color: Colors.white,
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
 class _TabViewState extends State<TabView> {
   Offset? _longPressPosition;
   int? _longPressedIndex;
@@ -27,18 +79,21 @@ class _TabViewState extends State<TabView> {
   Widget build(BuildContext context) {
     return BlocBuilder<FinalDealBloc, FinalDealState>(
         builder: (context, state) {
-      List<BusinessProcessTaskModel> businessProcessTasks =
-          state.businessProcessTasks;
-      if (businessProcessTasks.isEmpty) {
+      List<TaskModel> taskes = state.taskes;
+
+      if (state.status == FinalDealStatus.loadingListTask) {
+        return _buildSkeletonTitle();
+      }
+      if (taskes.isEmpty) {
         return const Center(
           child: Text('Không có giao dịch'),
         );
       }
       return ListView.builder(
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        itemCount: businessProcessTasks.length,
+        itemCount: taskes.length,
         itemBuilder: (context, index) {
-          final businessProcessTask = businessProcessTasks[index];
+          final businessProcessTask = taskes[index];
           final timeAgo = timeago.format(
             businessProcessTask.createdDate ?? DateTime.now(),
             locale: context.locale.languageCode,
@@ -55,7 +110,7 @@ class _TabViewState extends State<TabView> {
                               .organizationId ??
                           '',
                       businessProcesses: state.businessProcesses,
-                      businessProcessTask: businessProcessTask,
+                      task: businessProcessTask,
                       workspaceId: state.selectedWorkspace?.id ?? '',
                     ));
                 context
@@ -63,9 +118,7 @@ class _TabViewState extends State<TabView> {
                   AppPaths.dealActivity,
                 )
                     .then((value) {
-                  context
-                      .read<FinalDealBloc>()
-                      .add(FinalDealSelectBusinessProcess(
+                  context.read<FinalDealBloc>().add(SelectBusinessProcess(
                         businessProcess: state.selectedBusinessProcess!,
                         organizationId: context
                                 .read<OrganizationBloc>()
@@ -185,7 +238,8 @@ class _TabViewState extends State<TabView> {
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
-                                  businessProcessTask.name ?? 'Không có tên',
+                                  businessProcessTask.username ??
+                                      'Không có tên',
                                   style: const TextStyle(
                                     fontSize: 14,
                                     color: Colors.black,
@@ -425,7 +479,7 @@ class _TabViewState extends State<TabView> {
                     'Chuyển giai đoạn',
                     style: TextStyle(
                       fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
                       color: Colors.black87,
                     ),
                   ),

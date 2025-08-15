@@ -691,14 +691,17 @@ class ApiService {
   }
 
   Future<Response> getBusinessProcessTaskService(
-      String organizationId, Map<String, dynamic>? queryParameters) async {
+      String organizationId, Map<String, dynamic>? queryParameters,
+      {String? taskId}) async {
     try {
       // XOÁ KEY CÓ VALUE =''
       if (queryParameters != null) {
         queryParameters.removeWhere((key, value) => value == '');
       }
       final response = await _dioClient.getProducts(
-          ApiEndpoints.getBusinessProcessTask,
+          taskId != null
+              ? "${ApiEndpoints.businessProcessTask}/$taskId"
+              : ApiEndpoints.businessProcessTask,
           options: Options(headers: {'organizationId': organizationId}),
           queryParameters: queryParameters);
       return response;
@@ -711,8 +714,7 @@ class ApiService {
         },
         statusCode: 500,
         statusMessage: 'Unknown error',
-        requestOptions:
-            RequestOptions(path: ApiEndpoints.getBusinessProcessTask),
+        requestOptions: RequestOptions(path: ApiEndpoints.businessProcessTask),
       );
     }
   }

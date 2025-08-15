@@ -187,7 +187,7 @@ class _CustomerJourneyScreenState extends State<CustomerJourneyScreen>
                                 .state
                                 .organizationId ??
                             '',
-                        businessProcessTask: null,
+                        task: null,
                         workspaceId: null,
                       ),
                     );
@@ -233,7 +233,7 @@ class _CustomerJourneyScreenState extends State<CustomerJourneyScreen>
                                           .state
                                           .organizationId ??
                                       '',
-                                  businessProcessTask: null,
+                                  task: null,
                                   workspaceId: null,
                                 ));
                           },

@@ -12,10 +12,12 @@ class ProductSelectionBottomSheet extends StatefulWidget {
   const ProductSelectionBottomSheet({super.key});
 
   @override
-  State<ProductSelectionBottomSheet> createState() => _ProductSelectionBottomSheetState();
+  State<ProductSelectionBottomSheet> createState() =>
+      _ProductSelectionBottomSheetState();
 }
 
-class _ProductSelectionBottomSheetState extends State<ProductSelectionBottomSheet> {
+class _ProductSelectionBottomSheetState
+    extends State<ProductSelectionBottomSheet> {
   final TextEditingController _quantityController = TextEditingController();
   ProductModel? currentSelectedProduct;
   ChipsInputState<ProductModel>? sta;
@@ -27,7 +29,8 @@ class _ProductSelectionBottomSheetState extends State<ProductSelectionBottomShee
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<SwitchFinalDealBloc, SwitchFinalDealState>(builder: (context, state) {
+    return BlocBuilder<SwitchFinalDealBloc, SwitchFinalDealState>(
+        builder: (context, state) {
       return GestureDetector(
         behavior: HitTestBehavior.translucent,
         onTap: () => FocusScope.of(context).unfocus(),
@@ -57,7 +60,7 @@ class _ProductSelectionBottomSheetState extends State<ProductSelectionBottomShee
                       'Chọn sản phẩm',
                       style: TextStyle(
                         fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                         color: AppColors.text,
                       ),
                     ),
@@ -113,7 +116,8 @@ class _ProductSelectionBottomSheetState extends State<ProductSelectionBottomShee
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.attach_money, color: AppColors.primary),
+                        const Icon(Icons.attach_money,
+                            color: AppColors.primary),
                         const SizedBox(width: 8),
                         Text(
                           'Tổng số tiền:\n${Helpers.formatCurrency(_calculateTotalAmount(state))}',
@@ -134,7 +138,8 @@ class _ProductSelectionBottomSheetState extends State<ProductSelectionBottomShee
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 24, vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -170,7 +175,8 @@ class _ProductSelectionBottomSheetState extends State<ProductSelectionBottomShee
 
   static final _inputDecoration = InputDecoration(
     hintText: 'Chọn sản phẩm',
-    suffixIcon: const Icon(Icons.keyboard_arrow_down, color: AppColors.text, size: 20),
+    suffixIcon:
+        const Icon(Icons.keyboard_arrow_down, color: AppColors.text, size: 20),
     contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(8),
@@ -258,7 +264,8 @@ class _ProductSelectionBottomSheetState extends State<ProductSelectionBottomShee
                   border: Border.all(color: AppColors.primary),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Text(Helpers.formatCurrency(currentSelectedProduct?.price ?? 0))),
+                child: Text(Helpers.formatCurrency(
+                    currentSelectedProduct?.price ?? 0))),
           ],
         ),
         const SizedBox(height: 20),
@@ -281,7 +288,8 @@ class _ProductSelectionBottomSheetState extends State<ProductSelectionBottomShee
                       decoration: const InputDecoration(
                         hintText: "Nhập số lượng",
                         border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       ),
                     ),
                   )
@@ -296,7 +304,8 @@ class _ProductSelectionBottomSheetState extends State<ProductSelectionBottomShee
                   _buildLabel('Thuế (%)'),
                   const SizedBox(height: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 14),
                     decoration: BoxDecoration(
                       border: Border.all(color: AppColors.primary),
                       borderRadius: BorderRadius.circular(8),

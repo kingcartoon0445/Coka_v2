@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:source_base/data/models/customer_service_response.dart';
 import 'package:source_base/data/models/facebook_chat_response.dart';
 import 'package:source_base/presentation/blocs/organization/organization_bloc.dart';
 import 'package:source_base/presentation/screens/chat_detail_page/model/message_model.dart';
@@ -254,7 +255,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
     }
   }
 
-  void _showAssignBottomSheet(FacebookChatModel conversation) {
+  void _showAssignBottomSheet(CustomerServiceModel conversation) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -290,7 +291,10 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
 
             leading: IconButton(
               icon: const Icon(Icons.arrow_back),
-              onPressed: () => context.pop(),
+              onPressed: () {
+                context.read<ChatBloc>().add(OutChat());
+                context.pop();
+              },
             ),
             titleSpacing: 0,
             bottom: PreferredSize(
@@ -303,8 +307,8 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
             title: Row(
               children: [
                 AppAvatar(
-                  imageUrl: conversation?.personAvatar,
-                  fallbackText: conversation?.personName,
+                  imageUrl: conversation?.avatar,
+                  fallbackText: conversation?.fullName,
                   size: 40,
                   shape: AvatarShape.circle,
                 ),
@@ -314,7 +318,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        conversation?.personName ?? '',
+                        conversation?.fullName ?? '',
                         style: const TextStyle(fontSize: 16),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -578,7 +582,13 @@ class _MessageBubble extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: url.startsWith('file://')
           ? Image.file(File(url.replaceFirst('file://', '')), fit: BoxFit.cover)
-          : Image.network(url, fit: BoxFit.cover),
+          : Image.network(
+              url,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return const Icon(Icons.error);
+              },
+            ),
     );
   }
 

@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:source_base/config/app_color.dart';
 import 'package:source_base/config/routes.dart';
+import 'package:source_base/data/models/customer_service_response.dart';
 import 'package:source_base/data/models/facebook_chat_response.dart';
 import 'package:source_base/presentation/screens/shared/widgets/avatar_widget.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -15,13 +16,13 @@ class MessageItem extends StatelessWidget {
   final String organizationId;
   final String sender;
   final String content;
-  final String time;
+  final DateTime time;
   final String platform;
   final bool isRead;
   final bool isFileMessage; // Biến này có thể được sử dụng nếu cần thiết
   final String? avatar;
   final String? pageAvatar;
-  final FacebookChatModel facebookChat;
+  final CustomerServiceModel facebookChat;
   const MessageItem({
     super.key,
     required this.id,
@@ -175,7 +176,7 @@ class MessageItem extends StatelessWidget {
                               // "",
                               time != ""
                                   ? timeago.format(
-                                      DateTime.parse(time),
+                                    time,
                                       locale: 'vi',
                                     )
                                   : "",

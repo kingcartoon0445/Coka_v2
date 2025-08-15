@@ -173,7 +173,7 @@ class _ImportContactBottomSheetState extends State<ImportContactBottomSheet> {
       child: Text(
         letter.toUpperCase(),
         style: const TextStyle(
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );
@@ -215,7 +215,7 @@ class _ImportContactBottomSheetState extends State<ImportContactBottomSheet> {
                       contact.displayName,
                       maxLines: 1,
                       style: const TextStyle(
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                         fontSize: 14,
                       ),
                       overflow: TextOverflow.ellipsis,
@@ -308,7 +308,7 @@ class _ImportContactBottomSheetState extends State<ImportContactBottomSheet> {
                           'Nhập từ danh bạ',
                           style: TextStyle(
                             fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ],

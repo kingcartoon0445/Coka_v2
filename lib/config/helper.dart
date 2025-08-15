@@ -29,7 +29,7 @@ class Helpers {
     if (response['success'] == true) return true;
     if (response['StatusCode'] == 200) return true;
     final code = response['code'];
-    return code == 0 || code == 200 || code == 201;
+    return code == 0 || code == 200 || code == 201; 
   }
 
   static void showSnackBar(BuildContext context, String message) {
@@ -270,7 +270,7 @@ class AvatarMemoryManager {
           style: TextStyle(
             color: Colors.white,
             fontSize: size * 0.4,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ),
@@ -451,7 +451,7 @@ class ChatHelpers {
           style: TextStyle(
             color: Colors.white,
             fontSize: fontSize ?? (radius * 0.6),
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w700,
           ),
         ),
       ),

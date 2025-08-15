@@ -64,7 +64,7 @@ class UploadCompleteDialog extends StatelessWidget {
             const SizedBox(height: 10),
             Text(title,
                 style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
             const SizedBox(height: 6),
             Text(message,
                 textAlign: TextAlign.center,
@@ -117,7 +117,7 @@ class UploadErrorDialog extends StatelessWidget {
             const SizedBox(height: 10),
             Text(title,
                 style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
             const SizedBox(height: 6),
             Text(message,
                 textAlign: TextAlign.center,

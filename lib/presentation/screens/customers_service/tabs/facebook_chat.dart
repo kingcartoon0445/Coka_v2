@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:source_base/config/helper.dart';
-import 'package:source_base/data/models/facebook_chat_response.dart';
-import 'package:source_base/dio/service_locator.dart';
+import 'package:source_base/core/api/dio_client.dart';
+import 'package:source_base/data/models/customer_service_response.dart';
+import 'package:source_base/data/repositories/message_repository.dart';
 import 'package:source_base/presentation/blocs/organization/organization_bloc.dart';
 import 'package:source_base/presentation/screens/customers_service/widgets/message_item.dart';
+import 'package:source_base/presentation/screens/shared/widgets/awesome_alert.dart';
 import 'package:source_base/presentation/screens/shared/widgets/enhanced_avatar_widget.dart';
-import 'dart:convert';
 import '../../../blocs/customer_service/customer_service_action.dart';
 
 class FacebookMessagesTab extends StatefulWidget {
@@ -133,7 +135,7 @@ class _FacebookMessagesTabState extends State<FacebookMessagesTab> {
         builder: (context, state) {
       print('🔍 UI State - Status: ${state.status}');
       print(
-          '🔍 UI State - Facebook chats count: ${state.facebookChats.length}');
+          '🔍 UI State - Facebook chats count: ${state.customerServices.length}');
       print(
           '🔍 UI State - Has more Facebook chats: ${state.hasMoreFacebookChats}');
       print(
@@ -145,7 +147,7 @@ class _FacebookMessagesTabState extends State<FacebookMessagesTab> {
       }
 
       if (state.status != CustomerServiceStatus.loading &&
-          state.facebookChats.isEmpty) {
+          state.customerServices.isEmpty) {
         return _buildEmptyState();
       }
       // Khi gọi ChangeStatusRead, conversationes (state.facebookChats) sẽ chỉ thay đổi nếu bloc emit một state mới với facebookChats đã được cập nhật.
@@ -155,7 +157,7 @@ class _FacebookMessagesTabState extends State<FacebookMessagesTab> {
       // Để đảm bảo UI cập nhật, trong bloc cần emit một list mới (copy) khi cập nhật isRead, ví dụ:
       // emit(state.copyWith(facebookChats: List.from(state.facebookChats)));
 
-      final conversationes = state.facebookChats;
+      final conversationes = state.customerServices;
       return Container(
         color: Colors.white,
         child: RefreshIndicator(
@@ -165,11 +167,11 @@ class _FacebookMessagesTabState extends State<FacebookMessagesTab> {
           child: ListView.builder(
             physics: const AlwaysScrollableScrollPhysics(),
             controller: _scrollController,
-            itemCount: state.facebookChats.length +
+            itemCount: state.customerServices.length +
                 (state.hasMoreFacebookChats ? 1 : 0),
             itemBuilder: (context, index) {
               // Show loading indicator at the end if there are more items to load
-              if (index == state.facebookChats.length) {
+              if (index == state.customerServices.length) {
                 return state.hasMoreFacebookChats
                     ? _buildLoadingMoreIndicator()
                     : const SizedBox();
@@ -177,21 +179,19 @@ class _FacebookMessagesTabState extends State<FacebookMessagesTab> {
 
               final conversation = conversationes[index];
               return MessageItem(
-                isRead: conversation.isRead ?? false,
+                isRead: true, //conversation.isRead ?? false,
                 id: conversation.id ?? '',
                 organizationId:
                     context.read<OrganizationBloc>().state.organizationId ?? "",
-                sender: conversation.personName ?? '',
+                sender: conversation.fullName ?? '',
                 content: conversation.snippet ?? '',
-                time: conversation.updatedTime != null
-                    ? DateTime.fromMillisecondsSinceEpoch(
-                            conversation.updatedTime!)
-                        .toIso8601String()
-                    : '',
+                time: conversation.createdDate != null
+                    ? conversation.createdDate!
+                    : DateTime.now(),
                 isFileMessage:
                     conversation.snippet == null || conversation.snippet == '',
-                platform: conversation.provider ?? '',
-                avatar: conversation.personAvatar,
+                platform: conversation.channel ?? '',
+                avatar: conversation.avatar,
                 pageAvatar: conversation.pageAvatar,
                 facebookChat: conversation,
               );
@@ -283,7 +283,7 @@ class _FacebookMessagesTabState extends State<FacebookMessagesTab> {
   //           bloc: context.read<CustomerServiceBloc>(),
   //           builder: (context, state) {
   //             if (state.status == CustomerServiceStatus.loadingFacebookChat) {
-  //               List<FacebookChatModel> facebookChats = state.facebookChats;
+  //               List<CustomerServiceModel> facebookChats = state.facebookChats;
   //               if (facebookChats.isEmpty) {}
   //             }
 
@@ -356,7 +356,8 @@ class _FacebookMessagesTabState extends State<FacebookMessagesTab> {
     );
   }
 
-  Widget _buildEnhancedMessageItem(FacebookChatModel conversation, int index) {
+  Widget _buildEnhancedMessageItem(
+      CustomerServiceModel conversation, int index) {
     return Container(
       color: Colors.white,
       child: InkWell(
@@ -370,7 +371,7 @@ class _FacebookMessagesTabState extends State<FacebookMessagesTab> {
 
               const SizedBox(width: 12),
 
-              // FacebookChatModel info
+              // CustomerServiceModel info
               Expanded(
                 child: _buildConversationInfo(conversation),
               ),
@@ -386,13 +387,13 @@ class _FacebookMessagesTabState extends State<FacebookMessagesTab> {
     );
   }
 
-  Widget _buildConversationAvatar(FacebookChatModel conversation) {
+  Widget _buildConversationAvatar(CustomerServiceModel conversation) {
     return Stack(
       children: [
         // Main avatar
         CustomAvatar(
-          imageUrl: conversation.personAvatar,
-          displayName: conversation.personName ?? '',
+          imageUrl: conversation.avatar,
+          displayName: conversation.fullName ?? '',
           size: 48,
           showBorder: true,
           borderColor: Colors.white,
@@ -420,7 +421,7 @@ class _FacebookMessagesTabState extends State<FacebookMessagesTab> {
         ),
 
         // Online status (based on recent activity)
-        if (conversation.status == 'ACTIVE')
+        if (true)
           Positioned(
             top: 0,
             right: 2,
@@ -438,13 +439,13 @@ class _FacebookMessagesTabState extends State<FacebookMessagesTab> {
     );
   }
 
-  Widget _buildConversationInfo(FacebookChatModel conversation) {
+  Widget _buildConversationInfo(CustomerServiceModel conversation) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Customer name
         Text(
-          conversation.personName ?? '',
+          conversation.fullName ?? '',
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -461,9 +462,8 @@ class _FacebookMessagesTabState extends State<FacebookMessagesTab> {
           conversation.snippet ?? '',
           style: TextStyle(
             fontSize: 14,
-            color: !conversation.isRead! ? Colors.black87 : Colors.grey[600],
-            fontWeight:
-                !conversation.isRead! ? FontWeight.w500 : FontWeight.normal,
+            color: true ? Colors.black87 : Colors.grey[600],
+            fontWeight: true ? FontWeight.w500 : FontWeight.normal,
           ),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
@@ -472,14 +472,14 @@ class _FacebookMessagesTabState extends State<FacebookMessagesTab> {
     );
   }
 
-  Widget _buildConversationMeta(FacebookChatModel conversation) {
+  Widget _buildConversationMeta(CustomerServiceModel conversation) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         // Time
         Text(
           ChatHelpers.getTimeAgo(DateTime.fromMillisecondsSinceEpoch(
-              conversation.updatedTime ?? 0)),
+              conversation.createdDate!.millisecondsSinceEpoch)),
           style: TextStyle(
             fontSize: 12,
             color: Colors.grey[600],
@@ -493,7 +493,7 @@ class _FacebookMessagesTabState extends State<FacebookMessagesTab> {
           mainAxisSize: MainAxisSize.min,
           children: [
             // Unread indicator (if not read)
-            if (!conversation.isRead!)
+            if (true)
               Container(
                 width: 8,
                 height: 8,
@@ -504,7 +504,7 @@ class _FacebookMessagesTabState extends State<FacebookMessagesTab> {
               ),
 
             // Assigned indicator
-            if (conversation.assignName != null) ...[
+            if (conversation.fullName != null) ...[
               const SizedBox(width: 4),
               Icon(
                 Icons.person,
@@ -514,7 +514,7 @@ class _FacebookMessagesTabState extends State<FacebookMessagesTab> {
             ],
 
             // GPT status indicator
-            if (conversation.gptStatus == 1) ...[
+            if (false) ...[
               const SizedBox(width: 4),
               Icon(
                 Icons.smart_toy,
@@ -528,13 +528,51 @@ class _FacebookMessagesTabState extends State<FacebookMessagesTab> {
     );
   }
 
-  void _navigateToChat(FacebookChatModel conversation) {
+  void _navigateToChat(CustomerServiceModel conversation) {
     // TODO: Navigate to chat detail page
     print('Navigate to chat: ${conversation.id}');
   }
 
-  void _connectFacebookPage() {
+  void _connectFacebookPage() async {
     // TODO: Navigate to Facebook connection page
+
+    final result = await FacebookAuth.i.login(
+      permissions: [
+        "email",
+        "openid",
+        "pages_show_list",
+        "pages_messaging",
+        "instagram_basic",
+        "leads_retrieval",
+        "instagram_manage_messages",
+        "pages_read_engagement",
+        "pages_manage_metadata",
+        "pages_read_user_content",
+        "pages_manage_engagement",
+        "public_profile"
+      ],
+    );
+
+    if (result.status == LoginStatus.success) {
+      // Future.delayed(const Duration(milliseconds: 50), () => showLoadingDialog(context));
+
+      MessageRepository(DioClient()).connectFacebook(
+          context.read<OrganizationBloc>().state.organizationId ?? "",
+          {"socialAccessToken": result.accessToken!.tokenString}).then((res) {
+        if (Helpers.isResponseSuccess(res)) {
+          // final chatChannelController = Get.put(ChatChannelController());
+          // chatChannelController.onRefresh();
+          // Get.back();
+          // Navigator.of(context).pop(); // Đóng dialog loading
+          // Đóng dialog loading
+          successAlert(title: "Thành công", desc: "Đã kết nối với facebook");
+        } else {
+          // errorAlert(title: "Lỗi", desc: res["message"]);
+        }
+      });
+    } else {
+      // errorAlert(title: "Thất bại", desc: "Đã có lỗi xảy ra, xin vui lòng thử lại");
+    }
     print('Connect Facebook page');
   }
 }

@@ -36,7 +36,7 @@ class CustomerServiceModel {
   String? fullName;
   String? avatar;
   List<Assignees>? assignees;
-  String? createdDate;
+  DateTime? createdDate;
   String? lastModifiedDate;
   String? snippet;
   String? channel;
@@ -56,6 +56,33 @@ class CustomerServiceModel {
       this.pageName,
       this.pageAvatar,
       this.title});
+  CustomerServiceModel copyWith({
+    String? id,
+    String? fullName,
+    String? avatar,
+    List<Assignees>? assignees,
+    DateTime? createdDate,
+    String? lastModifiedDate,
+    String? snippet,
+    String? channel,
+    String? pageName,
+    String? pageAvatar,
+    String? title,
+  }) {
+    return CustomerServiceModel(
+      id: id ?? this.id,
+      fullName: fullName ?? this.fullName,
+      avatar: avatar ?? this.avatar,
+      assignees: assignees ?? this.assignees,
+      createdDate: createdDate ?? this.createdDate,
+      lastModifiedDate: lastModifiedDate ?? this.lastModifiedDate,
+      snippet: snippet ?? this.snippet,
+      channel: channel ?? this.channel,
+      pageName: pageName ?? this.pageName,
+      pageAvatar: pageAvatar ?? this.pageAvatar,
+      title: title ?? this.title,
+    );
+  }
 
   CustomerServiceModel.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -67,13 +94,26 @@ class CustomerServiceModel {
         assignees!.add(new Assignees.fromJson(v));
       });
     }
-    createdDate = json['createdDate'];
+    createdDate = DateTime.parse(json['createdDate']);
     lastModifiedDate = json['lastModifiedDate'];
     snippet = json['snippet'];
     channel = json['channel'];
     pageName = json['pageName'];
     pageAvatar = json['pageAvatar'];
     title = json['title'];
+  }
+
+  CustomerServiceModel.fromFirebase(Map<String, dynamic> json,
+      {bool isFromMessage = false}) {
+    id = json['ConversationId'];
+    fullName = json['FullName'];
+    avatar = json['Avatar'];
+    createdDate = DateTime.parse(json['CreatedDate']);
+    lastModifiedDate = json['LastModifiedDate'];
+    snippet = json['Message'];
+    channel = json['Channel'];
+    pageName = json['PageName'];
+    // pageAvatar = json['PageAvatar'];
   }
 
   Map<String, dynamic> toJson() {

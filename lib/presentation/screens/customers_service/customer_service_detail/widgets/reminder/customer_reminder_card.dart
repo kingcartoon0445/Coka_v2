@@ -197,7 +197,7 @@ class _CustomerReminderCardState extends State<CustomerReminderCard> {
             return _buildLoadingState();
           }
 
-          final scheduleDetails = state.scheduleDetails;
+          // final scheduleDetails = state.scheduleDetails;
           final todayReminders = state.scheduleDetails
               .where((reminder) => _isToday(reminder))
               .toList();

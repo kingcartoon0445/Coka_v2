@@ -338,7 +338,7 @@ class _CustomerBasicInfoPageState extends State<CustomerBasicInfoPage> {
             const Text(
               "Nhãn",
               style: TextStyle(
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w700,
                 color: Color(0xFF1F2329),
                 fontSize: 14,
               ),
@@ -666,7 +666,7 @@ class _CustomerBasicInfoPageState extends State<CustomerBasicInfoPage> {
                             customerData['fullName'] ?? '',
                             style: const TextStyle(
                               fontSize: 20,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w700,
                               color: Color(0xFF171A1F),
                             ),
                             maxLines: 1,
@@ -871,7 +871,7 @@ class _CustomerBasicInfoPageState extends State<CustomerBasicInfoPage> {
             Text(
               title,
               style: const TextStyle(
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w700,
                 color: Color(0xFF1F2329),
                 fontSize: 14,
               ),

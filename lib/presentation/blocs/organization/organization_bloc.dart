@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:source_base/config/helper.dart';
-import 'package:source_base/data/models/customer_service_response.dart';
+import 'package:source_base/config/helper.dart'; 
 import 'package:source_base/data/models/organization_model.dart';
 import 'package:source_base/data/models/user_profile.dart';
 import 'package:source_base/data/repositories/origanzation_repository.dart';
@@ -78,6 +77,7 @@ class OrganizationBloc extends Bloc<OrganizationEvent, OrganizationState> {
         emit(state.copyWith(
           status: OrganizationStatus.loadOrganizationsSuccess,
           organizations: dataOrganization.content,
+          organizationId: dataOrganization.content?.first.id,
           error: null,
         ));
       } else {

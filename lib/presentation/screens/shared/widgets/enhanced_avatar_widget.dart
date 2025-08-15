@@ -150,7 +150,7 @@ class UserProfileDialog extends StatelessWidget {
               displayName,
               style: const TextStyle(
                 fontSize: 18,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w700,
               ),
               textAlign: TextAlign.center,
             ),

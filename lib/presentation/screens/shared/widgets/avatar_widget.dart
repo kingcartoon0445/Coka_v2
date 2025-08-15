@@ -100,7 +100,7 @@ class AppAvatar extends StatelessWidget {
                   color: fallbackTextColor,
                   fontSize:
                       size * 0.4, // Adjust font size relative to avatar size
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                 ),
               )
             : Icon(

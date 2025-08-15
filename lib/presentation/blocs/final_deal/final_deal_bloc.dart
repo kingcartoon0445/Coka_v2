@@ -1,4 +1,3 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:source_base/config/helper.dart';
 import 'package:source_base/data/repositories/final_deal_repository.dart';
 import 'final_deal_action.dart';
@@ -10,21 +9,21 @@ class FinalDealBloc extends Bloc<FinalDealEvent, FinalDealState> {
   final FinalDealRepository repository;
 
   FinalDealBloc({required this.repository}) : super(const FinalDealState()) {
-    on<FinalDealInitialized>(_onInitialized);
-    on<FinalDealGetAllWorkspace>(_onGetAllWorkspace);
-    on<FinalDealSelectWorkspace>(_onSelectWorkspace);
-    on<FinalDealGetBusinessProcess>(_onGetBusinessProcess);
-    on<FinalDealGetBusinessProcessTask>(_onGetBusinessProcessTask);
-    on<FinalDealSelectBusinessProcess>(_onSelectBusinessProcess);
+    on<Initialized>(_onInitialized);
+    on<GetAllWorkspace>(_onGetAllWorkspace);
+    on<SelectWorkspace>(_onSelectWorkspace);
+    on<GetBusinessProcess>(_onGetBusinessProcess);
+    on<GetBusinessProcessTask>(_onGetBusinessProcessTask);
+    on<SelectBusinessProcess>(_onSelectBusinessProcess);
+    on<GetDetailTask>(_onGetDetailTask);
   }
 
-  void _onInitialized(
-      FinalDealInitialized event, Emitter<FinalDealState> emit) async {
+  void _onInitialized(Initialized event, Emitter<FinalDealState> emit) async {
     emit(state.copyWith(status: FinalDealStatus.initial));
   }
 
   void _onGetAllWorkspace(
-      FinalDealGetAllWorkspace event, Emitter<FinalDealState> emit) async {
+      GetAllWorkspace event, Emitter<FinalDealState> emit) async {
     emit(state.copyWith(status: FinalDealStatus.loadingBusinessProcess));
     final response = await repository.getAllWorkspace(event.organizationId);
     final bool isSuccess = Helpers.isResponseSuccess(response.data);
@@ -33,7 +32,7 @@ class FinalDealBloc extends Bloc<FinalDealEvent, FinalDealState> {
           WorkspaceResponse.fromJson(response.data);
       final workspace = workspaceResponse.content?.first;
       if (workspace != null) {
-        add(FinalDealSelectWorkspace(
+        add(SelectWorkspace(
           organizationId: event.organizationId,
           workspace: workspace,
         ));
@@ -48,8 +47,8 @@ class FinalDealBloc extends Bloc<FinalDealEvent, FinalDealState> {
   }
 
   void _onSelectWorkspace(
-      FinalDealSelectWorkspace event, Emitter<FinalDealState> emit) async {
-    add(FinalDealGetBusinessProcess(
+      SelectWorkspace event, Emitter<FinalDealState> emit) async {
+    add(GetBusinessProcess(
       organizationId: event.organizationId,
       workspaceId: event.workspace.id ?? '',
     ));
@@ -57,7 +56,7 @@ class FinalDealBloc extends Bloc<FinalDealEvent, FinalDealState> {
   }
 
   void _onGetBusinessProcess(
-      FinalDealGetBusinessProcess event, Emitter<FinalDealState> emit) async {
+      GetBusinessProcess event, Emitter<FinalDealState> emit) async {
     emit(state.copyWith(status: FinalDealStatus.loadingBusinessProcess));
     final response = await repository.getBusinessProcess(
         event.organizationId, event.workspaceId);
@@ -67,7 +66,7 @@ class FinalDealBloc extends Bloc<FinalDealEvent, FinalDealState> {
           BusinessProcessResponse.fromJson(response.data);
 
       if (businessProcessResponse.data?.isNotEmpty ?? false) {
-        add(FinalDealGetBusinessProcessTask(
+        add(GetBusinessProcessTask(
           organizationId: event.organizationId,
           processId: '',
           stage: businessProcessResponse.data?.first,
@@ -91,9 +90,9 @@ class FinalDealBloc extends Bloc<FinalDealEvent, FinalDealState> {
     }
   }
 
-  void _onGetBusinessProcessTask(FinalDealGetBusinessProcessTask event,
-      Emitter<FinalDealState> emit) async {
-    emit(state.copyWith(status: FinalDealStatus.loading));
+  void _onGetBusinessProcessTask(
+      GetBusinessProcessTask event, Emitter<FinalDealState> emit) async {
+    emit(state.copyWith(status: FinalDealStatus.loadingListTask));
     final response = await repository.getBusinessProcessTask(
         event.organizationId,
         event.processId ?? '',
@@ -103,35 +102,55 @@ class FinalDealBloc extends Bloc<FinalDealEvent, FinalDealState> {
         event.status ?? '',
         event.includeHistory,
         event.page,
-        event.pageSize);
+        event.pageSize,
+        taskId: null);
     final bool isSuccess = Helpers.isResponseSuccess(response.data);
     if (isSuccess) {
-      BusinessProcessTaskResponse businessProcessTaskResponse =
-          BusinessProcessTaskResponse.fromJson(response.data);
+      TaskResponse businessProcessTaskResponse =
+          TaskResponse.fromJson(response.data);
       emit(state.copyWith(isDelete: true));
       emit(state.copyWith(
           status: FinalDealStatus.success,
           selectedBusinessProcess: event.stage,
-          businessProcessTasks: businessProcessTaskResponse.data ?? []));
+          taskes: businessProcessTaskResponse.data ?? []));
     } else {
       emit(state.copyWith(status: FinalDealStatus.error));
     }
   }
 
-  void _onSelectBusinessProcess(FinalDealSelectBusinessProcess event,
-      Emitter<FinalDealState> emit) async {
-    emit(state.copyWith(selectedBusinessProcess: event.businessProcess));
+  void _onSelectBusinessProcess(
+      SelectBusinessProcess event, Emitter<FinalDealState> emit) async {
+    emit(state.copyWith(
+        selectedBusinessProcess: event.businessProcess,
+        status: FinalDealStatus.loadingListTask));
+    Future.delayed(const Duration(seconds: 2), () {
+      add(GetBusinessProcessTask(
+        organizationId: event.organizationId,
+        processId: '',
+        stage: event.businessProcess,
+        customerId: '',
+        assignedTo: '',
+        status: '',
+        includeHistory: false,
+        page: 1,
+        pageSize: 10,
+      ));
+    });
+  }
 
-    add(FinalDealGetBusinessProcessTask(
-      organizationId: event.organizationId,
-      processId: '',
-      stage: event.businessProcess,
-      customerId: '',
-      assignedTo: '',
-      status: '',
-      includeHistory: false,
-      page: 1,
-      pageSize: 10,
-    ));
+  void _onGetDetailTask(
+      GetDetailTask event, Emitter<FinalDealState> emit) async {
+    // emit(state.copyWith(status: FinalDealStatus.loading));
+    // final response = await repository.getBusinessProcessTask(
+    //     event.organizationId, '', '', '', '', '', false, 1, 10,
+    //     taskId: event.taskId);
+    // final bool isSuccess = Helpers.isResponseSuccess(response.data);
+    // if (isSuccess) {
+    //   emit(state.copyWith(
+
+    //       status: FinalDealStatus.success, detailTask: response.data));
+    // } else {
+    //   emit(state.copyWith(status: FinalDealStatus.error));
+    // }
   }
 }

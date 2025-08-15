@@ -2,6 +2,7 @@
 
 import 'package:equatable/equatable.dart';
 import 'package:source_base/data/models/chat_detail_response.dart';
+import 'package:source_base/data/models/customer_service_response.dart';
 import 'package:source_base/data/models/facebook_chat_response.dart';
 import 'package:source_base/presentation/screens/chat_detail_page/model/message_model.dart';
 
@@ -30,7 +31,7 @@ class ChatState extends Equatable {
     bool? isSending,
     String? error,
     String? organizationId,
-    FacebookChatModel? facebookChat,
+    CustomerServiceModel? facebookChat,
     List<Message>? chats,
   }) {
     return ChatState(

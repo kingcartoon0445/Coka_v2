@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:source_base/config/helper.dart';
 import 'package:source_base/data/models/chat_detail_response.dart';
 import 'package:source_base/data/repositories/chat_repository.dart';
 import 'package:source_base/presentation/screens/chat_detail_page/model/message_model.dart';
@@ -16,12 +17,13 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
   StreamSubscription? _onChangedListener;
 
   ChatBloc({required this.chatRepository}) : super(const ChatState()) {
-    on<LoadChat>(_onLoadChat); 
+    on<LoadChat>(_onLoadChat);
     on<SendMessage>(_onSendMessage);
     on<SendImageMessage>(_onSendImageMessage);
     on<ToolListenFirebase>(onToolListenFirebase);
     on<DisableFirebaseListener>(onDisableFirebaseListener);
     on<AddMessage>(_onAddMessage);
+    on<OutChat>(_onOutChat);
   }
 
   void _onLoadChat(LoadChat event, Emitter<ChatState> emit) async {
@@ -63,7 +65,6 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       ));
     }
   }
- 
 
   // Event: ToolListenFirebase
   Future<void> onToolListenFirebase(
@@ -96,10 +97,12 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
           }
         }
 
+// state.chats
         final message = Message(
           id: dataMess["Id"] ?? '',
           message: dataMess["Message"] ?? "",
           to: dataMess["To"],
+          avatar: dataMess["Avatar"],
           toName: dataMess["ToName"],
           from: dataMess["From"],
           isFromMe: dataMess["IsPageReply"] ?? true,
@@ -177,7 +180,12 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         attachment: event.attachment,
         attachmentName: event.attachmentName,
       );
-
+      bool isSuccess = Helpers.isResponseSuccess(response.data);
+      if (isSuccess) {
+        emit(state.copyWith(isSending: false, error: null));
+      } else {
+        emit(state.copyWith(isSending: false, error: response.data['message']));
+      }
       // Gửi tin nhắn thành công
       emit(state.copyWith(isSending: false, error: null));
 
@@ -221,6 +229,10 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         error: e.toString(),
       ));
     }
+  }
+
+  void _onOutChat(OutChat event, Emitter<ChatState> emit) {
+    emit(const ChatState(status: ChatStatus.initial));
   }
 
   @override

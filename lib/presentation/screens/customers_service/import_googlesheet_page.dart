@@ -239,7 +239,7 @@ class _ImportGoogleSheetPageState extends State<ImportGoogleSheetPage> {
                         _errorMessage!,
                         style: const TextStyle(
                           color: Colors.red,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
@@ -278,7 +278,7 @@ class _ImportGoogleSheetPageState extends State<ImportGoogleSheetPage> {
                         _successMessage!,
                         style: const TextStyle(
                           color: Colors.green,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
@@ -328,7 +328,7 @@ class _ImportGoogleSheetPageState extends State<ImportGoogleSheetPage> {
                 "Cấu hình GoogleSheet",
                 style: TextStyle(
                   color: Color(0xFF1F2329),
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                   fontSize: 16,
                 ),
               ),
@@ -357,7 +357,7 @@ class _ImportGoogleSheetPageState extends State<ImportGoogleSheetPage> {
               "Google Sheet",
               style: TextStyle(
                 color: Colors.black,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
@@ -368,7 +368,7 @@ class _ImportGoogleSheetPageState extends State<ImportGoogleSheetPage> {
               "Coka Field",
               style: TextStyle(
                 color: Colors.black,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
@@ -473,7 +473,7 @@ class _ImportGoogleSheetPageState extends State<ImportGoogleSheetPage> {
                   "Hoàn tất",
                   style: TextStyle(
                     color: Colors.white,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 extendedPadding: const EdgeInsets.symmetric(horizontal: 100),

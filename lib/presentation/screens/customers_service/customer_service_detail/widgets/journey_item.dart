@@ -1,8 +1,12 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:intl/intl.dart';
+import 'package:source_base/config/app_color.dart';
 import 'package:source_base/data/models/service_detail_response.dart';
+import 'package:source_base/presentation/screens/chat_detail_page/widget/download_file.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 String getIconPath(type, isSource) {
   if (isSource) {
@@ -205,20 +209,27 @@ class JourneyItem extends StatelessWidget {
     final newValue = dataItem.summary ?? '';
     final noteText = dataItem.summary ?? '';
 
-    final utmSrc = '  '?.toUpperCase();
-    final website = ' ';
+    final utmSrc = ''.toUpperCase();
     String subTitle = getSubtitle(type, oldValue, newValue) ??
         ((utmSrc == null || utmSrc == "") ? "" : "Nguồn: <a>$utmSrc</a>");
 
-    if (website != null && website != '') {
-      subTitle +=
-          "</br>Đích: <a href='$website'>${staticURLFromURLString(website)}</a>";
-    }
     if (noteText != null && noteText != '') {
       subTitle += "</br>Nội dung: <a>$noteText</a>";
     }
     final iconPath = getIconPath(type?.toUpperCase(), isSource);
+    double? lastTrailingDouble(String input) {
+      final m = RegExp(r'(\d+(?:\.\d+)?)\s*$').firstMatch(input);
+      return m != null ? double.parse(m.group(1)!) : null;
+    }
 
+    String nameFile = "";
+    String linkFile = "";
+    if (type == "ATTACHMENT") {
+      subTitle = "";
+      final attachment = jsonDecode(dataItem.jsonSummary!);
+      nameFile = attachment["FileName"];
+      linkFile = attachment["Path"];
+    }
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
       child: Stack(
@@ -348,7 +359,7 @@ class JourneyItem extends StatelessWidget {
                                       //         textDecoration:
                                       //             TextDecoration.none,
                                       //         color: const Color(0xFF554FE8),
-                                      //         fontWeight: FontWeight.bold,
+                                      //         fontWeight: FontWeight.w700,
                                       //       ),
                                       //       "p": Style(
                                       //         padding: HtmlPaddings.zero,
@@ -359,12 +370,41 @@ class JourneyItem extends StatelessWidget {
                                       //   ),
                                       // ),
                                     ),
+                                  if (type == "ATTACHMENT")
+                                    Container(
+                                      width: double.infinity,
+                                      child: InkWell(
+                                        onTap: () {
+                                          downloadFile(
+                                              context, linkFile, nameFile);
+                                        },
+                                        child: RichText(
+                                          textAlign: TextAlign.start,
+                                          text: TextSpan(
+                                            children: [
+                                              const TextSpan(
+                                                  text: "Đính kèm tập tin: ",
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: Colors.black,
+                                                  )),
+                                              TextSpan(
+                                                  text: nameFile,
+                                                  style: const TextStyle(
+                                                    fontSize: 12,
+                                                    color: AppColors.primary,
+                                                  )),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                                   if (type == "UPDATE_RATING")
                                     Padding(
                                       padding: const EdgeInsets.only(left: 8.0),
                                       child: RatingBar.builder(
                                         initialRating:
-                                            double.parse(newValue ?? "0"),
+                                            lastTrailingDouble(newValue) ?? 0,
                                         itemBuilder: (context, _) => const Icon(
                                           Icons.star,
                                           color: Color(0xFFF27B21),

@@ -1,19 +1,18 @@
+import 'package:source_base/data/models/service_detail_response.dart';
+
+import 'customer_service_event.dart';
+import 'customer_service_state.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
-
+import 'package:bloc_concurrency/bloc_concurrency.dart' as bc;
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:source_base/config/helper.dart';
 import 'package:source_base/data/models/customer_service_response.dart';
-import 'package:source_base/data/models/facebook_chat_response.dart';
 import 'package:source_base/data/models/schedule_response.dart';
-import 'package:source_base/data/models/service_detail_response.dart'
-    as service_detail;
 import 'package:source_base/data/repositories/calendar_repository.dart';
 import 'package:source_base/data/repositories/origanzation_repository.dart';
-import 'customer_service_event.dart';
-import 'customer_service_state.dart';
 
 class CustomerServiceBloc
     extends Bloc<CustomerServiceEvent, CustomerServiceState> {
@@ -25,25 +24,32 @@ class CustomerServiceBloc
     required this.organizationRepository,
     required this.calendarRepository,
   }) : super(const CustomerServiceState()) {
-    on<LoadCustomerService>(_onLoadCustomerService);
-    on<LoadJourneyPaging>(_onLoadJourneyPaging);
-    on<LoadMoreServiceDetails>(_onLoadMoreServiceDetails);
-    on<LoadMoreCustomers>(_onLoadMoreCustomers);
-    on<PostCustomerNote>(_onPostCustomerNote);
-    on<UpdateNoteMark>(_onUpdateNoteMark);
-    on<CreateReminder>(_onCreateReminder);
-    on<UpdateReminder>(_onUpdateReminder);
-    on<ChangeStatusRead>(_onChangeStatusRead);
-    on<LoadFirstProviderChat>(_onLoadFirstProviderChat);
-    on<LoadMoreProviderChats>(_onLoadMoreProviderChats);
-    on<StorageConvertToCustomer>(_onStorageConvertToCustomer);
-    on<StorageUnArchiveCustomer>(_onStorageUnArchiveCustomer);
+    on<LoadCustomerService>(_onLoadCustomerService,
+        transformer: bc.droppable());
+    on<LoadJourneyPaging>(_onLoadJourneyPaging, transformer: bc.droppable());
+    on<LoadMoreServiceDetails>(_onLoadMoreServiceDetails,
+        transformer: bc.droppable());
+    on<LoadMoreCustomers>(_onLoadMoreCustomers, transformer: bc.droppable());
+    on<PostCustomerNote>(_onPostCustomerNote, transformer: bc.sequential());
+    on<UpdateNoteMark>(_onUpdateNoteMark, transformer: bc.sequential());
+    on<CreateReminder>(_onCreateReminder, transformer: bc.sequential());
+    on<UpdateReminder>(_onUpdateReminder, transformer: bc.sequential());
+    on<ChangeStatusRead>(_onChangeStatusRead, transformer: bc.sequential());
+    on<LoadFirstProviderChat>(_onLoadFirstProviderChat,
+        transformer: bc.droppable());
+    on<LoadMoreProviderChats>(_onLoadMoreProviderChats,
+        transformer: bc.droppable());
+    on<StorageConvertToCustomer>(_onStorageConvertToCustomer,
+        transformer: bc.sequential());
+    on<StorageUnArchiveCustomer>(_onStorageUnArchiveCustomer,
+        transformer: bc.sequential());
     on<FirebaseConversationUpdated>(_onFirebaseConversationUpdated);
-    on<ToggleFirebaseListenerRequested>(_onToggleFirebaseListenerRequested);
+    on<ToggleFirebaseListenerRequested>(_onToggleFirebaseListenerRequested,
+        transformer: bc.restartable());
     on<DisableFirebaseListenerRequested>(_onDisableFirebaseListenerRequested);
-    on<LoadFacebookChat>(_onLoadFacebookChat);
-    on<DeleteCustomer>(_onDeleteCustomer);
-    on<DeleteReminder>(_onDeleteReminder);
+    on<LoadFacebookChat>(_onLoadFacebookChat, transformer: bc.droppable());
+    on<DeleteCustomer>(_onDeleteCustomer, transformer: bc.sequential());
+    on<DeleteReminder>(_onDeleteReminder, transformer: bc.sequential());
     on<ShowError>(_onShowError);
   }
 
@@ -138,8 +144,8 @@ class CustomerServiceBloc
       );
 
       if (_ok(response.data)) {
-        final service_detail.ServiceDetailResponse parsed =
-            service_detail.ServiceDetailResponse.fromJson(response.data);
+        final ServiceDetailResponse parsed =
+            ServiceDetailResponse.fromJson(response.data);
 
         final hasMore = _hasMore(
           parsed.metadata?.offset,
@@ -187,12 +193,11 @@ class CustomerServiceBloc
       );
 
       if (_ok(response.data)) {
-        final service_detail.ServiceDetailResponse parsed =
-            service_detail.ServiceDetailResponse.fromJson(response.data);
+        final ServiceDetailResponse parsed =
+            ServiceDetailResponse.fromJson(response.data);
 
-        final updated =
-            List<service_detail.ServiceDetailModel>.from(state.serviceDetails)
-              ..addAll(parsed.content ?? []);
+        final updated = List<ServiceDetailModel>.from(state.serviceDetails)
+          ..addAll(parsed.content ?? []);
 
         final hasMore = _hasMore(
           parsed.metadata?.offset,
@@ -291,7 +296,7 @@ class CustomerServiceBloc
       final fullName = event.customerName;
       final content = response.data['content'];
       if (content != null) {
-        final newSchedule = service_detail.ServiceDetailModel(
+        final newSchedule = ServiceDetailModel(
           id: content['id'],
           summary: 'Thêm ghi chú: ${event.note}',
           createdDate: content['createdDate'],
@@ -299,9 +304,8 @@ class CustomerServiceBloc
           type: content['type'],
           icon: '',
         );
-        final updated =
-            List<service_detail.ServiceDetailModel>.from(state.serviceDetails)
-              ..insert(0, newSchedule);
+        final updated = List<ServiceDetailModel>.from(state.serviceDetails)
+          ..insert(0, newSchedule);
         emit(state.copyWith(serviceDetails: updated));
       }
     } else {
@@ -427,8 +431,8 @@ class CustomerServiceBloc
     log('API Response success: $success');
 
     if (success) {
-      final FacebookChatResponse parsed =
-          FacebookChatResponse.fromJson(response.data);
+      final CustomerServiceResponse parsed =
+          CustomerServiceResponse.fromJson(response.data);
       final hasMore = _hasMore(
         parsed.metadata?.offset,
         parsed.metadata?.count,
@@ -438,7 +442,7 @@ class CustomerServiceBloc
       emit(
         state.copyWith(
           status: CustomerServiceStatus.success,
-          facebookChats: parsed.content ?? [],
+          customerServices: parsed.content ?? [],
           facebookChatsMetadata: parsed.metadata,
           hasMoreFacebookChats: hasMore,
         ),
@@ -465,10 +469,10 @@ class CustomerServiceBloc
       );
 
       if (_ok(response.data)) {
-        final FacebookChatResponse parsed =
-            FacebookChatResponse.fromJson(response.data);
+        final CustomerServiceResponse parsed =
+            CustomerServiceResponse.fromJson(response.data);
 
-        final updated = List<FacebookChatModel>.from(state.facebookChats)
+        final updated = List<CustomerServiceModel>.from(state.customerServices)
           ..addAll(parsed.content ?? []);
 
         final hasMore = _hasMore(
@@ -484,7 +488,7 @@ class CustomerServiceBloc
         emit(
           state.copyWith(
             status: CustomerServiceStatus.success,
-            facebookChats: updated,
+            customerServices: updated,
             facebookChatsMetadata: parsed.metadata,
             hasMoreFacebookChats: hasMore,
           ),
@@ -561,11 +565,11 @@ class CustomerServiceBloc
     );
 
     if (_ok(response.data)) {
-      final updated = List<FacebookChatModel>.from(state.facebookChats);
+      final updated = List<CustomerServiceModel>.from(state.customerServices);
       final index = updated.indexWhere((e) => e.id == event.conversationId);
       if (index != -1) {
-        updated[index] = updated[index].copyWith(isRead: true);
-        emit(state.copyWith(facebookChats: updated));
+        // updated[index] = updated[index].copyWith(isRead: true);
+        emit(state.copyWith(customerServices: updated));
       }
     }
   }
@@ -594,12 +598,13 @@ class CustomerServiceBloc
         final outerKey = data['CreateOrUpdateConversation'].keys.first;
         final rawData = data['CreateOrUpdateConversation'][outerKey];
 
-        final FacebookChatModel newConversation =
-            FacebookChatModel.fromFirebase(jsonDecode(jsonEncode(rawData)));
+        final CustomerServiceModel newConversation =
+            CustomerServiceModel.fromFirebase(jsonDecode(jsonEncode(rawData)));
 
-        if (newConversation.conversationId == state.facebookChat?.id) {
-          newConversation.isRead = true;
-        }
+        //Update isRead nếu có
+        // if (newConversation.id == state.facebookChat?.id) {
+        //   newConversation.isRead = true;
+        // }
 
         add(
           FirebaseConversationUpdated(
@@ -618,67 +623,49 @@ class CustomerServiceBloc
     FirebaseConversationUpdated event,
     Emitter<CustomerServiceState> emit,
   ) async {
-    final existingIndex = state.facebookChats
-        .indexWhere((e) => e.id == event.conversation.conversationId);
+    final existingIndex =
+        state.customerServices.indexWhere((e) => e.id == event.conversation.id);
 
-    var updatedChats = List<FacebookChatModel>.from(state.facebookChats);
-    var isRead = false;
+    var updatedChats = List<CustomerServiceModel>.from(state.customerServices);
 
     // If in detail view or same page, mark as read
-    if (state.facebookChat?.id == event.conversation.conversationId) {
-      isRead = true;
-      if (updatedChats.isNotEmpty && updatedChats.first.isRead == true) {
-        add(
-          ChangeStatusRead(
-            conversationId: updatedChats.first.id ?? '',
-            organizationId: event.organizationId,
-          ),
-        );
-      }
+    if (state.facebookChat?.id == event.conversation.id) {
+      // if (updatedChats.isNotEmpty && updatedChats.first.isRead == true) {
+      //   add(
+      //     ChangeStatusRead(
+      //       conversationId: updatedChats.first.id ?? '',
+      //       organizationId: event.organizationId,
+      //     ),
+      //   );
+      // }
     }
-    if (state.facebookChat?.pageId == event.conversation.pageId) {
-      isRead = true;
-    }
+    // if (state.facebookChat?.pageId == event.conversation.pageId) {
+    //   isRead = true;
+    // }
 
     if (existingIndex != -1) {
-      if (updatedChats[existingIndex].pageId == event.conversation.pageId) {
-        isRead = true;
-      }
+      // if (updatedChats[existingIndex].pageId == event.conversation.pageId) {
+      //   isRead = true;
+      // }
 
       // Preserve immutable fields from existing item
-      event.conversation
-        ..id = updatedChats[existingIndex].id
-        ..integrationAuthId = updatedChats[existingIndex].integrationAuthId
-        ..conversationId = updatedChats[existingIndex].conversationId
-        ..pageId = updatedChats[existingIndex].pageId
-        ..pageName = updatedChats[existingIndex].pageName
-        ..pageAvatar = updatedChats[existingIndex].pageAvatar
-        ..personId = updatedChats[existingIndex].personId
-        ..personName = updatedChats[existingIndex].personName
-        ..personAvatar = updatedChats[existingIndex].personAvatar
-        ..unreadCount = updatedChats[existingIndex].unreadCount
-        ..canReply = updatedChats[existingIndex].canReply
-        ..updatedTime = updatedChats[existingIndex].updatedTime
-        ..gptStatus = updatedChats[existingIndex].gptStatus
-        ..isRead = isRead
-        ..type = updatedChats[existingIndex].type
-        ..provider = updatedChats[existingIndex].provider
-        ..status = updatedChats[existingIndex].status
-        ..contact = updatedChats[existingIndex].contact
-        ..messageCount = updatedChats[existingIndex].messageCount
-        ..assignTo = updatedChats[existingIndex].assignTo
-        ..assignName = updatedChats[existingIndex].assignName
-        ..assignAvatar = updatedChats[existingIndex].assignAvatar;
-
+      final newChat =
+          updatedChats[existingIndex] = updatedChats[existingIndex].copyWith(
+        createdDate: event.conversation.createdDate,
+        lastModifiedDate: event.conversation.lastModifiedDate,
+        snippet: event.conversation.snippet,
+        channel: event.conversation.channel,
+        pageName: event.conversation.pageName,
+      );
       updatedChats
         ..removeAt(existingIndex)
-        ..insert(0, event.conversation);
+        ..insert(0, newChat);
     } else {
-      updatedChats.insert(0, event.conversation.copyWith(isRead: isRead));
+      updatedChats.insert(0, event.conversation);
     }
 
     log('updatedChats length: ${updatedChats.length}');
-    emit(state.copyWith(facebookChats: updatedChats));
+    emit(state.copyWith(customerServices: updatedChats));
   }
 
   Future<void> _onDeleteCustomer(
@@ -696,7 +683,7 @@ class CustomerServiceBloc
           .toList();
       emit(
         state.copyWith(
-          status: CustomerServiceStatus.success,
+          status: CustomerServiceStatus.successDeleteReminder,
           customerServices: updated,
         ),
       );

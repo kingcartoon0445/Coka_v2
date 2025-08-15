@@ -6,6 +6,8 @@ import 'package:source_base/data/repositories/calendar_repository.dart';
 import 'package:source_base/data/repositories/deal_activity_repository.dart';
 import 'package:source_base/presentation/blocs/deal_activity/deal_activity_event.dart';
 import 'package:source_base/presentation/blocs/deal_activity/deal_activity_state.dart';
+import 'package:source_base/presentation/blocs/deal_activity/model/order_detail_responese.dart';
+import 'package:source_base/presentation/blocs/final_deal/model/business_process_task_response.dart';
 
 class DealActivityBloc extends Bloc<DealActivityEvent, DealActivityState> {
   final DealActivityRepository dealActivityRepository;
@@ -15,6 +17,7 @@ class DealActivityBloc extends Bloc<DealActivityEvent, DealActivityState> {
       {required this.dealActivityRepository, required this.calendarRepository})
       : super(DealActivityState()) {
     on<LoadDealActivity>(_onLoadDealActivity);
+    on<LoadDetailTask>(_onLoadDetailTask);
     on<ChangeStage>(_onChangeStage);
     on<UpdateStatus>(_onUpdateStatus);
     on<RemoveState>(_onRemoveState);
@@ -29,9 +32,9 @@ class DealActivityBloc extends Bloc<DealActivityEvent, DealActivityState> {
         organizationId: event.organizationId,
         status: DealActivityStatus.loading,
         businessProcesses: event.businessProcesses,
-        businessProcessTask: event.businessProcessTask,
-        selectedBusinessProcess: event.businessProcesses?.firstWhere(
-            (element) => element.id == event.businessProcessTask?.stageId),
+        task: event.task,
+        selectedBusinessProcess: event.businessProcesses
+            ?.firstWhere((element) => element.id == event.task?.stageId),
         workspaceId: event.workspaceId));
     // final response = await dealActivityRepository.getDealActivity(
     //     event.organizationId, event.stageId);
@@ -45,8 +48,7 @@ class DealActivityBloc extends Bloc<DealActivityEvent, DealActivityState> {
     // }
 
     final historyResponse = await dealActivityRepository.getHistory(
-        event.organizationId,
-        event.businessProcessTask?.id ?? state.businessProcessTask?.id ?? '');
+        event.organizationId, event.task?.id ?? state.task?.id ?? '');
     bool isSuccessHistory = Helpers.isResponseSuccess(historyResponse.data);
     if (isSuccessHistory) {
       ServiceDetailResponse noteSimpleResponse =
@@ -68,12 +70,33 @@ class DealActivityBloc extends Bloc<DealActivityEvent, DealActivityState> {
     }
   }
 
+  Future<void> _onLoadDetailTask(
+      LoadDetailTask event, Emitter<DealActivityState> emit) async {
+    final response = await dealActivityRepository.getDetailTask(
+        event.organizationId, event.taskId);
+    bool isSuccess = Helpers.isResponseSuccess(response.data);
+    if (isSuccess) {
+      TaskResponse taskResponse = TaskResponse.fromJson(response.data);
+      emit(state.copyWith(
+          status: DealActivityStatus.success, task: taskResponse.data?.first));
+    }
+    final orderDetailResponse = await dealActivityRepository
+        .getOrderDetailWithProduct(event.organizationId, event.orderId!);
+    bool isSuccessOrderDetail =
+        Helpers.isResponseSuccess(orderDetailResponse.data);
+    if (isSuccessOrderDetail) {
+      CustomerOrderApiResponse orderResponse =
+          CustomerOrderApiResponse.fromJson(orderDetailResponse.data);
+      emit(state.copyWith(customerOrderDataModel: orderResponse.data));
+    }
+  }
+
   Future<void> _onChangeStage(
       ChangeStage event, Emitter<DealActivityState> emit) async {
     try {
       final response = await dealActivityRepository.updateStageGiveTask(
           state.organizationId ?? '',
-          state.businessProcessTask?.id ?? '',
+          state.task?.id ?? '',
           event.businessProcess?.id ?? '');
       bool isSuccess = Helpers.isResponseSuccess(response.data);
       if (isSuccess) {
@@ -96,9 +119,7 @@ class DealActivityBloc extends Bloc<DealActivityEvent, DealActivityState> {
       UpdateStatus event, Emitter<DealActivityState> emit) async {
     try {
       final response = await dealActivityRepository.updateStatus(
-          state.organizationId ?? '',
-          state.businessProcessTask?.id ?? '',
-          event.isSuccess);
+          state.organizationId ?? '', state.task?.id ?? '', event.isSuccess);
       bool isSuccess = Helpers.isResponseSuccess(response.data);
       if (isSuccess) {
         emit(state.copyWith(status: DealActivityStatus.successUpdateStatus));

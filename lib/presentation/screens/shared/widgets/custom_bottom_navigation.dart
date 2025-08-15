@@ -20,8 +20,8 @@ class CustomBottomNavigation extends StatelessWidget {
   Widget build(BuildContext context) {
     return NavigationBarTheme(
       data: NavigationBarThemeData(
-        labelTextStyle: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
+        labelTextStyle: MaterialStateProperty.resolveWith((states) {
+          if (states.contains(MaterialState.selected)) {
             return const TextStyle(
               color: AppColors.primary,
               fontWeight: FontWeight.w500,
@@ -47,7 +47,17 @@ class CustomBottomNavigation extends StatelessWidget {
             label: "customer_care".tr(),
           ),
           NavigationDestination(
-            icon: const Icon(Icons.handshake_outlined, size: 26),
+            icon: Stack(
+              children: [
+                const Icon(Icons.handshake_outlined, size: 26),
+                if (showCampaignBadge)
+                  const Positioned(
+                    right: 0,
+                    top: 0,
+                    child: _BadgeDot(),
+                  ),
+              ],
+            ),
             selectedIcon: const Icon(
               Icons.handshake_outlined,
               size: 30,
@@ -56,22 +66,26 @@ class CustomBottomNavigation extends StatelessWidget {
             label: "customer_label".tr(),
           ),
           NavigationDestination(
-            icon: const Icon(
-              Icons.person_outline_outlined,
-              size: 26,
+            icon: Stack(
+              children: [
+                const Icon(Icons.person_outline_outlined, size: 26),
+                if (showSettingsBadge)
+                  const Positioned(
+                    right: 0,
+                    top: 0,
+                    child: _BadgeDot(),
+                  ),
+              ],
             ),
             selectedIcon: const Icon(
               Icons.person_outline_outlined,
               size: 30,
               color: Color(0xFF5A48EF),
             ),
-            label: "customer_label".tr(),
+            label: "profile_label".tr(), // tránh trùng key
           ),
           NavigationDestination(
-            icon: const Icon(
-              Icons.holiday_village_outlined,
-              size: 26,
-            ),
+            icon: const Icon(Icons.holiday_village_outlined, size: 26),
             selectedIcon: const Icon(
               Icons.holiday_village_outlined,
               size: 30,
@@ -80,10 +94,7 @@ class CustomBottomNavigation extends StatelessWidget {
             label: "product_label".tr(),
           ),
           NavigationDestination(
-            icon: const Icon(
-              Icons.keyboard_control,
-              size: 26,
-            ),
+            icon: const Icon(Icons.keyboard_control, size: 26),
             selectedIcon: const Icon(
               Icons.keyboard_control,
               size: 30,
@@ -94,14 +105,30 @@ class CustomBottomNavigation extends StatelessWidget {
         ],
         onDestinationSelected: onTapped,
         selectedIndex: selectedIndex,
-        animationDuration: const Duration(milliseconds: 500),
+        animationDuration: const Duration(milliseconds: 250),
         indicatorColor: const Color(0xFFDCDBFF),
         backgroundColor: Colors.white,
-        elevation: 4,
-        shadowColor: Colors.black,
+        elevation: 0, // nhẹ hơn
+        shadowColor: Colors.transparent,
         surfaceTintColor: Colors.white,
         labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
         height: 68,
+      ),
+    );
+  }
+}
+
+class _BadgeDot extends StatelessWidget {
+  const _BadgeDot();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 8,
+      height: 8,
+      decoration: const BoxDecoration(
+        color: Colors.red,
+        shape: BoxShape.circle,
       ),
     );
   }

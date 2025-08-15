@@ -11,30 +11,30 @@ abstract class FinalDealEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class FinalDealInitialized extends FinalDealEvent {
-  const FinalDealInitialized();
+class Initialized extends FinalDealEvent {
+  const Initialized();
 }
 
-class FinalDealGetAllWorkspace extends FinalDealEvent {
+class GetAllWorkspace extends FinalDealEvent {
   final String organizationId;
-  const FinalDealGetAllWorkspace({required this.organizationId});
+  const GetAllWorkspace({required this.organizationId});
 }
 
-class FinalDealSelectWorkspace extends FinalDealEvent {
+class SelectWorkspace extends FinalDealEvent {
   final WorkspaceModel workspace;
   final String organizationId;
-  const FinalDealSelectWorkspace(
+  const SelectWorkspace(
       {required this.workspace, required this.organizationId});
 }
 
-class FinalDealGetBusinessProcess extends FinalDealEvent {
+class GetBusinessProcess extends FinalDealEvent {
   final String organizationId;
   final String workspaceId;
-  const FinalDealGetBusinessProcess(
+  const GetBusinessProcess(
       {required this.organizationId, required this.workspaceId});
 }
 
-class FinalDealGetBusinessProcessTask extends FinalDealEvent {
+class GetBusinessProcessTask extends FinalDealEvent {
   final String organizationId;
   final String? processId;
   final BusinessProcessModel? stage;
@@ -44,7 +44,7 @@ class FinalDealGetBusinessProcessTask extends FinalDealEvent {
   final bool includeHistory;
   final int page;
   final int pageSize;
-  const FinalDealGetBusinessProcessTask(
+  const GetBusinessProcessTask(
       {required this.organizationId,
       this.processId,
       this.stage,
@@ -56,9 +56,16 @@ class FinalDealGetBusinessProcessTask extends FinalDealEvent {
       required this.pageSize});
 }
 
-class FinalDealSelectBusinessProcess extends FinalDealEvent {
+class SelectBusinessProcess extends FinalDealEvent {
   final BusinessProcessModel businessProcess;
   final String organizationId;
-  const FinalDealSelectBusinessProcess(
+  const SelectBusinessProcess(
       {required this.businessProcess, required this.organizationId});
+}
+
+ class GetDetailTask extends FinalDealEvent {
+  final String organizationId;
+  final String taskId;
+  const GetDetailTask(
+      {required this.organizationId, required this.taskId});
 }

@@ -36,146 +36,150 @@ class _FinalDealScreenState extends State<FinalDealScreen>
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<FinalDealBloc, FinalDealState>(
+    return BlocConsumer<FinalDealBloc, FinalDealState>(
         listener: (context, state) {
-          if (state.status == FinalDealStatus.error) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.error ?? 'Error')),
-            );
-          }
-          if (state.status == FinalDealStatus.success) {}
-          if (state.status == FinalDealStatus.successBusinessProcessTask) {
-            setState(() {
-              _tabController = TabController(
-                length: state.businessProcesses.length,
-                vsync: this,
-                // initialIndex: state.businessProcesses.indexWhere(
-                //     (element) => element.id == state.selectedBusinessProcess?.id)
-              );
-              _tabController.addListener(() {
-                if (_tabController.index != _tabController.previousIndex) {
-                  context
-                      .read<FinalDealBloc>()
-                      .add(FinalDealSelectBusinessProcess(
-                        businessProcess:
-                            businessProcesses[_tabController.index],
-                        organizationId: context
-                                .read<OrganizationBloc>()
-                                .state
-                                .organizationId ??
+      if (state.status == FinalDealStatus.error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(state.error ?? 'Error')),
+        );
+      }
+      if (state.status == FinalDealStatus.success) {}
+      if (state.status == FinalDealStatus.successBusinessProcessTask) {
+        setState(() {
+          _tabController = TabController(
+            length: state.businessProcesses.length,
+            vsync: this,
+            // initialIndex: state.businessProcesses.indexWhere(
+            //     (element) => element.id == state.selectedBusinessProcess?.id)
+          );
+          _tabController.addListener(() {
+            // Chỉ chạy khi animation đã hoàn tất
+            if (!_tabController.indexIsChanging &&
+                _tabController.index != _tabController.previousIndex) {
+              context.read<FinalDealBloc>().add(SelectBusinessProcess(
+                    businessProcess: businessProcesses[_tabController.index],
+                    organizationId:
+                        context.read<OrganizationBloc>().state.organizationId ??
                             '',
-                      ));
-                }
-              });
-              businessProcesses = state.businessProcesses;
-            });
-          }
-        },
-        child: businessProcesses.isEmpty
-            ? const Center(
-                child: Text('Nhóm này chưa được chia giai đoạn!'),
-              )
-            : Column(
-                children: [
-                  // Tab Bar
-                  Container(
-                    color: Colors.white,
-                    child: TabBar(
-                      padding: EdgeInsets.zero,
-                      //  labelPadding: EdgeInsets.symmetric(horizontal: 12),
-                      tabAlignment: TabAlignment.start,
-                      labelPadding: const EdgeInsets.only(left: 6, right: 10),
-                      isScrollable: true,
-                      controller: _tabController,
-                      indicatorColor: AppColors.primary,
-                      indicatorWeight: 2,
-                      labelColor: AppColors.primary,
-                      unselectedLabelColor: Colors.grey,
-                      labelStyle: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                      ),
-                      unselectedLabelStyle: const TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 14,
-                      ),
-                      tabs: businessProcesses
-                          .map((businessProcess) => Tab(
-                                text: businessProcess.name,
-                              ))
-                          .toList(),
+                  ));
+            }
+          });
+
+          businessProcesses = state.businessProcesses;
+        });
+      }
+    }, builder: (context, state) {
+      if (state.status == FinalDealStatus.loading) {
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      }
+      return businessProcesses.isEmpty
+          ? const Center(
+              child: Text('Nhóm này chưa được chia giai đoạn!'),
+            )
+          : Column(
+              children: [
+                // Tab Bar
+                Container(
+                  color: Colors.white,
+                  child: TabBar(
+                    padding: EdgeInsets.zero,
+                    //  labelPadding: EdgeInsets.symmetric(horizontal: 12),
+                    tabAlignment: TabAlignment.start,
+                    labelPadding: const EdgeInsets.only(left: 6, right: 10),
+                    isScrollable: true,
+                    controller: _tabController,
+                    indicatorColor: AppColors.primary,
+                    indicatorWeight: 2,
+                    labelColor: AppColors.primary,
+                    unselectedLabelColor: Colors.grey,
+                    labelStyle: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
                     ),
+                    unselectedLabelStyle: const TextStyle(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 14,
+                    ),
+                    tabs: businessProcesses
+                        .map((businessProcess) => Tab(
+                              text: businessProcess.name,
+                            ))
+                        .toList(),
                   ),
+                ),
 
-                  // Summary Section
-                  BlocBuilder<FinalDealBloc, FinalDealState>(
-                      builder: (context, state) {
-                    if (state.status ==
-                        FinalDealStatus.loadingBusinessProcess) {
-                      return const Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    }
-                    return Container(
-                      color: Colors.white,
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          Text(
-                            Helpers.formatCurrency(
-                              state.businessProcessTasks
-                                  .map((e) => e.orderValue)
-                                  .fold(0, (sum, item) => sum + (item ?? 0)),
-                            ),
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          Container(
-                            margin: const EdgeInsets.only(left: 10, right: 10),
-                            height: 5,
-                            width: 5,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: AppColors.textTertiary,
-                            ),
-                          ),
-                          Text(
-                            '${state.businessProcessTasks.length} Giao dịch',
-                            style: TextStyle(
-                              color: Colors.grey,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
+                // Summary Section
+                BlocBuilder<FinalDealBloc, FinalDealState>(
+                    builder: (context, state) {
+                  if (state.status == FinalDealStatus.loadingBusinessProcess) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
                     );
-                  }),
+                  }
 
-                  const SizedBox(height: 8),
-
-                  // TabBarView for different content
-                  Expanded(
-                    child: TabBarView(
-                      controller: _tabController,
+                  return Container(
+                    color: Colors.white,
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
                       children: [
-                        for (var businessProcess in businessProcesses) ...[
-                          TabView()
-                        ]
-                        // Tab 1: Khách quan tâm
-
-                        // Tab 2: Gửi thông tin chi tiết
-                        // _buildSendInfoContent(),
-
-                        // // Tab 3: Đặt lịch đi xem dự án
-                        // _buildScheduleContent(),
+                        Text(
+                          Helpers.formatCurrency(
+                            state.taskes.map((e) => e.orderValue)
+                                .fold(0, (sum, item) => sum + (item ?? 0)),
+                          ),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.only(left: 10, right: 10),
+                          height: 5,
+                          width: 5,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.textTertiary,
+                          ),
+                        ),
+                        Text(
+                          '${state.taskes.length} Giao dịch',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                       ],
                     ),
+                  );
+                }),
+
+                const SizedBox(height: 8),
+
+                // TabBarView for different content
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      for (var businessProcess in businessProcesses) ...[
+                        TabView()
+                      ]
+                      // Tab 1: Khách quan tâm
+
+                      // Tab 2: Gửi thông tin chi tiết
+                      // _buildSendInfoContent(),
+
+                      // // Tab 3: Đặt lịch đi xem dự án
+                      // _buildScheduleContent(),
+                    ],
                   ),
-                ],
-              ));
+                ),
+              ],
+            );
+    });
   }
 
   Widget _buildInteractionItem(IconData icon, String count) {
@@ -277,7 +281,7 @@ class _FinalDealScreenState extends State<FinalDealScreen>
                     'Chuyển giai đoạn',
                     style: TextStyle(
                       fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
                       color: Colors.black87,
                     ),
                   ),

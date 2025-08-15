@@ -2,7 +2,6 @@ import 'package:equatable/equatable.dart';
 import 'package:source_base/config/enum_platform.dart';
 import 'package:source_base/data/datasources/remote/param_model/lead_paging_request_model.dart';
 import 'package:source_base/data/models/customer_service_response.dart';
-import 'package:source_base/data/models/facebook_chat_response.dart';
 import 'package:source_base/data/models/reminder_service_body.dart';
 import 'package:source_base/presentation/blocs/customer_service/customer_service_state.dart';
 
@@ -14,7 +13,12 @@ abstract class CustomerServiceEvent extends Equatable {
 }
 
 // Sự kiện kiểm tra trạng thái xác thực
-class CheckCustomerServiceStatus extends CustomerServiceEvent {}
+class CheckCustomerServiceStatus extends CustomerServiceEvent {
+  const CheckCustomerServiceStatus();
+
+  @override
+  List<Object?> get props => [];
+}
 
 class LoadCustomerServices extends CustomerServiceEvent {
   final String limit;
@@ -26,6 +30,9 @@ class LoadCustomerServices extends CustomerServiceEvent {
     required this.offset,
     required this.searchText,
   });
+
+  @override
+  List<Object?> get props => [limit, offset, searchText];
 }
 
 class LoadCustomerService extends CustomerServiceEvent {
@@ -35,6 +42,9 @@ class LoadCustomerService extends CustomerServiceEvent {
     required this.organizationId,
     this.pagingRequest,
   });
+
+  @override
+  List<Object?> get props => [organizationId, pagingRequest];
 }
 
 class LoadJourneyPaging extends CustomerServiceEvent {
@@ -46,6 +56,9 @@ class LoadJourneyPaging extends CustomerServiceEvent {
     required this.organizationId,
     this.type,
   });
+
+  @override
+  List<Object?> get props => [customerService, organizationId, type];
 }
 
 class PostCustomerNote extends CustomerServiceEvent {
@@ -60,6 +73,9 @@ class PostCustomerNote extends CustomerServiceEvent {
     required this.note,
     required this.organizationId,
   });
+
+  @override
+  List<Object?> get props => [customerId, customerName, note, organizationId];
 }
 
 class UpdateNoteMark extends CustomerServiceEvent {
@@ -72,6 +88,9 @@ class UpdateNoteMark extends CustomerServiceEvent {
     required this.isDone,
     required this.Notes,
   });
+
+  @override
+  List<Object?> get props => [ScheduleId, isDone, Notes];
 }
 
 class LoadMoreServiceDetails extends CustomerServiceEvent {
@@ -85,6 +104,9 @@ class LoadMoreServiceDetails extends CustomerServiceEvent {
     required this.offset,
     this.type,
   });
+
+  @override
+  List<Object?> get props => [organizationId, limit, offset, type];
 }
 
 class LoadMoreCustomers extends CustomerServiceEvent {
@@ -95,6 +117,9 @@ class LoadMoreCustomers extends CustomerServiceEvent {
     required this.organizationId,
     this.pagingRequest,
   });
+
+  @override
+  List<Object?> get props => [organizationId, pagingRequest];
 }
 
 class CreateReminder extends CustomerServiceEvent {
@@ -105,6 +130,9 @@ class CreateReminder extends CustomerServiceEvent {
     required this.organizationId,
     required this.body,
   });
+
+  @override
+  List<Object?> get props => [organizationId, body];
 }
 
 class PostArchiveCustomer extends CustomerServiceEvent {
@@ -115,6 +143,9 @@ class PostArchiveCustomer extends CustomerServiceEvent {
     required this.customerId,
     required this.organizationId,
   });
+
+  @override
+  List<Object?> get props => [customerId, organizationId];
 }
 
 class LoadFirstProviderChat extends CustomerServiceEvent {
@@ -125,6 +156,9 @@ class LoadFirstProviderChat extends CustomerServiceEvent {
     required this.organizationId,
     required this.provider,
   });
+
+  @override
+  List<Object?> get props => [organizationId, provider];
 }
 
 class LoadZaloChat extends CustomerServiceEvent {
@@ -133,6 +167,9 @@ class LoadZaloChat extends CustomerServiceEvent {
   const LoadZaloChat({
     required this.organizationId,
   });
+
+  @override
+  List<Object?> get props => [organizationId];
 }
 
 class LoadMoreProviderChats extends CustomerServiceEvent {
@@ -147,6 +184,9 @@ class LoadMoreProviderChats extends CustomerServiceEvent {
     required this.limit,
     required this.offset,
   });
+
+  @override
+  List<Object?> get props => [organizationId, provider, limit, offset];
 }
 
 class StorageConvertToCustomer extends CustomerServiceEvent {
@@ -157,6 +197,9 @@ class StorageConvertToCustomer extends CustomerServiceEvent {
     required this.customerId,
     required this.organizationId,
   });
+
+  @override
+  List<Object?> get props => [customerId, organizationId];
 }
 
 class StorageUnArchiveCustomer extends CustomerServiceEvent {
@@ -167,6 +210,9 @@ class StorageUnArchiveCustomer extends CustomerServiceEvent {
     required this.customerId,
     required this.organizationId,
   });
+
+  @override
+  List<Object?> get props => [customerId, organizationId];
 }
 
 class ChangeStatusRead extends CustomerServiceEvent {
@@ -176,20 +222,26 @@ class ChangeStatusRead extends CustomerServiceEvent {
     required this.organizationId,
     required this.conversationId,
   });
+
+  @override
+  List<Object?> get props => [organizationId, conversationId];
 }
 
 class FirebaseConversationUpdated extends CustomerServiceEvent {
-  final FacebookChatModel conversation;
+  final CustomerServiceModel conversation;
   final String organizationId;
   final bool isUpdate;
-  bool isRead;
+  final bool isRead;
 
-  FirebaseConversationUpdated({
+  const FirebaseConversationUpdated({
     required this.conversation,
     required this.organizationId,
     this.isUpdate = false,
     this.isRead = false,
   });
+
+  @override
+  List<Object?> get props => [conversation, organizationId, isUpdate];
 }
 
 class UpdateReminder extends CustomerServiceEvent {
@@ -200,6 +252,9 @@ class UpdateReminder extends CustomerServiceEvent {
     required this.organizationId,
     required this.body,
   });
+
+  @override
+  List<Object?> get props => [organizationId, body];
 }
 
 class DeleteReminder extends CustomerServiceEvent {
@@ -210,18 +265,26 @@ class DeleteReminder extends CustomerServiceEvent {
     required this.organizationId,
     required this.reminderId,
   });
+
+  @override
+  List<Object?> get props => [organizationId, reminderId];
 }
 
 class ToggleFirebaseListenerRequested extends CustomerServiceEvent {
   final String organizationId;
   final bool isEnabled;
+  final String userId;
   final PlatformSocial platform;
 
   const ToggleFirebaseListenerRequested({
     required this.organizationId,
     required this.isEnabled,
     required this.platform,
+    required this.userId,
   });
+
+  @override
+  List<Object?> get props => [organizationId, isEnabled, platform, userId];
 }
 
 class DisableFirebaseListenerRequested extends CustomerServiceEvent {
@@ -230,14 +293,20 @@ class DisableFirebaseListenerRequested extends CustomerServiceEvent {
   const DisableFirebaseListenerRequested({
     required this.organizationId,
   });
+
+  @override
+  List<Object?> get props => [organizationId];
 }
 
 class LoadFacebookChat extends CustomerServiceEvent {
-  final FacebookChatModel? facebookChat;
+  final CustomerServiceModel? facebookChat;
 
   const LoadFacebookChat({
     this.facebookChat,
   });
+
+  @override
+  List<Object?> get props => [facebookChat];
 }
 
 class DeleteCustomer extends CustomerServiceEvent {
@@ -248,6 +317,9 @@ class DeleteCustomer extends CustomerServiceEvent {
     required this.customerId,
     required this.organizationId,
   });
+
+  @override
+  List<Object?> get props => [customerId, organizationId];
 }
 
 class ShowError extends CustomerServiceEvent {
@@ -258,4 +330,8 @@ class ShowError extends CustomerServiceEvent {
     required this.error,
     required this.status,
   });
+
+  @override
+  List<Object?> get props => [error, status];
 }
+ 

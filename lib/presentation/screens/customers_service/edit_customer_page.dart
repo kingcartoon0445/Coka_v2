@@ -333,7 +333,7 @@ class _EditCustomerPageState extends State<EditCustomerPage> {
           style: TextStyle(
             color: Color(0xFF1F2329),
             fontSize: 20,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w700,
           ),
         ),
         centerTitle: true,
@@ -572,7 +572,7 @@ class _EditCustomerPageState extends State<EditCustomerPage> {
                   Text(
                     "Nhãn",
                     style: TextStyle(
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
                       fontSize: 16,
                     ),
                   ),
@@ -882,7 +882,7 @@ class _EditCustomerPageState extends State<EditCustomerPage> {
             style: TextStyle(
               color: Colors.white,
               fontSize: 16,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ),

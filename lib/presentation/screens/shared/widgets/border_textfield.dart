@@ -44,7 +44,7 @@ class BorderTextField extends StatelessWidget {
                     name,
                     style: const TextStyle(
                         color: Color(0xFF1F2329),
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                         fontSize: 16),
                   ),
                   isRequire ?? false

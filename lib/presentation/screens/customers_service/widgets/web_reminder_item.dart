@@ -37,7 +37,7 @@ class WebReminderItem extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(8),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
           child: Row(
             children: [
               // Checkbox

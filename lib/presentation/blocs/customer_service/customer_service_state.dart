@@ -3,14 +3,13 @@
 import 'package:equatable/equatable.dart';
 import 'package:source_base/data/datasources/remote/param_model/lead_paging_request_model.dart';
 import 'package:source_base/data/models/customer_service_response.dart';
-import 'package:source_base/data/models/facebook_chat_response.dart' hide Metadata;
 import 'package:source_base/data/models/schedule_response.dart';
-import 'package:source_base/data/models/service_detail_response.dart' hide Metadata;
+import 'package:source_base/data/models/service_detail_response.dart';
 
 enum CustomerServiceStatus {
   initial,
   loading,
-  loadingUserInfo, 
+  loadingUserInfo,
   errorCreateReminder,
   errorUpdateReminder,
   errorDeleteReminder,
@@ -27,8 +26,7 @@ class CustomerServiceState extends Equatable {
   final CustomerServiceModel? customerService;
   final List<ServiceDetailModel> serviceDetails;
   final List<ScheduleModel> scheduleDetails;
-  final List<FacebookChatModel> facebookChats;
-  final FacebookChatModel? facebookChat;
+  final CustomerServiceModel? facebookChat;
   final String? error;
   final Metadata? serviceDetailsMetadata;
   final bool hasMoreServiceDetails;
@@ -43,7 +41,6 @@ class CustomerServiceState extends Equatable {
     this.customerService,
     this.serviceDetails = const [],
     this.scheduleDetails = const [],
-    this.facebookChats = const [],
     this.facebookChat,
     this.error,
     this.serviceDetailsMetadata,
@@ -61,8 +58,7 @@ class CustomerServiceState extends Equatable {
     CustomerServiceModel? customerService,
     List<ServiceDetailModel>? serviceDetails,
     List<ScheduleModel>? scheduleDetails,
-    List<FacebookChatModel>? facebookChats,
-    FacebookChatModel? facebookChat,
+    CustomerServiceModel? facebookChat,
     String? error,
     String? organizationId,
     Metadata? serviceDetailsMetadata,
@@ -75,11 +71,16 @@ class CustomerServiceState extends Equatable {
   }) {
     return CustomerServiceState(
       status: status ?? this.status,
-      customerServices: customerServices ?? this.customerServices,
+      customerServices: customerServices != null
+          ? List<CustomerServiceModel>.unmodifiable(customerServices)
+          : this.customerServices,
       customerService: customerService ?? this.customerService,
-      serviceDetails: serviceDetails ?? this.serviceDetails,
-      scheduleDetails: scheduleDetails ?? this.scheduleDetails,
-      facebookChats: facebookChats ?? this.facebookChats,
+      serviceDetails: serviceDetails != null
+          ? List<ServiceDetailModel>.unmodifiable(serviceDetails)
+          : this.serviceDetails,
+      scheduleDetails: scheduleDetails != null
+          ? List<ScheduleModel>.unmodifiable(scheduleDetails)
+          : this.scheduleDetails,
       facebookChat: facebookChat ?? this.facebookChat,
       error: error ?? this.error,
       serviceDetailsMetadata:
@@ -88,9 +89,9 @@ class CustomerServiceState extends Equatable {
           hasMoreServiceDetails ?? this.hasMoreServiceDetails,
       customersMetadata: customersMetadata ?? this.customersMetadata,
       hasMoreCustomers: hasMoreCustomers ?? this.hasMoreCustomers,
+      hasMoreFacebookChats: hasMoreFacebookChats ?? this.hasMoreFacebookChats,
       facebookChatsMetadata:
           facebookChatsMetadata ?? this.facebookChatsMetadata,
-      hasMoreFacebookChats: hasMoreFacebookChats ?? this.hasMoreFacebookChats,
       pagingRequest: pagingRequest ?? this.pagingRequest,
     );
   }
@@ -103,7 +104,6 @@ class CustomerServiceState extends Equatable {
         customerService,
         serviceDetails,
         scheduleDetails,
-        facebookChats,
         facebookChat,
         serviceDetailsMetadata,
         hasMoreServiceDetails,

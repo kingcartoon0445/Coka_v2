@@ -22,7 +22,7 @@ class DatePickerBtn extends StatelessWidget {
   static const _selectedTextStyle = TextStyle(
     color: Color(0xFF2C160C),
     fontSize: 14,
-    fontWeight: FontWeight.bold,
+    fontWeight: FontWeight.w700,
   );
 
   final DateTime? fromDate;

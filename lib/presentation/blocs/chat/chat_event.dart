@@ -1,8 +1,7 @@
 import 'dart:io';
 
 import 'package:equatable/equatable.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:source_base/data/models/facebook_chat_response.dart';
+import 'package:image_picker/image_picker.dart'; 
 import 'package:source_base/data/models/user_profile.dart';
 import 'package:source_base/presentation/screens/chat_detail_page/model/message_model.dart';
 
@@ -120,3 +119,5 @@ class SendImageMessage extends ChatEvent {
 }
 
 class DisableFirebaseListener extends ChatEvent {}
+
+class OutChat extends ChatEvent {}

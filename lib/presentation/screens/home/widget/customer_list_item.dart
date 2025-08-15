@@ -5,6 +5,8 @@ import 'package:source_base/config/app_color.dart';
 import 'package:source_base/config/helper.dart';
 import 'package:source_base/config/routes.dart';
 import 'package:source_base/data/models/customer_service_response.dart';
+import 'package:source_base/presentation/blocs/chat/chat_aciton.dart';
+import 'package:source_base/presentation/blocs/chat/chat_bloc.dart';
 import 'package:source_base/presentation/blocs/customer_service/customer_service_action.dart';
 import 'package:source_base/presentation/screens/shared/widgets/avatar_widget.dart';
 import 'package:source_base/presentation/screens/shared/widgets/context_menu.dart';
@@ -268,82 +270,83 @@ class CustomerListItem extends StatelessWidget {
       items: items,
     );
   }
-  // void _handleTap(
-  //   BuildContext context,
-  // ) {
-  //   // if (!isRead) {
-  //   //   context.read<CustomerServiceBloc>().add(
-  //   //       ChangeStatusRead(organizationId: organizationId, conversationId: id));
-  //   // }
-  //   // context.read<ChatBloc>().add(LoadFacebookChat(facebookChat: facebookChat));
-  //   context
-  //       .read<CustomerServiceBloc>()
-  //       .add(LoadFacebookChat(facebookChat: facebookChat));
-  //   context.read<ChatBloc>().add(ToolListenFirebase(
-  //         organizationId: organizationId ?? '',
-  //         conversationId: id,
-  //       ));
-  //   context.push(AppPaths.chatDetail).then((v) {
-  //     context
-  //         .read<CustomerServiceBloc>()
-  //         .add(const LoadFacebookChat(facebookChat: null));
-  //     // ignore: use_build_context_synchronously
-  //     context.read<ChatBloc>().add(DisableFirebaseListener());
-  //   });
-  //   // Kiểm tra conversation trong state tương ứng và cập nhật selected conversation
-  //   // if (platform == 'FACEBOOK') {
-  //   //   if (ref
-  //   //       .read(facebookMessageProvider)
-  //   //       .conversations
-  //   //       .any((c) => c.id == id)) {
-  //   //     if (!isRead) {
-  //   //       ref
-  //   //           .read(facebookMessageProvider.notifier)
-  //   //           .updateStatusRead(organizationId, id);
-  //   //       ref
-  //   //           .read(allMessageProvider.notifier)
-  //   //           .updateStatusRead(organizationId, id);
-  //   //     }
-  //   //     ref.read(facebookMessageProvider.notifier).selectConversation(id);
-  //   //     ref.read(allMessageProvider.notifier).selectConversation(id);
-  //   //   } else if (ref
-  //   //       .read(allMessageProvider)
-  //   //       .conversations
-  //   //       .any((c) => c.id == id)) {
-  //   //     if (!isRead) {
-  //   //       ref
-  //   //           .read(allMessageProvider.notifier)
-  //   //           .updateStatusRead(organizationId, id);
-  //   //     }
-  //   //     ref.read(allMessageProvider.notifier).selectConversation(id);
-  //   //   }
-  //   // }
-  //   // if (platform == 'ZALO') {
-  //   //   if (ref.read(zaloMessageProvider).conversations.any((c) => c.id == id)) {
-  //   //     if (!isRead) {
-  //   //       ref
-  //   //           .read(zaloMessageProvider.notifier)
-  //   //           .updateStatusRead(organizationId, id);
-  //   //     }
-  //   //     ref.read(zaloMessageProvider.notifier).selectConversation(id);
-  //   //   } else {
-  //   //     if (ref.read(allMessageProvider).conversations.any((c) => c.id == id)) {
-  //   //       if (!isRead) {
-  //   //         ref
-  //   //             .read(allMessageProvider.notifier)
-  //   //             .updateStatusRead(organizationId, id);
-  //   //       }
-  //   //       ref.read(allMessageProvider.notifier).selectConversation(id);
-  //   //     }
-  //   //     // Nếu không tìm thấy conversation trong state, có thể là do chưa tải dữ liệu
-  //   //     // Bạn có thể thêm logic để tải dữ liệu nếu cần thiết
-  //   //     print('Conversation with id $id not found in allMessageProvider');
-  //   //   }
-  //   // }
 
-  //   // Điều hướng đến trang chi tiết
-  //   // context.push('/organization/$organizationId/messages/detail/$id');
-  // }
+  void _handleTap(
+    BuildContext context,
+  ) {
+    // if (!isRead) {
+    //   context.read<CustomerServiceBloc>().add(
+    //       ChangeStatusRead(organizationId: organizationId, conversationId: id));
+    // }
+    // context.read<ChatBloc>().add(LoadFacebookChat(facebookChat: facebookChat));
+    context
+        .read<CustomerServiceBloc>()
+        .add(LoadFacebookChat(facebookChat: customer));
+    context.read<ChatBloc>().add(ToolListenFirebase(
+          organizationId: organizationId ?? '',
+          conversationId: customer.id ?? '',
+        ));
+    context.push(AppPaths.chatDetail).then((v) {
+      context
+          .read<CustomerServiceBloc>()
+          .add(const LoadFacebookChat(facebookChat: null));
+      // ignore: use_build_context_synchronously
+      context.read<ChatBloc>().add(DisableFirebaseListener());
+    });
+    // Kiểm tra conversation trong state tương ứng và cập nhật selected conversation
+    // if (platform == 'FACEBOOK') {
+    //   if (ref
+    //       .read(facebookMessageProvider)
+    //       .conversations
+    //       .any((c) => c.id == id)) {
+    //     if (!isRead) {
+    //       ref
+    //           .read(facebookMessageProvider.notifier)
+    //           .updateStatusRead(organizationId, id);
+    //       ref
+    //           .read(allMessageProvider.notifier)
+    //           .updateStatusRead(organizationId, id);
+    //     }
+    //     ref.read(facebookMessageProvider.notifier).selectConversation(id);
+    //     ref.read(allMessageProvider.notifier).selectConversation(id);
+    //   } else if (ref
+    //       .read(allMessageProvider)
+    //       .conversations
+    //       .any((c) => c.id == id)) {
+    //     if (!isRead) {
+    //       ref
+    //           .read(allMessageProvider.notifier)
+    //           .updateStatusRead(organizationId, id);
+    //     }
+    //     ref.read(allMessageProvider.notifier).selectConversation(id);
+    //   }
+    // }
+    // if (platform == 'ZALO') {
+    //   if (ref.read(zaloMessageProvider).conversations.any((c) => c.id == id)) {
+    //     if (!isRead) {
+    //       ref
+    //           .read(zaloMessageProvider.notifier)
+    //           .updateStatusRead(organizationId, id);
+    //     }
+    //     ref.read(zaloMessageProvider.notifier).selectConversation(id);
+    //   } else {
+    //     if (ref.read(allMessageProvider).conversations.any((c) => c.id == id)) {
+    //       if (!isRead) {
+    //         ref
+    //             .read(allMessageProvider.notifier)
+    //             .updateStatusRead(organizationId, id);
+    //       }
+    //       ref.read(allMessageProvider.notifier).selectConversation(id);
+    //     }
+    //     // Nếu không tìm thấy conversation trong state, có thể là do chưa tải dữ liệu
+    //     // Bạn có thể thêm logic để tải dữ liệu nếu cần thiết
+    //     print('Conversation with id $id not found in allMessageProvider');
+    //   }
+    // }
+
+    // Điều hướng đến trang chi tiết
+    // context.push('/organization/$organizationId/messages/detail/$id');
+  }
 
   @override
   Widget build(
@@ -352,7 +355,7 @@ class CustomerListItem extends StatelessWidget {
     timeago.setLocaleMessages('vi', timeago.ViMessages());
     timeago.setLocaleMessages('en', timeago.EnMessages());
     // final stage = customer.status;
-    final createdDate = DateTime.parse(customer.createdDate ?? '');
+    final createdDate = customer.createdDate!;
     final timeAgo = timeago.format(
       createdDate,
       locale: context.locale.languageCode,
@@ -363,7 +366,10 @@ class CustomerListItem extends StatelessWidget {
       builder: (BuildContext context) {
         return InkWell(
           onTap: () {
-            if (customer.channel == 'FACEBOOK') {}
+            if (customer.channel == 'FACEBOOK') {
+              _handleTap(context);
+              return;
+            }
             context.read<CustomerServiceBloc>().add(LoadJourneyPaging(
                   organizationId: organizationId,
                   customerService: customer,
@@ -472,7 +478,7 @@ class CustomerListItem extends StatelessWidget {
                                   customer.channel ?? '',
                                   style: const TextStyle(
                                     fontSize: 10,
-                                    color: Color.fromARGB(255, 10, 141, 248),
+                                    color: AppColors.primary,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),

@@ -178,7 +178,7 @@
 //                   style: TextStyle(
 //                     color: Color(0xFF1F2329),
 //                     fontSize: 16,
-//                     fontWeight: FontWeight.bold,
+//                     fontWeight: FontWeight.w700,
 //                   ),
 //                 ),
 //               ),
@@ -196,7 +196,7 @@
 //                       "Thành viên",
 //                       style: TextStyle(
 //                         fontSize: 15,
-//                         fontWeight: FontWeight.bold,
+//                         fontWeight: FontWeight.w700,
 //                       ),
 //                     ),
 //                   ),
@@ -205,7 +205,7 @@
 //                       "Đội Sale",
 //                       style: TextStyle(
 //                         fontSize: 15,
-//                         fontWeight: FontWeight.bold,
+//                         fontWeight: FontWeight.w700,
 //                       ),
 //                     ),
 //                   ),
@@ -287,7 +287,7 @@
 //             backgroundColor: Colors.grey[300],
 //             child: Text(
 //               fullName.isNotEmpty ? fullName[0].toUpperCase() : '?',
-//               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+//               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
 //             ),
 //           ),
 //           title: Text(fullName),

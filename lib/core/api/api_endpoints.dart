@@ -56,18 +56,19 @@ class ApiEndpoints {
       '$_prefix2/lead/$customerId/journey/note';
   static String getJourneyPaging(String id) =>
       '$_prefix2/lead/$id/journey/getlistpaging';
-  static String customerPath(String id) => '$_prefix2/customer/$id';
   static String getListPage(
           String provider, String subscribed, String searchText) =>
       '$_prefix/integration/omnichannel/getlistpaging?Provider=$provider&Subscribed=$subscribed&searchText=$searchText&Fields=Name';
   static String updateStatusRead(String conversationId) =>
       '$_prefix/integration/omni/conversation/read/$conversationId';
-  static String postArchiveCustomer(String id) =>
-      '$_prefix2/customer/$id/archive';
-  static String postUnArchiveCustomer(String id) =>
-      '$_prefix2/customer/$id/archive/restore';
-// API Được sử dụng
 
+// API Được sử dụng
+  static String postArchiveCustomer(String id) => '$_prefix2/lead/$id/archive';
+  static String customerPath(String id) => '$_prefix2/lead/$id';
+  static String getOrderDetailWithProduct(String id) =>
+      '$_prefix/order/getOrderDetailWithProduct/$id';
+  static String postUnArchiveCustomer(String id) =>
+      '$_prefix2/lead/$id/archive/restore';
   static const String getLeadPaging = '$_prefix2/lead/getlistpagingv2';
   static String businessProcessTask = '$_prefix/businessprocesstask';
   static String order = '$_prefix/order';
@@ -84,7 +85,6 @@ class ApiEndpoints {
     String workspaceId,
   ) =>
       '$_prefix/BusinessProcessStage/workspace/$workspaceId';
-  static String getBusinessProcessTask = '$_prefix/businessprocesstask';
   // /api/v1/integration/omni/conversation/read/{conversationId}
   // Prefix
   static const String _prefix = '/api/v1';
