@@ -113,10 +113,8 @@ class _AssigneeSelectionDialogState extends State<AssigneeSelectionDialog>
 
   void _toggleAssignee(MemberModel assignee) {
     setState(() {
-      if (_selectedAssignees
-          .any((item) => item.profileId == assignee.profileId)) {
-        _selectedAssignees
-            .removeWhere((item) => item.profileId == assignee.profileId);
+      if (_selectedAssignees.any((item) => item.name == assignee.name)) {
+        _selectedAssignees.removeWhere((item) => item.name == assignee.name);
       } else {
         _selectedAssignees.add(assignee);
       }
@@ -164,17 +162,16 @@ class _AssigneeSelectionDialogState extends State<AssigneeSelectionDialog>
   }
 
   Widget _buildListItem(MemberModel assignee) {
-    final isSelected =
-        _selectedAssignees.any((item) => item.profileId == assignee.profileId);
+    final isSelected = _selectedAssignees.any((item) => item.id == assignee.id);
     return ListTile(
       leading: AppAvatar(
         size: 40,
         shape: AvatarShape.circle,
         imageUrl: assignee.avatar,
-        fallbackText: assignee.fullName,
+        fallbackText: assignee.name,
       ),
       title: Text(
-        assignee.fullName ?? '',
+        assignee.name ?? '',
         style: const TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w500,

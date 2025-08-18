@@ -621,11 +621,11 @@ class _SwitchFinalDealState extends State<SwitchFinalDeal> {
                                           size: 16,
                                           shape: AvatarShape.circle,
                                           imageUrl: item.avatar,
-                                          fallbackText: item.fullName,
+                                          fallbackText: item.name,
                                         ),
                                         const SizedBox(width: 4),
                                         Text(
-                                          item.fullName ?? '',
+                                          item.name ?? '',
                                           style: const TextStyle(
                                             fontSize: 12,
                                             color: Color(0xFF344054),

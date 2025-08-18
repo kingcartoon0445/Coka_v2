@@ -81,6 +81,7 @@ class ApiEndpoints {
 
   static String getProduct = '$_prefix/Product';
   static String businessProcessTemplate = "$_prefix/businessprocesstemplate";
+  static String createLead = '$_prefix/lead/create';
   static String getBusinessProcess(
     String workspaceId,
   ) =>

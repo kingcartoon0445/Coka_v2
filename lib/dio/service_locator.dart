@@ -81,8 +81,9 @@ Future<void> setupServiceLocator() async {
         organizationRepository: getIt<OrganizationRepository>(),
         calendarRepository: getIt<CalendarRepository>(),
       ));
-  getIt.registerFactory<FilterItemBloc>(() =>
-      FilterItemBloc(organizationRepository: getIt<OrganizationRepository>()));
+  getIt.registerFactory<FilterItemBloc>(() => FilterItemBloc(
+      organizationRepository: getIt<OrganizationRepository>(),
+      switchFinalDealRepository: getIt<SwitchFinalDealRepository>()));
   getIt.registerFactory<ChatBloc>(
       () => ChatBloc(chatRepository: getIt<ChatRepository>()));
   getIt.registerFactory<FinalDealBloc>(

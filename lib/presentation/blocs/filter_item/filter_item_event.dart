@@ -35,3 +35,10 @@ class LoadFilterItem extends FilterItemEvent {
 
   const LoadFilterItem({required this.organizationId});
 }
+
+class CreateLead extends FilterItemEvent {
+  final String organizationId;
+  final Map<String, dynamic> data;
+
+  const CreateLead({required this.organizationId, required this.data});
+}

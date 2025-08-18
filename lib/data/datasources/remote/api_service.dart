@@ -917,4 +917,27 @@ class ApiService {
       );
     }
   }
+
+  Future<Response> createLeadService(
+      String organizationId, Map<String, dynamic> data) async {
+    try {
+      final response = await _dioClient.postProducts(ApiEndpoints.createLead,
+          options: Options(headers: {'organizationId': organizationId}),
+          data: data);
+      return response;
+    }
+    catch (e) {
+      
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.createLead),
+      );
+    }
+  }
 }

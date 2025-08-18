@@ -157,7 +157,7 @@ class SwitchFinalDealBloc
       priority: '',
       notes: state.note ?? '',
       assignedTo:
-          state.selectedAssignees?.map((e) => e.profileId ?? '').toList() ?? [],
+          state.selectedAssignees?.map((e) => e.id ?? '').toList() ?? [],
       tagIds: state.selectedBusinessProcessTag?.map((e) => e.id).toList() ?? [],
       workspaceId: state.selectWorkSpaceModel?.id ?? '',
       stageId: state.selectBusinessProcess?.id ?? '',
@@ -177,7 +177,7 @@ class SwitchFinalDealBloc
         id: '',
         workspaceId: state.selectWorkSpaceModel?.id ?? '',
         customerId: state.selectedCustomer?.id ?? '',
-        actor: state.selectedAssignees?.first.profileId ?? '',
+        actor: state.selectedAssignees?.first.id ?? '',
         totalPrice: state.selectedProducts
             .fold(0.0, (sum, product) => sum + product.totalPrice),
         orderDetails: state.selectedProducts

@@ -28,6 +28,21 @@ class Category extends ChipData {
   Category({required String id, required String name}) : super(id, name);
 }
 
+final List<Category> categories = [
+  Category(
+    id: 'ce7f42cf-f10f-49d2-b57e-0c75f8463c82',
+    name: 'Nhập vào',
+  ),
+  Category(
+    id: '3b70970b-e448-46fa-af8f-6605855a6b52',
+    name: 'Form',
+  ),
+  Category(
+    id: '38b353c3-ecc8-4c62-be27-229ef47e622d',
+    name: 'AIDC',
+  ),
+];
+
 class Condition {
   final String field;
   final String operation;
@@ -459,11 +474,11 @@ class _FilterModalState extends State<FilterModal> {
                                           size: 16,
                                           shape: AvatarShape.circle,
                                           imageUrl: item.avatar,
-                                          fallbackText: item.fullName,
+                                          fallbackText: item.name,
                                         ),
                                         const SizedBox(width: 4),
                                         Text(
-                                          item.fullName ?? '',
+                                          item.name ?? '',
                                           style: const TextStyle(
                                             fontSize: 12,
                                             color: Color(0xFF344054),

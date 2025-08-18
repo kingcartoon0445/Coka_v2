@@ -259,4 +259,23 @@ class OrganizationRepository {
       );
     }
   }
+
+  Future<Response> createLead(
+      String organizationId, Map<String, dynamic> data) async {
+    try {
+      final response = await apiService.createLeadService(organizationId, data);
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.createLead),
+      );
+    }
+  }
 }

@@ -1,4 +1,5 @@
-import 'package:source_base/data/models/customer_service_response.dart'; 
+import 'package:source_base/data/models/customer_service_response.dart';
+import 'package:source_base/presentation/screens/shared/widgets/chip_input.dart';
 export 'package:source_base/data/models/organization_model.dart';
 
 class MemberResponse {
@@ -34,10 +35,8 @@ class MemberResponse {
   }
 }
 
-class MemberModel {
+class MemberModel extends ChipData {
   String? organizationId;
-  String? profileId;
-  String? fullName;
   String? email;
   String? avatar;
   String? address;
@@ -48,10 +47,8 @@ class MemberModel {
   String? lastModifiedBy;
   String? lastModifiedDate;
 
-  MemberModel(
+  MemberModel(String id, String name,
       {this.organizationId,
-      this.profileId,
-      this.fullName,
       this.email,
       this.avatar,
       this.address,
@@ -60,28 +57,31 @@ class MemberModel {
       this.createdBy,
       this.createdDate,
       this.lastModifiedBy,
-      this.lastModifiedDate});
+      this.lastModifiedDate})
+      : super(id, name);
 
-  MemberModel.fromJson(Map<String, dynamic> json) {
-    organizationId = json['organizationId'];
-    profileId = json['profileId'];
-    fullName = json['fullName'];
-    email = json['email'];
-    avatar = json['avatar'];
-    address = json['address'];
-    typeOfEmployee = json['typeOfEmployee'];
-    status = json['status'];
-    createdBy = json['createdBy'];
-    createdDate = json['createdDate'];
-    lastModifiedBy = json['lastModifiedBy'];
-    lastModifiedDate = json['lastModifiedDate'];
+  factory MemberModel.fromJson(Map<String, dynamic> json) {
+    return MemberModel(
+      json['profileId'] as String,
+      json['fullName'] as String,
+      organizationId: json['organizationId'],
+      email: json['email'],
+      avatar: json['avatar'],
+      address: json['address'],
+      typeOfEmployee: json['typeOfEmployee'],
+      status: json['status'],
+      createdBy: json['createdBy'],
+      createdDate: json['createdDate'],
+      lastModifiedBy: json['lastModifiedBy'],
+      lastModifiedDate: json['lastModifiedDate'],
+    );
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['organizationId'] = this.organizationId;
-    data['profileId'] = this.profileId;
-    data['fullName'] = this.fullName;
+    data['profileId'] = this.id;
+    data['fullName'] = this.name;
     data['email'] = this.email;
     data['avatar'] = this.avatar;
     data['address'] = this.address;

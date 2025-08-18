@@ -1,10 +1,10 @@
 // lib/state/login/login_state.dart
 
-import 'package:equatable/equatable.dart';
-import 'package:source_base/data/models/customer_service_response.dart';
+import 'package:equatable/equatable.dart'; 
 import 'package:source_base/data/models/member_response.dart';
 import 'package:source_base/data/models/paging_response.dart';
 import 'package:source_base/data/models/utm_member_response.dart';
+import 'package:source_base/presentation/blocs/switch_final_deal/models/customer_paging_response.dart';
 
 enum FilterItemStatus { initial, loading, success, error }
 
@@ -13,6 +13,7 @@ class FilterItemState extends Equatable {
   final List<PagingModel> paginges;
   final List<MemberModel> members;
   final List<UtmSourceModel> utmSources;
+  final List<CustomerPaging> customerPaging;
   // final List<FilterItemModel> customerServices;
   final String? error;
   final String? organizationId;
@@ -22,6 +23,7 @@ class FilterItemState extends Equatable {
     this.paginges = const [],
     this.members = const [],
     this.utmSources = const [],
+    this.customerPaging = const [],
     // this.customerServices = const [],
     this.error,
     this.organizationId,
@@ -32,6 +34,7 @@ class FilterItemState extends Equatable {
     List<PagingModel>? paginges,
     List<MemberModel>? members,
     List<UtmSourceModel>? utmSources,
+    List<CustomerPaging>? customerPaging,
     // List<FilterItemModel>? customerServices,
     String? error,
     String? organizationId,
@@ -41,6 +44,7 @@ class FilterItemState extends Equatable {
       paginges: paginges ?? this.paginges,
       members: members ?? this.members,
       utmSources: utmSources ?? this.utmSources,
+      customerPaging: customerPaging ?? this.customerPaging,
       // customerServices: customerServices ?? this.customerServices,
       error: error ?? this.error,
       organizationId: organizationId ?? this.organizationId,
@@ -55,5 +59,6 @@ class FilterItemState extends Equatable {
         paginges,
         members,
         utmSources,
+        customerPaging,
       ];
 }

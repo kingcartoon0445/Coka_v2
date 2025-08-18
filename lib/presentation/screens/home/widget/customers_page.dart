@@ -15,6 +15,7 @@ import 'package:source_base/presentation/blocs/customer_service/customer_service
 import 'package:source_base/presentation/blocs/customer_service/customer_service_state.dart';
 import 'package:source_base/presentation/blocs/organization/organization_action_bloc.dart';
 import 'package:source_base/presentation/screens/customers_service/tabs/facebook_chat.dart';
+import 'package:source_base/presentation/screens/home/widget/add_new_member.dart';
 import 'package:source_base/presentation/screens/home/widget/customers_list.dart';
 import 'package:source_base/presentation/screens/home/widget/filter_modal.dart';
 import 'package:source_base/presentation/widget/error_widget.dart';
@@ -227,7 +228,7 @@ class _CustomersPageState extends State<CustomersPage>
               sourceIds: _currentFilter?.categories.map((e) => e.id).toList(),
               utmSources: _currentFilter?.sources.map((e) => e.name).toList(),
               assignees: _currentFilter?.assignees
-                  .map((e) => e.profileId ?? '')
+                  .map((e) => e.id ?? '')
                   .toList(),
               tags: _currentFilter?.tags.map((e) => e.name ?? '').toList(),
               customConditions: _currentFilter?.conditions ?? [],
@@ -426,7 +427,9 @@ class _CustomersPageState extends State<CustomersPage>
             label: 'Thủ công',
             backgroundColor: const Color(0xFFE3DFFF),
             child: const Icon(Icons.create, color: Colors.black),
-            onTap: () {},
+            onTap: () {
+              showOpportunityCreateDialog(context);
+            },
           ),
           SpeedDialChild(
             backgroundColor: const Color(0xFFE3DFFF),
