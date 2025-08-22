@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:source_base/presentation/blocs/switch_final_deal/models/product_response.dart';
 
 import 'model/business_process_response.dart';
 import 'model/business_process_task_response.dart';
@@ -23,6 +24,7 @@ class FinalDealState extends Equatable {
   final BusinessProcessModel? selectedBusinessProcess;
   final TaskModel? taskModel;
   final String? error;
+  final List<ProductModel> products;
   const FinalDealState({
     this.status = FinalDealStatus.initial,
     this.workspaces = const [],
@@ -32,6 +34,7 @@ class FinalDealState extends Equatable {
     this.selectedBusinessProcess,
     this.taskModel,
     this.error,
+    this.products = const [],
   });
 
   FinalDealState copyWith({
@@ -44,6 +47,7 @@ class FinalDealState extends Equatable {
     BusinessProcessModel? selectedBusinessProcess,
     TaskModel? taskModel,
     String? error,
+    List<ProductModel>? products,
   }) {
     return FinalDealState(
       status: status ?? this.status,
@@ -56,6 +60,7 @@ class FinalDealState extends Equatable {
           : selectedBusinessProcess ?? this.selectedBusinessProcess,
       taskModel: taskModel ?? this.taskModel,
       error: error ?? this.error,
+      products: products ?? this.products,
     );
   }
 
@@ -69,5 +74,6 @@ class FinalDealState extends Equatable {
         selectedBusinessProcess,
         taskModel,
         error,
-      ];
+        products,
+        ];
 }

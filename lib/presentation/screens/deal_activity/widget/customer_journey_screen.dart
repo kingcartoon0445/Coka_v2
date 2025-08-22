@@ -4,7 +4,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:source_base/data/models/schedule_response.dart';
 import 'package:source_base/data/models/service_detail_response.dart';
 import 'package:source_base/data/models/stage.dart';
-import 'package:source_base/presentation/blocs/customer_service/customer_service_action.dart';
+import 'package:source_base/presentation/blocs/customer_service/customer_service_action.dart'
+    hide UpdateNoteMark;
 import 'package:source_base/presentation/blocs/deal_activity/deal_activity_action.dart';
 import 'package:source_base/presentation/blocs/organization/organization_bloc.dart';
 import 'package:source_base/presentation/blocs/organization/organization_state.dart';
@@ -210,7 +211,12 @@ class _CustomerJourneyScreenState extends State<CustomerJourneyScreen>
                           onAddReminder: () {
                             _showAddReminderDialog(null);
                           },
-                          onToggleDone: (reminder, isDone) {},
+                          onToggleDone: (reminder, isDone) {
+                            context.read<DealActivityBloc>().add(UpdateNoteMark(
+                                  scheduleId: reminder.id ?? '',
+                                  isDone: !reminder.isDone!,
+                                ));
+                          },
                           onEdit: (reminder) {
                             _showAddReminderDialog(reminder);
                           },

@@ -2,13 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:source_base/config/helper.dart';
+import 'package:source_base/core/api/api_endpoints.dart';
 import 'package:source_base/core/api/dio_client.dart';
+import 'package:source_base/data/datasources/local/shared_preferences_service.dart';
 import 'package:source_base/data/models/customer_service_response.dart';
 import 'package:source_base/data/repositories/message_repository.dart';
+import 'package:source_base/dio/service_locator.dart';
 import 'package:source_base/presentation/blocs/organization/organization_bloc.dart';
 import 'package:source_base/presentation/screens/customers_service/widgets/message_item.dart';
+import 'package:source_base/presentation/screens/customers_service/widgets/web_view.dart';
 import 'package:source_base/presentation/screens/shared/widgets/awesome_alert.dart';
 import 'package:source_base/presentation/screens/shared/widgets/enhanced_avatar_widget.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../blocs/customer_service/customer_service_action.dart';
 
 class FacebookMessagesTab extends StatefulWidget {
@@ -148,7 +153,7 @@ class _FacebookMessagesTabState extends State<FacebookMessagesTab> {
 
       if (state.status != CustomerServiceStatus.loading &&
           state.customerServices.isEmpty) {
-        return _buildEmptyState();
+        return _buildEmptyState(widget.provider);
       }
       // Khi gọi ChangeStatusRead, conversationes (state.facebookChats) sẽ chỉ thay đổi nếu bloc emit một state mới với facebookChats đã được cập nhật.
       // Nếu conversationes không thay đổi sau khi gọi ChangeStatusRead, có thể là do:
@@ -202,7 +207,7 @@ class _FacebookMessagesTabState extends State<FacebookMessagesTab> {
     });
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(String provider) {
     return Container(
       color: const Color(0xFFF8F8F8),
       child: RefreshIndicator(
@@ -212,53 +217,104 @@ class _FacebookMessagesTabState extends State<FacebookMessagesTab> {
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
-            SizedBox(
-              height: 400,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.facebook,
-                    size: 64,
-                    color: Colors.grey[400],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Không có tin nhắn Facebook nào',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey[600],
-                      fontWeight: FontWeight.w500,
+            if (provider == 'FACEBOOK') ...[
+              SizedBox(
+                height: 400,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.facebook,
+                      size: 64,
+                      color: Colors.grey[400],
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Kết nối trang Facebook để nhận tin nhắn',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[500],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton.icon(
-                    onPressed: () => _connectFacebookPage(),
-                    icon: const Icon(Icons.add_link),
-                    label: const Text('Kết nối trang Facebook'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF554FE8),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Không có tin nhắn Facebook nào',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 8),
+                    Text(
+                      'Kết nối trang Facebook để nhận tin nhắn',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[500],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: () => _connectFacebookPage(),
+                      icon: const Icon(Icons.add_link),
+                      label: const Text('Kết nối trang Facebook'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF554FE8),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+            ] else ...[
+              SizedBox(
+                height: 400,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Icon(
+                    //   Icons.facebook,
+                    //   size: 64,
+                    //   color: Colors.grey[400],
+                    // ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Không có tin nhắn Zalo nào',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Kết nối trang Zalo để nhận tin nhắn',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[500],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: () => _connectZaloPage(),
+                      icon: const Icon(Icons.add_link),
+                      label: const Text('Kết nối trang Zalo'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            const Color.fromARGB(255, 79, 148, 232),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ]
           ],
         ),
       ),
@@ -531,6 +587,24 @@ class _FacebookMessagesTabState extends State<FacebookMessagesTab> {
   void _navigateToChat(CustomerServiceModel conversation) {
     // TODO: Navigate to chat detail page
     print('Navigate to chat: ${conversation.id}');
+  }
+
+  void _connectZaloPage() async {
+    // TODO: Navigate to Zalo connection page
+    print('Connect Zalo page');
+    String token = await getIt<SharedPreferencesService>()
+            .getString(PrefKey.accessToken) ??
+        '';
+
+    String organizationId =
+        context.read<OrganizationBloc>().state.organizationId ?? "";
+    String url =
+        '${DioClient.baseUrl}/api/v2/public/integration/auth/zalo/message?organizationId=$organizationId&accessToken=$token';
+
+    if (!await launchUrl(Uri.parse(url),
+        mode: LaunchMode.externalApplication)) {
+      throw Exception("Could not launch $url");
+    }
   }
 
   void _connectFacebookPage() async {

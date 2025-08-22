@@ -263,10 +263,10 @@ class _CustomerJourneyState extends State<CustomerJourney>
                         ),
                       const _HistoryHeader(),
                       if (journeys.isEmpty)
-                        const Center(
+                        Center(
                             child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: 12),
-                          child: Text('Chưa có hành trình nào'),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: Text('no_journey_yet'.tr()),
                         ))
                       else
                         ..._buildGroupedJourneys(journeys),

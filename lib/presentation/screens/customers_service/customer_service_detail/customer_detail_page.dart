@@ -252,7 +252,7 @@ class _CustomerDetailPageState extends State<CustomerDetailPage>
       return GestureDetector(
         // onTap: showAssignBottomSheet,
         child: Text(
-          'Phụ trách: Chưa phân công',
+          '${'assignee_label'.tr()}: ${'unassigned'.tr()}',
           style: TextStyle(
             fontSize: 10,
             color: Colors.grey[600],
@@ -512,6 +512,10 @@ class _CustomerDetailPageState extends State<CustomerDetailPage>
                 labelColor: const Color(0xFF1F2329),
                 unselectedLabelColor: const Color(0xFF667085),
                 indicatorColor: const Color(0xFF5C33F0),
+                isScrollable: true,
+                padding: EdgeInsets.zero,
+                labelPadding: const EdgeInsets.only(left: 16, right: 16),
+                tabAlignment: TabAlignment.start,
                 onTap: (value) {
                   if (value == 0) {
                     context.read<CustomerServiceBloc>().add(LoadJourneyPaging(

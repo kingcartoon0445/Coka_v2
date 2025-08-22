@@ -2,16 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:source_base/config/app_color.dart';
 import 'package:source_base/config/helper.dart';
 import 'package:source_base/presentation/blocs/switch_final_deal/models/selected_product_item.dart';
-import 'package:source_base/presentation/blocs/switch_final_deal/switch_final_deal_action.dart';
 
 class ProductSelectionItem extends StatefulWidget {
   final SelectedProductItem productItem;
   final VoidCallback? onRemove;
+  final ValueChanged<int>? onQuantityChanged;
 
   const ProductSelectionItem({
     super.key,
     required this.productItem,
     this.onRemove,
+    this.onQuantityChanged,
   });
 
   @override
@@ -63,11 +64,6 @@ class _ProductSelectionItemState extends State<ProductSelectionItem> {
               ),
               IconButton(
                 onPressed: () {
-                  context.read<SwitchFinalDealBloc>().add(
-                        RemoveProductFromSelection(
-                          productId: widget.productItem.product.id,
-                        ),
-                      );
                   widget.onRemove?.call();
                 },
                 icon: const Icon(Icons.close, color: AppColors.error, size: 20),
@@ -95,20 +91,13 @@ class _ProductSelectionItemState extends State<ProductSelectionItem> {
                 ),
               ),
               const SizedBox(width: 16),
-              BlocBuilder<SwitchFinalDealBloc, SwitchFinalDealState>(
-                  bloc: context.read<SwitchFinalDealBloc>(),
-                  builder: (context, states) {
-                    if (states.selectedProducts.isNotEmpty) {
-                      return Text(
-                        'Số lượng: ${states.selectedProducts.first.quantity}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey.shade600,
-                        ),
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  }),
+              Text(
+                'Số lượng: ${widget.productItem.quantity}',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade600,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 12),
@@ -135,12 +124,7 @@ class _ProductSelectionItemState extends State<ProductSelectionItem> {
                     onChanged: (value) {
                       final quantity = int.tryParse(value);
                       if (quantity != null && quantity > 0) {
-                        context.read<SwitchFinalDealBloc>().add(
-                              UpdateProductQuantity(
-                                productId: widget.productItem.product.id,
-                                quantity: quantity,
-                              ),
-                            );
+                        widget.onQuantityChanged?.call(quantity);
                       }
                     },
                     decoration: const InputDecoration(

@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:source_base/config/app_color.dart';
 import 'package:source_base/config/helper.dart';
 import 'package:source_base/data/models/member_response.dart';
@@ -10,11 +11,12 @@ import 'package:source_base/presentation/blocs/switch_final_deal/models/customer
 import 'package:source_base/presentation/blocs/switch_final_deal/models/product_response.dart';
 import 'package:source_base/presentation/screens/customers_service/widgets/select_pill_group.dart';
 import 'package:source_base/presentation/screens/shared/widgets/avatar_widget.dart';
+import 'package:source_base/presentation/screens/shared/widgets/product_selection_bottom_sheet.dart';
 import 'package:source_base/presentation/widget/dialog_member.dart';
 
 import '../../blocs/switch_final_deal/switch_final_deal_action.dart';
 import '../shared/widgets/chip_input.dart';
-import '../shared/widgets/product_selection_bottom_sheet.dart';
+// ⚠️ ĐỔI PATH CHO PHÙ HỢP VỚI DỰ ÁN CỦA BẠN
 import 'package:source_base/presentation/screens/home/widget/assignee_selection_dialog.dart';
 
 import 'widgets/dialog_add_tem.dart';
@@ -34,6 +36,7 @@ class _SwitchFinalDealState extends State<SwitchFinalDeal> {
   final TextEditingController _transactionValueController =
       TextEditingController();
   final TextEditingController _noteController = TextEditingController();
+
   static final _inputDecoration = InputDecoration(
     hintText: 'all'.tr(),
     suffixIcon:
@@ -56,7 +59,6 @@ class _SwitchFinalDealState extends State<SwitchFinalDeal> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     context.read<SwitchFinalDealBloc>().add(SwitchFinalDealInitialized(
         organizationId:
@@ -77,7 +79,6 @@ class _SwitchFinalDealState extends State<SwitchFinalDeal> {
     _productController.dispose();
     _transactionValueController.dispose();
     _noteController.dispose();
-    // context.read<SwitchFinalDealBloc>().add(ClearSelected());
     super.dispose();
   }
 
@@ -105,11 +106,12 @@ class _SwitchFinalDealState extends State<SwitchFinalDeal> {
         );
       }
     }, builder: (context, state) {
-      List<CustomerPaging> customers = state.customers ?? [];
+      final customers = state.customers ?? <CustomerPaging>[];
       CustomerPaging? customerPaging = state.selectedCustomer;
-      List<WorkspaceModel> listWorkSpace = state.workSpaceModels ?? [];
+      final listWorkSpace = state.workSpaceModels ?? <WorkspaceModel>[];
       WorkspaceModel? workSpaceModel = state.selectWorkSpaceModel;
-      String? customerName = state.customerService?.fullName ?? "";
+      final customerName = state.customerService?.fullName ?? "";
+
       return WillPopScope(
         onWillPop: () async {
           context.read<SwitchFinalDealBloc>().add(ClearSelected());
@@ -124,7 +126,6 @@ class _SwitchFinalDealState extends State<SwitchFinalDeal> {
               onPressed: () {
                 context.read<SwitchFinalDealBloc>().add(ClearSelected());
                 Navigator.pop(context);
-                // return true;
               },
             ),
             title: const Text('Chuyển sang chốt khách',
@@ -247,7 +248,7 @@ class _SwitchFinalDealState extends State<SwitchFinalDeal> {
                 const SizedBox(height: 8),
                 InkWell(
                     onTap: () {
-                      _showProductSelectionBottomSheet();
+                      _showProductSelectionBottomSheet(context);
                     },
                     child: Container(
                         width: double.infinity,
@@ -268,7 +269,6 @@ class _SwitchFinalDealState extends State<SwitchFinalDeal> {
                                     for (var product
                                         in state.selectedProducts) ...[
                                       Container(
-                                        // width: 200,
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 10, vertical: 10),
                                         decoration: BoxDecoration(
@@ -297,38 +297,7 @@ class _SwitchFinalDealState extends State<SwitchFinalDeal> {
                             const Icon(Icons.keyboard_arrow_down,
                                 color: Colors.grey),
                           ],
-                        )
-                        //  Row(
-                        //   children: [
-                        //     if (state.selectedProducts.isNotEmpty) ...[
-                        //       for (var product in state.selectedProducts) ...[
-                        //         Container(
-                        //           width: 200,
-                        //           padding: const EdgeInsets.symmetric(
-                        //               horizontal: 10, vertical: 10),
-                        //           decoration: BoxDecoration(
-                        //             border: Border.all(color: AppColors.primary),
-                        //             borderRadius: BorderRadius.circular(8),
-                        //           ),
-                        //           child: Row(
-                        //             children: [
-                        //               Text(product.product.name ?? ""),
-                        //               const SizedBox(width: 8),
-                        //               Text(Helpers.formatCurrency(
-                        //                   product.product.price ?? 0)),
-                        //             ],
-                        //           ),
-                        //         ),
-                        //       ]
-                        //     ] else ...[
-                        //       const Text("Chọn sản phẩm")
-                        //     ],
-                        //     const Spacer(),
-                        //     const Icon(Icons.keyboard_arrow_down,
-                        //         color: Colors.grey),
-                        //   ],
-                        // )),
-                        )),
+                        ))),
                 const SizedBox(height: 20),
 
                 // Giá trị giao dịch
@@ -346,17 +315,15 @@ class _SwitchFinalDealState extends State<SwitchFinalDeal> {
                 const SizedBox(height: 8),
                 _buildFilterSection(
                   title: 'Chọn người phụ trách',
-                  selectedItems: [],
+                  selectedItems: const [],
                   onItemSelected: (item) {},
                   onItemRemoved: (item) {},
                 ),
-                // Chọn không gian làm việc
+                // Chọn nhãn
                 _buildLabel('Chọn nhãn', isRequired: true),
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    // WorkspaceModel ChipsInput
-
                     Expanded(
                       flex: 3,
                       child: ChipsInput<TagModel>(
@@ -382,8 +349,6 @@ class _SwitchFinalDealState extends State<SwitchFinalDeal> {
                                 const RemoveSelected(
                                     removeSelectBusinessProcessTag: true));
                           }
-                          // Xử lý khi chọn nhãn, nếu cần thiết có thể dispatch event ở đây
-                          // Ví dụ: context.read<SwitchFinalDealBloc>().add(UpdateSelectedTags(tags: data));
                         },
                         chipBuilder: (context, stateTag, tagModel) {
                           return InputChip(
@@ -429,7 +394,6 @@ class _SwitchFinalDealState extends State<SwitchFinalDeal> {
                             final hex =
                                 '#${result.color.value.toRadixString(16).padLeft(8, '0').substring(2).toUpperCase()}';
 
-                            print('Tên: ${result.name}, Màu: ${hex}');
                             context.read<SwitchFinalDealBloc>().add(
                                 AddBusinessProcessTag(
                                     organizationId: context
@@ -502,10 +466,6 @@ class _SwitchFinalDealState extends State<SwitchFinalDeal> {
               fontWeight: FontWeight.w600,
               color: AppColors.text,
             )),
-        // trailing: const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
-        // onTap: () {
-        //   _showProductSelectionBottomSheet();
-        // },
       ),
     );
   }
@@ -636,7 +596,7 @@ class _SwitchFinalDealState extends State<SwitchFinalDeal> {
                                           onTap: () {
                                             onItemRemoved(item);
                                             setState(() {
-                                              List<MemberModel> assignees =
+                                              final assignees =
                                                   state.selectedAssignees ?? [];
                                               assignees.remove(item);
                                               context
@@ -649,8 +609,6 @@ class _SwitchFinalDealState extends State<SwitchFinalDeal> {
                                                               .state
                                                               .organizationId ??
                                                           ''));
-                                              // _assigneesNotifier.value =
-                                              //     List.from(_selectedAssignees);
                                             });
                                           },
                                           child: const Icon(
@@ -681,124 +639,51 @@ class _SwitchFinalDealState extends State<SwitchFinalDeal> {
     );
   }
 
-  void _showProductSelectionBottomSheet() {
-    showModalBottomSheet(
+  // --------------------- Integration with new BottomSheet ---------------------
+  Future<void> _showProductSelectionBottomSheet(BuildContext context) async {
+    final state = context.read<SwitchFinalDealBloc>().state;
+    final products = state.products ?? <ProductModel>[];
+
+    // Map from old state's selectedProducts -> new SelectedProduct model
+    final initial = _mapInitialSelectedFromOldState(state);
+
+    // Cách 1: Dùng onAddProduct để giữ luồng cũ (add từng cái vào Bloc khi bấm "Thêm sản phẩm")
+    await showModalBottomSheet<List<SelectedProduct>>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => const ProductSelectionBottomSheet(),
-    ).then((selectedProducts) {
-      // if (selectedProducts != null && selectedProducts.isNotEmpty) {
-      //   // Handle the selected products
-      //   setState(() {
-      //     // Update the product controller with the first product name
-      //     _productController.text = selectedProducts.first.name;
-      //   });
-      // }
-    });
-  }
-
-  Widget buildSuggestionProduct(
-    BuildContext context,
-    ChipsInputState<ProductModel> state,
-    ProductModel data,
-    bool isSelected,
-  ) {
-    return InkWell(
-      onTap: () {
-        if (isSelected) {
-          state.deleteChip(data);
-        } else {
-          state.selectSuggestion(data);
-        }
-      },
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        color: isSelected ? const Color(0xFFF9FAFB) : Colors.transparent,
-        alignment: Alignment.centerLeft,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              data.name,
-              style: TextStyle(
-                fontSize: 14,
-                color: isSelected ? AppColors.primary : AppColors.text,
-              ),
-            ),
-            Text(
-              Helpers.formatCurrency(data.price),
-              style: TextStyle(
-                fontSize: 12,
-                color: isSelected ? AppColors.primary : AppColors.text,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPersonInChargeField() {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: CircleAvatar(
-          radius: 16,
-          backgroundColor: Colors.grey.shade300,
-          child: const Icon(
-            Icons.person,
-            size: 20,
-            color: Colors.grey,
-          ),
-        ),
-        title: Text(
-          _selectedPersonInCharge,
-          style: const TextStyle(
-            fontSize: 14,
-            color: AppColors.text,
-          ),
-        ),
-        trailing: const Icon(
-          Icons.keyboard_arrow_down,
-          color: Colors.grey,
-        ),
-        onTap: () {
-          // Hiển thị dialog chọn người phụ trách
-          _showPersonInChargeDialog();
+      builder: (_) => ProductSelectionBottomSheet(
+        products: products,
+        initialSelected: initial,
+        onAddProduct: (item) {
+          context.read<SwitchFinalDealBloc>().add(
+                AddProductToSelection(
+                    product: item.product, quantity: item.quantity),
+              );
         },
+        // Nếu muốn sync realtime toàn bộ danh sách, có thể dùng onChanged và tự implement event ReplaceSelectedProducts ở Bloc của bạn.
+        // onChanged: (items) { ... }
       ),
     );
+
+    // Cách 2 (tuỳ chọn): Nếu muốn dùng kết quả trả về để replace toàn bộ
+    // final result = await ...
+    // if (result != null) { dispatch event replace list }
   }
 
-  void _showPersonInChargeDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Chọn người phụ trách'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const CircleAvatar(
-                child: Icon(Icons.person),
-              ),
-              title: const Text('1 thành viên'),
-              onTap: () {
-                setState(() {
-                  _selectedPersonInCharge = '1 thành viên';
-                });
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
+  List<SelectedProduct> _mapInitialSelectedFromOldState(
+      SwitchFinalDealState state) {
+    final src = state.selectedProducts; // kiểu của dự án hiện tại
+    try {
+      return src.map<SelectedProduct>((e) {
+        final dynamic any = e;
+        final ProductModel product =
+            any.product as ProductModel; // chỉnh nếu field khác
+        final int quantity = any.quantity as int; // chỉnh nếu field khác
+        return SelectedProduct(product: product, quantity: quantity);
+      }).toList();
+    } catch (_) {
+      return const <SelectedProduct>[];
+    }
   }
 }

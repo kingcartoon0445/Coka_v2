@@ -31,6 +31,7 @@ class SwitchFinalDealBloc
     on<UpdateProductQuantity>(_onUpdateProductQuantity);
     on<RemoveProductFromSelection>(_onRemoveProductFromSelection);
     on<AddBusinessProcessTag>(_onAddBusinessProcessTag);
+    on<GetProduct>(_onGetProduct);
   }
   final SwitchFinalDealRepository repository;
   final FinalDealRepository finalRepository;
@@ -63,7 +64,11 @@ class SwitchFinalDealBloc
           status: SwitchFinalDealStatus.success,
           workSpaceModel: workspaceResponse.content));
     }
+    add(GetProduct(organizationId: event.organizationId));
+  }
 
+  void _onGetProduct(
+      GetProduct event, Emitter<SwitchFinalDealState> emit) async {
     final responseProduct =
         await repository.getProduct(event.organizationId, false);
     final bool isSuccessProduct =
@@ -83,7 +88,7 @@ class SwitchFinalDealBloc
   }
 
   void _onSwicthSelected(
-      SwicthSelected event, Emitter<SwitchFinalDealState> emit) async {
+         event, Emitter<SwitchFinalDealState> emit) async {
     if (event.workspaceModel != null) {
       add(GetBusinessProcess(
           organizationId: event.organizationId,

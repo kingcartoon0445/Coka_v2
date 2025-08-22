@@ -1,5 +1,8 @@
 import 'package:source_base/config/helper.dart';
+import 'package:source_base/data/repositories/deal_activity_repository.dart';
 import 'package:source_base/data/repositories/final_deal_repository.dart';
+import 'package:source_base/data/repositories/switch_final_deal_repository.dart';
+import 'package:source_base/presentation/blocs/switch_final_deal/models/product_response.dart';
 import 'final_deal_action.dart';
 import 'model/business_process_response.dart';
 import 'model/business_process_task_response.dart';
@@ -7,8 +10,13 @@ import 'model/workspace_response.dart';
 
 class FinalDealBloc extends Bloc<FinalDealEvent, FinalDealState> {
   final FinalDealRepository repository;
-
-  FinalDealBloc({required this.repository}) : super(const FinalDealState()) {
+  final SwitchFinalDealRepository switchFinalDealRepository;
+  final DealActivityRepository dealActivityRepository;
+  FinalDealBloc(
+      {required this.repository,
+      required this.switchFinalDealRepository,
+      required this.dealActivityRepository})
+      : super(const FinalDealState()) {
     on<Initialized>(_onInitialized);
     on<GetAllWorkspace>(_onGetAllWorkspace);
     on<SelectWorkspace>(_onSelectWorkspace);
@@ -16,6 +24,9 @@ class FinalDealBloc extends Bloc<FinalDealEvent, FinalDealState> {
     on<GetBusinessProcessTask>(_onGetBusinessProcessTask);
     on<SelectBusinessProcess>(_onSelectBusinessProcess);
     on<GetDetailTask>(_onGetDetailTask);
+    on<ChangeStage>(_onChangeStage);
+    on<GetAllProduct>(_onGetAllProduct);
+    on<RefreshTasks>(_onRefreshTasks);
   }
 
   void _onInitialized(Initialized event, Emitter<FinalDealState> emit) async {
@@ -41,6 +52,7 @@ class FinalDealBloc extends Bloc<FinalDealEvent, FinalDealState> {
           // status: FinalDealStatus.success,
           workspaces: workspaceResponse.content ?? [],
           selectedWorkspace: workspace));
+      add(GetAllProduct(organizationId: event.organizationId));
     } else {
       emit(state.copyWith(status: FinalDealStatus.error));
     }
@@ -152,5 +164,56 @@ class FinalDealBloc extends Bloc<FinalDealEvent, FinalDealState> {
     // } else {
     //   emit(state.copyWith(status: FinalDealStatus.error));
     // }
+  }
+
+  void _onGetAllProduct(
+      GetAllProduct event, Emitter<FinalDealState> emit) async {
+    final response =
+        await switchFinalDealRepository.getProduct(event.organizationId, false);
+    final bool isSuccess = Helpers.isResponseSuccess(response.data);
+    if (isSuccess) {
+      ProductResponse productResponse = ProductResponse.fromJson(response.data);
+      emit(state.copyWith(
+          status: FinalDealStatus.success, products: productResponse.data));
+    } else {
+      emit(state.copyWith(status: FinalDealStatus.error));
+    }
+  }
+
+  void _onChangeStage(ChangeStage event, Emitter<FinalDealState> emit) async {
+    emit(state.copyWith(status: FinalDealStatus.loadingListTask));
+    try {
+      final response = await dealActivityRepository.updateStageGiveTask(
+          event.organizationId ?? '',
+          event.taskId ?? '',
+          event.businessProcess?.id ?? '');
+      bool isSuccess = Helpers.isResponseSuccess(response.data);
+      if (isSuccess) {
+        emit(state.copyWith(
+            status: FinalDealStatus.success,
+            selectedBusinessProcess: event.businessProcess));
+      } else {
+        emit(state.copyWith(
+            status: FinalDealStatus.error, error: response.data['message']));
+      }
+    } catch (e) {
+      emit(state.copyWith(status: FinalDealStatus.error, error: e.toString()));
+    }
+  }
+
+  void _onRefreshTasks(RefreshTasks event, Emitter<FinalDealState> emit) async {
+    if (state.selectedBusinessProcess != null) {
+      add(GetBusinessProcessTask(
+        organizationId: event.organizationId,
+        processId: '',
+        stage: state.selectedBusinessProcess,
+        customerId: '',
+        assignedTo: '',
+        status: '',
+        includeHistory: false,
+        page: 1,
+        pageSize: 10,
+      ));
+    }
   }
 }

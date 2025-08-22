@@ -51,10 +51,10 @@
      "yesterday":"Hôm qua",
      "unassigned":"Chưa phân công",
      "opportunity_customer":"Cơ hội chăm khách",
-     "customer_care":"Chăm khách",
+     "lead":"Chăm khách",
      "expand":"Mở rộng",
      "product_label":"Sản phẩm",
-     "storage":"Lưu trữ",
+     "archive":"Lưu trữ",
      "filter":"Bộ lọc",
      "minutes_ago":"phút trước",
      "hours_ago":"giờ trước",
@@ -99,6 +99,7 @@
      "reminder_system_message":"Hệ thống sẽ nhắc bạn trước khi đến lịch hẹn",
      "detail":"Chi tiết",
      "convert_to_customer":"Chuyển sang chốt khách", 
+     "deal":"Chốt khách",
      "created_date":"Ngày tạo",
      "classification":"Phân loại",
      "source":"Nguồn", 
@@ -131,6 +132,49 @@
      "priority":"Độ ưu tiên",
      "description":"Mô tả chi tiết",
      "notify_before":"Thông báo trước",
-     "description_placeholder":"Nhập mô tả chi tiết"
-      
+     "description_placeholder":"Nhập mô tả chi tiết",
+
+
+     "no_activity_yet":"Chưa có hoạt động nào",
+      "add_reminder_message":"Nhấn 'Thêm' để tạo nhắc hẹn mới",
+      "no_journey_yet":"Chưa có hành trình nào",
+      "undetermined":"Chưa xác định",
+      "customers_have_emails":"Khách hàng có mail",
+      "customers_have_phone":"Khách hàng có số điện thoại",
+
+      "transaction":"Giao dịch",
+      "no_transaction_yet":"Chưa có giao dịch nào",
+      "activity":"Hoạt động",
+      "public":"Công khai", 
+      "copy":"Nhân bản",
+      "delete":"Xóa",
+      "failed":"Thất bại",
+      "success":"Thành công",
+      "delete_message":"Bạn có chắc muốn xoá {name}?",
+     "low":"Thấp",
+     "medium":"Trung bình",
+     "high":"Cao",
+     "reminder":"Nhắc nhở",
+     "meal":"Ăn uống",
+     "document":"Tài liệu",
+     "video":"Video",
+     "event":"Sự kiện",
+     "starting_soon":"Sắp bắt đầu",
+     "remaining_days":"Còn {days} ngày",
+     "remaining_hours":"Còn {hours} giờ",
+     "remaining_minutes":"Còn {minutes} phút",
+     "edit":"Sửa",
+     "start":"Bắt đầu",
+     "end":"Kết thúc",
+     "time":"Thời gian",
+     "overdue_days":"Quá hạn {days} ngày",
+     "overdue_hours":"Quá hạn {hours} giờ",
+     "overdue_minutes":"Quá hạn {minutes} phút",
+     "completed":"Đã hoàn thành",
+
+     "ago":"trước",
+     "received_image":"Đã nhận được 1 ảnh/file"
+
+     
+
 }

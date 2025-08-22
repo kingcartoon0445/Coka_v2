@@ -1,12 +1,12 @@
 // lib/state/login/login_state.dart
 
-import 'package:equatable/equatable.dart'; 
+import 'package:equatable/equatable.dart';
 import 'package:source_base/data/models/member_response.dart';
 import 'package:source_base/data/models/paging_response.dart';
 import 'package:source_base/data/models/utm_member_response.dart';
 import 'package:source_base/presentation/blocs/switch_final_deal/models/customer_paging_response.dart';
 
-enum FilterItemStatus { initial, loading, success, error }
+enum FilterItemStatus { initial, loading, success, createSuccess, error }
 
 class FilterItemState extends Equatable {
   final FilterItemStatus status;

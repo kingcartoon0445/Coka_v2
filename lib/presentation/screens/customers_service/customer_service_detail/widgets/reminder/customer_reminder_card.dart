@@ -524,7 +524,7 @@ class _CustomerReminderCardState extends State<CustomerReminderCard> {
           ),
           const SizedBox(height: 12),
           Text(
-            'Chưa có hoạt động nào',
+            'no_activity_yet'.tr(),
             style: ReminderTypography.body1.copyWith(
               color: Colors.grey[600],
               fontSize: 14,
@@ -533,7 +533,7 @@ class _CustomerReminderCardState extends State<CustomerReminderCard> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Nhấn "Thêm" để tạo nhắc hẹn mới',
+            'add_reminder_message'.tr(),
             style: ReminderTypography.caption.copyWith(
               color: Colors.grey[500],
               fontSize: 12,

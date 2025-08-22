@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:source_base/config/app_color.dart';
 import 'package:source_base/presentation/blocs/deal_activity/deal_activity_action.dart';
@@ -23,7 +24,7 @@ class _DealActivityScreenState extends State<DealActivityScreen>
   void initState() {
     super.initState();
     _dealActivityBloc = context.read<DealActivityBloc>();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
   }
 
   @override
@@ -43,6 +44,15 @@ class _DealActivityScreenState extends State<DealActivityScreen>
               type: NotifyType.error,
               title: state.errorTitle ?? '',
               message: state.error ?? '',
+              actionText: 'OK', onAction: () {
+            Navigator.maybePop(context);
+          });
+        }
+        if (state.status == DealActivityStatus.successEditOrder) {
+          ShowdialogNouti(context,
+              type: NotifyType.success,
+              title: 'Thành công',
+              message: 'Đã xử lý đơn hàng',
               actionText: 'OK', onAction: () {
             Navigator.maybePop(context);
           });
@@ -68,27 +78,144 @@ class _DealActivityScreenState extends State<DealActivityScreen>
             },
           ),
           centerTitle: true,
-          title: Text(
-            _dealActivityBloc.state.task?.name ?? '',
-            style: const TextStyle(
-                fontSize: 16, color: Colors.black, fontWeight: FontWeight.w500),
+          title: InkWell(
+            onTap: () {
+              _dealActivityBloc.add(LoadDetailTask(
+                organizationId: _dealActivityBloc.state.organizationId ?? '',
+                taskId: _dealActivityBloc.state.task?.id ?? '',
+                orderId: _dealActivityBloc.state.task?.orderId ?? '',
+              ));
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const DetailDealPage(),
+                ),
+              );
+            },
+            child: Text(
+              _dealActivityBloc.state.task?.name ?? 'Không có tiêu đề',
+              style: const TextStyle(
+                  fontSize: 18,
+                  color: Colors.black,
+                  fontWeight: FontWeight.w700),
+            ),
           ),
           actions: [
-            IconButton(
-              icon: const Icon(Icons.more_horiz_rounded, color: Colors.black),
-              onPressed: () {
-                _dealActivityBloc.add(LoadDetailTask(
-                  organizationId: _dealActivityBloc.state.organizationId ?? '',
-                  taskId: _dealActivityBloc.state.task?.id ?? '',
-                  orderId: _dealActivityBloc.state.task?.orderId ?? '',
-                ));
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const DetailDealPage(),
+            PopupMenuButton<String>(
+              color: Colors.white,
+              offset: const Offset(0, 0),
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  child: Row(
+                    children: [
+                      const Icon(Icons.public, size: 25),
+                      const SizedBox(width: 8),
+                      Text('public'.tr()),
+                    ],
                   ),
-                );
-              },
+                  onTap: () {},
+                ),
+                PopupMenuItem(
+                  child: Row(
+                    children: [
+                      const Icon(Icons.archive, size: 25),
+                      const SizedBox(width: 8),
+                      Text('archive'.tr()),
+                    ],
+                  ),
+                  onTap: () {
+                    Future.delayed(
+                      const Duration(milliseconds: 100),
+                      () {
+                        _dealActivityBloc.add(EditOrder(
+                          organizationId:
+                              _dealActivityBloc.state.organizationId ?? '',
+                          taskId: _dealActivityBloc.state.task?.id ?? '',
+                          type: EditOrderType.archive,
+                        ));
+                        // Add your public action logic here
+                      },
+                    );
+                  },
+                ),
+                PopupMenuItem(
+                  child: Row(
+                    children: [
+                      const Icon(Icons.copy, size: 25),
+                      const SizedBox(width: 8),
+                      Text('copy'.tr()),
+                    ],
+                  ),
+                  onTap: () {
+                    // TODO: Implement duplicate action
+                    Future.delayed(
+                      const Duration(milliseconds: 100),
+                      () {
+                        _dealActivityBloc.add(EditOrder(
+                          organizationId:
+                              _dealActivityBloc.state.organizationId ?? '',
+                          taskId: _dealActivityBloc.state.task?.id ?? '',
+                          type: EditOrderType.duplicate,
+                        ));
+                        // Add your duplicate action logic here
+                      },
+                    );
+                  },
+                ),
+                PopupMenuItem(
+                  child: Row(
+                    children: [
+                      const Icon(Icons.delete_outline,
+                          color: Colors.red, size: 25),
+                      const SizedBox(width: 8),
+                      Text(
+                        'delete'.tr(),
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                    ],
+                  ),
+                  onTap: () {
+                    Future.delayed(
+                      const Duration(milliseconds: 100),
+                      () => showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: Text('delete_message'.tr(namedArgs: {
+                            'name': _dealActivityBloc.state.task?.name ?? ''
+                          })),
+                          content: Text('delete_message'.tr(namedArgs: {
+                            'name': _dealActivityBloc.state.task?.name ?? ''
+                          })),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: Text('cancel'.tr()),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                _dealActivityBloc.add(EditOrder(
+                                  organizationId:
+                                      _dealActivityBloc.state.organizationId ??
+                                          '',
+                                  taskId:
+                                      _dealActivityBloc.state.task?.id ?? '',
+                                  type: EditOrderType.delete,
+                                ));
+                                // TODO: Implement delete action
+                                Navigator.pop(context);
+                              },
+                              child: Text(
+                                'delete'.tr(),
+                                style: TextStyle(color: Colors.red),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
             ),
           ],
         ),
@@ -125,7 +252,7 @@ class _DealActivityScreenState extends State<DealActivityScreen>
                   children: [
                     Expanded(
                       child: _ActionPill(
-                        label: 'Thất bại',
+                        label: 'failed'.tr(),
                         color: Colors.red,
                         icon: Icons.close,
                         onTap: () {
@@ -140,7 +267,7 @@ class _DealActivityScreenState extends State<DealActivityScreen>
                     const SizedBox(width: 12),
                     Expanded(
                       child: _ActionPill(
-                        label: 'Thành công',
+                        label: 'success'.tr(),
                         color: const Color(0xFF22C55E),
                         icon: Icons.check,
                         onTap: () {
@@ -164,18 +291,21 @@ class _DealActivityScreenState extends State<DealActivityScreen>
                   ),
                 ),
                 child: TabBar(
+                  isScrollable: true,
                   controller: _tabController,
                   indicatorColor: theme.primaryColor,
                   labelColor: Colors.black,
+                  padding: EdgeInsets.zero,
+                  labelPadding: const EdgeInsets.only(left: 16, right: 16),
+                  tabAlignment: TabAlignment.start,
                   unselectedLabelColor: const Color(0xFF6B7280),
                   labelStyle: const TextStyle(
                       fontSize: 14, fontWeight: FontWeight.w600),
                   unselectedLabelStyle: const TextStyle(
                       fontSize: 14, fontWeight: FontWeight.w500),
-                  tabs: const [
-                    Tab(text: 'Hoạt động'),
-                    Tab(text: 'Ghi chú'),
-                    Tab(text: 'Gửi mail'),
+                  tabs: [
+                    Tab(text: 'activity'.tr()),
+                    Tab(text: 'note_label'.tr()),
                   ],
                 ),
               ),
@@ -185,7 +315,6 @@ class _DealActivityScreenState extends State<DealActivityScreen>
                   children: const [
                     CustomerJourneyScreen(),
                     CustomerJourneyScreen(onlyNote: true),
-                    _EmptyTab(text: 'Chưa có email nào'),
                   ],
                 ),
               ),

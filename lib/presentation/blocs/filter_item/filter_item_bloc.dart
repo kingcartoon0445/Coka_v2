@@ -98,7 +98,7 @@ class FilterItemBloc extends Bloc<FilterItemEvent, FilterItemState> {
       );
       final bool isSuccess = Helpers.isResponseSuccess(response.data);
       if (isSuccess) {
-        emit(state.copyWith(status: FilterItemStatus.success));
+        emit(state.copyWith(status: FilterItemStatus.createSuccess));
       }
     } catch (e) {
       emit(state.copyWith(

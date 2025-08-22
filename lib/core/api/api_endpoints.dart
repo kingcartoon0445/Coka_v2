@@ -39,8 +39,8 @@ class ApiEndpoints {
   static const String conversationList =
       '$_prefix/omni/conversation/getlistpaging';
 
-  static const String chatList = '$_prefix/social/message/getlistpaging';
-  static const String sendMessage = '$_prefix/social/message/sendmessage';
+  static String sendMessage(String conversationId) =>
+      '$_prefix2/chat/conversation/$conversationId/message/send';
   static const String assignConversation = '$_prefix/omni/conversation';
   static const String convertToLead = '$_prefix/omni/conversation';
   static const String subscriptionList =
@@ -63,17 +63,28 @@ class ApiEndpoints {
       '$_prefix/integration/omni/conversation/read/$conversationId';
 
 // API Được sử dụng
+
+  static String connectZaloOA(String organizationId, String accessToken) =>
+      "$_prefix2/public/integration/auth/zalo/message?organizationId=$organizationId&accessToken=$accessToken";
+
   static String postArchiveCustomer(String id) => '$_prefix2/lead/$id/archive';
-  static String customerPath(String id) => '$_prefix2/lead/$id';
+  static String getLeadDetail(String id) => '$_prefix2/lead/$id';
   static String getOrderDetailWithProduct(String id) =>
       '$_prefix/order/getOrderDetailWithProduct/$id';
   static String postUnArchiveCustomer(String id) =>
       '$_prefix2/lead/$id/archive/restore';
   static const String getLeadPaging = '$_prefix2/lead/getlistpagingv2';
   static String businessProcessTask = '$_prefix/businessprocesstask';
-  static String order = '$_prefix/order';
   static String linkOrder(String id) => '$businessProcessTask/$id/link-order';
+  static String chatList(String conversationId) =>
+      '$_prefix2/chat/conversation/$conversationId/message/getlistpaging';
+  static String order = '$_prefix/order';
+  static String duplicateOrder(String id) =>
+      '$businessProcessTask/$id/duplicate';
+  static String archiveOrder(String conversationId) =>
+      '$businessProcessTask/$conversationId/archive';
   static String getBusinessProcessTag = '$_prefix/BusinessProcessTag';
+  static String getCustomerDetail(String id) => '$_prefix2/customer/$id';
   static String getCustomerPaging = '$_prefix2/customer/getlistpaging';
 
   static String getAllWorkspace =
@@ -81,7 +92,7 @@ class ApiEndpoints {
 
   static String getProduct = '$_prefix/Product';
   static String businessProcessTemplate = "$_prefix/businessprocesstemplate";
-  static String createLead = '$_prefix/lead/create';
+  static String createLead = '$_prefix2/lead/create';
   static String getBusinessProcess(
     String workspaceId,
   ) =>

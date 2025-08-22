@@ -1,7 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:source_base/data/models/customer_service_response.dart';
-import 'package:source_base/data/models/schedule_response.dart';
+import 'package:source_base/data/models/schedule_response.dart'; 
 import 'package:source_base/presentation/screens/customers_service/widgets/web_reminder_item.dart';
 import 'package:source_base/presentation/screens/theme/reminder_theme.dart';
 

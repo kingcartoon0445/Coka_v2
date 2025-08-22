@@ -243,4 +243,73 @@ class ApiCalendarService {
       );
     }
   }
+
+  Future<Response> duplicateOrderService(
+    String organizationId,
+    String taskId,
+  ) async {
+    try {
+      final response = await _dioClient.postProducts(
+        ApiEndpoints.duplicateOrder(taskId),
+        options: Options(headers: {'organizationid': organizationId}),
+      );
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions:
+            RequestOptions(path: ApiEndpoints.duplicateOrder(taskId)),
+      );
+    }
+  }
+
+  Future<Response> archiveOrderService(
+      String organizationId, String conversationId) async {
+    try {
+      final response = await _dioClient.putProducts(
+          ApiEndpoints.archiveOrder(conversationId),
+          options: Options(headers: {'organizationId': organizationId}));
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions:
+            RequestOptions(path: ApiEndpoints.archiveOrder(conversationId)),
+      );
+    }
+  }
+
+  Future<Response> deleteOrderService(
+      String organizationId, String conversationId) async {
+    try {
+      final response = await _dioClient.deleteProducts(
+          '${ApiEndpoints.businessProcessTask}/$conversationId',
+          options: Options(headers: {'organizationId': organizationId}));
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions:
+            RequestOptions(path: ApiEndpoints.archiveOrder(conversationId)),
+      );
+    }
+  }
 }

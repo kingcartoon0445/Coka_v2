@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
@@ -176,7 +177,7 @@ class MessageItem extends StatelessWidget {
                               // "",
                               time != ""
                                   ? timeago.format(
-                                    time,
+                                      time,
                                       locale: 'vi',
                                     )
                                   : "",
@@ -203,7 +204,7 @@ class MessageItem extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            isFileMessage ? "Đã nhận được 1 ảnh/file" : content,
+                            isFileMessage ? "received_image".tr() : content,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(

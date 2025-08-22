@@ -120,6 +120,7 @@ class TaskModel {
   final num? orderValue;
   final String? description;
   final String? customerId;
+  final String? leadId;
   final String? orderId;
   final List<AssignedTo> assignedTo;
   final num? status;
@@ -158,6 +159,7 @@ class TaskModel {
     this.subTasks = const <dynamic>[],
     this.stageHistory = const <dynamic>[],
     this.tags = const <TagModel>[],
+    this.leadId,
   });
 
   factory TaskModel.fromJson(Map<String, dynamic> json) {
@@ -219,6 +221,7 @@ class TaskModel {
       username: json['username'] as String?,
       email: json['email'] as String?,
       phone: json['phone'] as String?,
+      leadId: json['leadId'] as String?,
       orderValue: (json['orderValue'] as num?)?.toInt(),
       description: json['description'] as String?,
       customerId: json['customerId'] as String?,
@@ -247,6 +250,7 @@ class TaskModel {
     if (username != null) map['username'] = username;
     if (email != null) map['email'] = email;
     if (phone != null) map['phone'] = phone;
+    if (leadId != null) map['leadId'] = leadId;
     if (orderValue != null) map['orderValue'] = orderValue;
     if (description != null) map['description'] = description;
     if (customerId != null) map['customerId'] = customerId;

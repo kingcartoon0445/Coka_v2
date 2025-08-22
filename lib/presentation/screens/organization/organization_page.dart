@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart'; // <-- ADD
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:source_base/config/app_color.dart';
@@ -48,6 +49,10 @@ class _OrganizationPageState extends State<OrganizationPage> {
   bool _isLoadingOrganizationsError = false;
   int _unreadNotificationCount = 0;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  // NEW: lưu tab trước + hướng để animate
+  int _lastTabIndex = 0;
+  bool _isForward = true; // true = slide từ phải sang (đi tới tab lớn hơn)
 
   @override
   void initState() {
@@ -180,10 +185,6 @@ class _OrganizationPageState extends State<OrganizationPage> {
       return const Text('Chiến dịch');
     }
 
-    // if (_isLoading) {
-    //   return _buildSkeletonTitle();
-    // }
-
     if (_isLoadingOrganizationsError) {
       return const Text(
         'Lỗi tải tổ chức',
@@ -254,9 +255,6 @@ class _OrganizationPageState extends State<OrganizationPage> {
             ));
         context.replace(AppPaths.finalDeal(widget.organizationId));
         break;
-      // case 2:
-      //   context.replace('/organization/${widget.organizationId}/campaigns');
-      //   break;
     }
   }
 
@@ -288,8 +286,6 @@ class _OrganizationPageState extends State<OrganizationPage> {
           );
 
           return notificationWidget;
-
-          // return const SizedBox.shrink();
         },
       ),
     ).then((_) {
@@ -303,204 +299,222 @@ class _OrganizationPageState extends State<OrganizationPage> {
     // Kiểm tra xem có đang ở trang AI Chatbot không
     final isAIChatbotPage = _isAIChatbotPage(context);
 
+    // NEW: xác định tab hiện tại và cập nhật hướng nếu thay đổi
+    final currentTabIndex = _calculateSelectedIndex(context);
+    if (currentTabIndex != _lastTabIndex) {
+      _isForward = currentTabIndex > _lastTabIndex;
+      // Cập nhật _lastTabIndex sau frame để tránh setState trong build
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() => _lastTabIndex = currentTabIndex);
+      });
+    }
+
     return BlocConsumer<OrganizationBloc, OrganizationState>(
-        bloc: context.read<OrganizationBloc>(),
-        listener: (context, state) {
-          if (state.status == OrganizationStatus.error) {
-            Helpers.showSnackBar(context, state.error ?? 'Unknown error');
-          }
-          if (state.status == OrganizationStatus.loadUserInfoSuccess) {
+      bloc: context.read<OrganizationBloc>(),
+      listener: (context, state) {
+        if (state.status == OrganizationStatus.error) {
+          Helpers.showSnackBar(context, state.error ?? 'Unknown error');
+        }
+        if (state.status == OrganizationStatus.loadUserInfoSuccess) {
+          setState(() {
+            _userInfo = state.user;
+          });
+        }
+        if (state.status == OrganizationStatus.loadOrganizationsSuccess) {
+          _organizations = state.organizations;
+          if (widget.organizationId != 'default') {
+            final currentOrg = _organizations.firstWhere(
+              (org) => org.id == widget.organizationId,
+            );
             setState(() {
-              _userInfo = state.user;
+              _organizationInfo = currentOrg;
             });
-          }
-          if (state.status == OrganizationStatus.loadOrganizationsSuccess) {
-            _organizations = state.organizations;
-            if (widget.organizationId != 'default') {
-              final currentOrg = _organizations.firstWhere(
-                (org) => org.id == widget.organizationId,
-                // orElse: () => null,
-              );
+
+            print('Lưu organization mặc định: ${widget.organizationId}');
+            context.read<OrganizationBloc>().add(
+                  ChangeOrganization(
+                    organizationId: widget.organizationId,
+                  ),
+                );
+            SharedPreferencesService().setString(
+              PrefKey.defaultOrganizationId,
+              widget.organizationId,
+            );
+
+            context.read<CustomerServiceBloc>().add(
+                  LoadCustomerService(
+                    organizationId: widget.organizationId,
+                    pagingRequest: LeadPagingRequest(
+                      searchText: null,
+                      limit: 10,
+                      offset: 0,
+                      fields: null,
+                      status: null,
+                      startDate: null,
+                      endDate: null,
+                      stageIds: null,
+                      sourceIds: null,
+                      utmSources: null,
+                      ratings: null,
+                      teamIds: null,
+                      assignees: null,
+                      tags: null,
+                      isBusiness: null,
+                      isArchive: null,
+                    ),
+                  ),
+                );
+          } else {
+            if (mounted) {
               setState(() {
-                _organizationInfo = currentOrg;
-              });
-
-              print('Lưu organization mặc định: ${widget.organizationId}');
-              context.read<OrganizationBloc>().add(
-                    ChangeOrganization(
-                      organizationId: widget.organizationId,
-                    ),
-                  );
-              SharedPreferencesService().setString(
-                PrefKey.defaultOrganizationId,
-                widget.organizationId,
-              );
-
-              context.read<CustomerServiceBloc>().add(
-                    LoadCustomerService(
-                      organizationId: widget.organizationId,
-                      pagingRequest: LeadPagingRequest(
-                        searchText: null,
-                        limit: 10,
-                        offset: 0,
-                        fields: null,
-                        status: null,
-                        startDate: null,
-                        endDate: null,
-                        stageIds: null,
-                        sourceIds: null,
-                        utmSources: null,
-                        ratings: null,
-                        teamIds: null,
-                        assignees: null,
-                        tags: null,
-                        isBusiness: null,
-                        isArchive: null,
-                      ),
-                    ),
-                  );
-            } else {
-              if (mounted) {
-                setState(() {
-                  final currentOrg = _organizations.first;
-                  if (currentOrg != null) {
-                    if (mounted) {
-                      setState(() {
-                        _organizationInfo = currentOrg;
-                      });
-                    }
-                    print(
-                        'Lưu organization mặc định: ${widget.organizationId}');
-                    context.read<OrganizationBloc>().add(ChangeOrganization(
-                          organizationId: _organizationInfo!.id!,
-                        ));
-                    context.read<CustomerServiceBloc>().add(
-                          LoadCustomerService(
-                            organizationId: context
-                                    .read<OrganizationBloc>()
-                                    .state
-                                    .organizationId ??
-                                '',
-                            pagingRequest: LeadPagingRequest(
-                              searchText: null,
-                              limit: 10,
-                              offset: 0,
-                              fields: null,
-                              status: null,
-                              startDate: null,
-                              endDate: null,
-                              stageIds: null,
-                              sourceIds: null,
-                              utmSources: null,
-                              ratings: null,
-                              teamIds: null,
-                              assignees: null,
-                              tags: null,
-                              isBusiness: null,
-                              isArchive: null,
-                            ),
-                          ),
-                        );
-
-                    SharedPreferencesService().setString(
-                      PrefKey.defaultOrganizationId,
-                      _organizationInfo!.id!,
-                    );
-                    //   await ApiClient.storage.write(
-                    //     key: 'default_organization_id',
-                    //     value: widget.organizationId,
-                    //   );
-                    //   final savedOrgId = await ApiClient.storage.read(key: 'default_organization_id');
-                    //   print('Kiểm tra lại organization mặc định đã lưu: $savedOrgId');
-                    // } else {
-                    //   print('Organization ID ${widget.organizationId} không tìm thấy trong danh sách.');
-                    //   if (mounted) {
-                    //     if (organizations.isNotEmpty) {
-                    //       context.go('/organization/${organizations[0]['id']}');
-                    //     } else {
-                    //       setState(() {
-                    //         _isLoadingOrganizationsError = true;
-                    //       });
-                    //     }
-                    //   }
+                final currentOrg = _organizations.first;
+                if (currentOrg != null) {
+                  if (mounted) {
+                    setState(() {
+                      _organizationInfo = currentOrg;
+                    });
                   }
-                });
-              }
+                  print('Lưu organization mặc định: ${widget.organizationId}');
+                  context.read<OrganizationBloc>().add(ChangeOrganization(
+                        organizationId: _organizationInfo!.id!,
+                      ));
+                  context.read<CustomerServiceBloc>().add(
+                        LoadCustomerService(
+                          organizationId: context
+                                  .read<OrganizationBloc>()
+                                  .state
+                                  .organizationId ??
+                              '',
+                          pagingRequest: LeadPagingRequest(
+                            searchText: null,
+                            limit: 10,
+                            offset: 0,
+                            fields: null,
+                            status: null,
+                            startDate: null,
+                            endDate: null,
+                            stageIds: null,
+                            sourceIds: null,
+                            utmSources: null,
+                            ratings: null,
+                            teamIds: null,
+                            assignees: null,
+                            tags: null,
+                            isBusiness: null,
+                            isArchive: null,
+                          ),
+                        ),
+                      );
+
+                  SharedPreferencesService().setString(
+                    PrefKey.defaultOrganizationId,
+                    _organizationInfo!.id!,
+                  );
+                }
+              });
             }
           }
-        },
-        builder: (context, state) {
-          return Scaffold(
-            key: _scaffoldKey,
-            drawer: _buildDrawer(),
-            appBar: isAIChatbotPage
-                ? null
-                : AppBar(
-                    leading: _buildAvatar(),
-                    title:
-                        _buildTitle(context, _calculateSelectedIndex(context)),
-                    actions: [
-                      const LanguageDropdown(),
-                      Padding(
-                        padding: const EdgeInsets.only(right: 8.0),
-                        child: Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.notifications_outlined),
-                              onPressed: _navigateToNotifications,
-                              style: const ButtonStyle(
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              ),
+        }
+      },
+      builder: (context, state) {
+        return Scaffold(
+          key: _scaffoldKey,
+          drawer: _buildDrawer(),
+          appBar: isAIChatbotPage
+              ? null
+              : AppBar(
+                  leading: _buildAvatar(),
+                  title: _buildTitle(context, currentTabIndex),
+                  actions: [
+                    const LanguageDropdown(),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.notifications_outlined),
+                            onPressed: _navigateToNotifications,
+                            style: const ButtonStyle(
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
-                            if (_unreadNotificationCount > 0)
-                              Positioned(
-                                right: 0,
-                                top: 2,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 4, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: Colors.red,
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                        color: Colors.white, width: 1),
+                          ),
+                          if (_unreadNotificationCount > 0)
+                            Positioned(
+                              right: 0,
+                              top: 2,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 4, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.red,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border:
+                                      Border.all(color: Colors.white, width: 1),
+                                ),
+                                constraints: const BoxConstraints(
+                                  minWidth: 16,
+                                  minHeight: 16,
+                                ),
+                                child: Text(
+                                  _unreadNotificationCount > 99
+                                      ? '99+'
+                                      : _unreadNotificationCount.toString(),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.bold,
+                                    height: 1,
                                   ),
-                                  constraints: const BoxConstraints(
-                                    minWidth: 16,
-                                    minHeight: 16,
-                                  ),
-                                  child: Text(
-                                    _unreadNotificationCount > 99
-                                        ? '99+'
-                                        : _unreadNotificationCount.toString(),
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 8,
-                                      fontWeight: FontWeight.bold,
-                                      height: 1,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
+                                  textAlign: TextAlign.center,
                                 ),
                               ),
-                          ],
-                        ),
+                            ),
+                        ],
                       ),
-                      const SizedBox(width: 8),
-                    ],
-                  ),
-            body: widget.child,
-            bottomNavigationBar: isAIChatbotPage
-                ? null
-                : CustomBottomNavigation(
-                    selectedIndex: _calculateSelectedIndex(context),
-                    onTapped: (index) => _onItemTapped(index, context),
-                    showCampaignBadge: false,
-                    showSettingsBadge: false,
-                  ),
-          );
-        });
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                ),
+
+          // BODY: AnimatedSwitcher với hướng slide theo tab
+          body: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 350),
+            switchInCurve: Curves.easeInOut,
+            switchOutCurve: Curves.easeOutCubic,
+            transitionBuilder: (child, animation) {
+              final begin =
+                  _isForward ? const Offset(1, 0) : const Offset(-1, 0);
+              final slide = Tween<Offset>(begin: begin, end: Offset.zero)
+                  .animate(CurvedAnimation(
+                      parent: animation, curve: Curves.easeOut));
+              final fade =
+                  CurvedAnimation(parent: animation, curve: Curves.easeOut);
+
+              return SlideTransition(
+                position: slide,
+                child: FadeTransition(opacity: fade, child: child),
+              );
+            },
+            // ✅ Chỉ giữ currentChild, loại previousChildren → không còn 2 cây với GlobalKey trùng
+            layoutBuilder: (currentChild, previousChildren) =>
+                currentChild ?? const SizedBox.shrink(),
+            child: KeyedSubtree(
+              key: ValueKey<int>(currentTabIndex),
+              child: widget.child, // xem Cách 2
+            ),
+          ),
+          bottomNavigationBar: isAIChatbotPage
+              ? null
+              : CustomBottomNavigation(
+                  selectedIndex: currentTabIndex,
+                  onTapped: (index) => _onItemTapped(index, context),
+                  showCampaignBadge: false,
+                  showSettingsBadge: false,
+                ),
+        );
+      },
+    );
   }
 }
 
@@ -516,80 +530,82 @@ class _CustomDropdownState extends State<CustomDropdown> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<FinalDealBloc, FinalDealState>(
-        builder: (context, state) {
-      return Align(
-        alignment: Alignment.centerLeft, // Cho dropdown mở từ trên xuống
-        child: PopupMenuButton<WorkspaceModel>(
-          color: Colors.white,
-          onOpened: () {
-            setState(() {
-              isOpen = true;
-            });
-          },
-          onCanceled: () {
-            setState(() {
-              isOpen = false;
-            });
-          },
-          onSelected: (WorkspaceModel value) {
-            setState(() {
-              context.read<FinalDealBloc>().add(SelectWorkspace(
-                    workspace: value,
-                    organizationId:
-                        context.read<OrganizationBloc>().state.organizationId ??
-                            '',
-                  ));
-              isOpen = false;
-            });
-          },
-          itemBuilder: (BuildContext context) {
-            return state.workspaces.map((WorkspaceModel choice) {
-              final isSelected = choice == state.selectedWorkspace;
-              return PopupMenuItem<WorkspaceModel>(
-                value: choice,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      choice.name ?? '',
-                      style: TextStyle(
-                        fontWeight:
-                            isSelected ? FontWeight.bold : FontWeight.normal,
-                        color: isSelected ? AppColors.primary : Colors.black,
+      builder: (context, state) {
+        return Align(
+          alignment: Alignment.centerLeft, // Cho dropdown mở từ trên xuống
+          child: PopupMenuButton<WorkspaceModel>(
+            color: Colors.white,
+            onOpened: () {
+              setState(() {
+                isOpen = true;
+              });
+            },
+            onCanceled: () {
+              setState(() {
+                isOpen = false;
+              });
+            },
+            onSelected: (WorkspaceModel value) {
+              setState(() {
+                context.read<FinalDealBloc>().add(SelectWorkspace(
+                      workspace: value,
+                      organizationId: context
+                              .read<OrganizationBloc>()
+                              .state
+                              .organizationId ??
+                          '',
+                    ));
+                isOpen = false;
+              });
+            },
+            itemBuilder: (BuildContext context) {
+              return state.workspaces.map((WorkspaceModel choice) {
+                final isSelected = choice == state.selectedWorkspace;
+                return PopupMenuItem<WorkspaceModel>(
+                  value: choice,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        choice.name ?? '',
+                        style: TextStyle(
+                          fontWeight:
+                              isSelected ? FontWeight.bold : FontWeight.normal,
+                          color: isSelected ? AppColors.primary : Colors.black,
+                        ),
                       ),
-                    ),
-                    if (isSelected)
-                      const Icon(Icons.check,
-                          color: AppColors.primary, size: 18),
-                  ],
-                ),
-              );
-            }).toList();
-          },
-          offset: const Offset(0, 45), // mở lên trên một chút
+                      if (isSelected)
+                        const Icon(Icons.check,
+                            color: AppColors.primary, size: 18),
+                    ],
+                  ),
+                );
+              }).toList();
+            },
+            offset: const Offset(0, 45), // mở lên trên một chút
 
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              // border: Border.all(color: Colors.grey.shade400),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  state.selectedWorkspace?.name ?? '',
-                  style: const TextStyle(fontSize: 16),
-                ),
-                const SizedBox(width: 8),
-                isOpen
-                    ? const Icon(Icons.keyboard_arrow_up)
-                    : const Icon(Icons.keyboard_arrow_down),
-              ],
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    state.selectedWorkspace?.name ?? '',
+                    style: const TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(width: 8),
+                  isOpen
+                      ? const Icon(Icons.keyboard_arrow_up)
+                      : const Icon(Icons.keyboard_arrow_down),
+                ],
+              ),
             ),
           ),
-        ),
-      );
-    });
+        );
+      },
+    );
   }
 }

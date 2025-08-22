@@ -1,0 +1,115 @@
+############################################
+# Safe baseline for Flutter + common libs  #
+############################################
+
+# Keep useful metadata
+-keepattributes *Annotation*, InnerClasses, EnclosingMethod, Signature, SourceFile, LineNumberTable
+
+###########
+# @Keep   #
+###########
+-keep @androidx.annotation.Keep class * { *; }
+-keepclasseswithmembers class * { @androidx.annotation.Keep *; }
+-keep @android.support.annotation.Keep class * { *; }
+-keepclasseswithmembers class * { @android.support.annotation.Keep *; }
+
+#####################
+# AndroidX Lifecycle
+#####################
+-keep class androidx.lifecycle.DefaultLifecycleObserver { *; }
+
+############
+# WebView  #
+############
+-keep,allowshrinking public class androidx.webkit.WebViewClientCompat { *; }
+
+########################################
+# VersionedParcelable
+########################################
+-keep class * implements androidx.versionedparcelable.VersionedParcelable { *; }
+-keep public class androidx.versionedparcelable.ParcelImpl { *; }
+
+################
+# Facebook SDK #
+################
+-keep,allowshrinking class com.facebook.FacebookActivity { *; }
+-keep,allowshrinking class com.facebook.CustomTabActivity { *; }
+-keep class com.facebook.common.Common { *; }
+-keep class com.facebook.login.Login { *; }
+
+# Play Install Referrer
+-keep,allowshrinking class com.android.installreferrer.api.InstallReferrerClient { *; }
+-keep,allowshrinking class com.android.installreferrer.api.InstallReferrerStateListener { *; }
+-keep,allowshrinking class com.android.installreferrer.api.ReferrerDetails { *; }
+
+#########################
+# Google Play services  #
+#########################
+-keep class com.google.android.gms.common.internal.ReflectedParcelable { *; }
+-keep,allowshrinking class * implements com.google.android.gms.common.internal.ReflectedParcelable { *; }
+
+#########################
+# Firebase Components   #
+#########################
+# Chỉ giữ registrar (KHÔNG thêm { void <init>(); } cho interface/annotation)
+-keep class * implements com.google.firebase.components.ComponentRegistrar { *; }
+
+########
+# Gson #
+########
+-keep,allowobfuscation class com.google.gson.reflect.TypeToken { *; }
+-keep,allowobfuscation class * extends com.google.gson.reflect.TypeToken { *; }
+# (KHÔNG dùng cú pháp @com.google.gson.annotations.JsonAdapter class * để tránh lỗi cú pháp)
+
+########################################
+# Google Play LVL (nếu bị kéo vào)
+########################################
+-keep public class com.google.vending.licensing.ILicensingService { *; }
+-keep public class com.android.vending.licensing.ILicensingService { *; }
+-keep public class com.google.android.vending.licensing.ILicensingService { *; }
+
+########################################
+# Optional: giảm cảnh báo (vô hại)
+########################################
+-dontwarn kotlin.**
+-dontwarn kotlinx.coroutines.**
+-dontwarn okhttp3.**
+-dontwarn okio.**
+-dontwarn retrofit2.**
+-dontwarn javax.annotation.**
+-dontwarn org.codehaus.mojo.animal_sniffer.**
+
+########################################
+# Flutter embedding and plugins
+# Rely on Flutter's default rules; avoid broad keeps that pull Play Core
+########################################
+
+############
+# WebView JS
+############
+-keepclassmembers class * {
+    @android.webkit.JavascriptInterface <methods>;
+}
+# Optional: suppress Chromium stubs warnings used by WebView
+-dontwarn org.chromium.**
+
+#########################
+# Firebase (safe minimal)
+#########################
+-keep,allowshrinking class com.google.firebase.messaging.FirebaseMessagingService { *; }
+-keep,allowshrinking class com.google.firebase.iid.** { *; }
+
+########################################
+# Google Play Core (deferred components)
+########################################
+-dontwarn com.google.android.play.core.splitcompat.SplitCompatApplication
+-dontwarn com.google.android.play.core.splitinstall.SplitInstallException
+-dontwarn com.google.android.play.core.splitinstall.SplitInstallManager
+-dontwarn com.google.android.play.core.splitinstall.SplitInstallManagerFactory
+-dontwarn com.google.android.play.core.splitinstall.SplitInstallRequest$Builder
+-dontwarn com.google.android.play.core.splitinstall.SplitInstallRequest
+-dontwarn com.google.android.play.core.splitinstall.SplitInstallSessionState
+-dontwarn com.google.android.play.core.splitinstall.SplitInstallStateUpdatedListener
+-dontwarn com.google.android.play.core.tasks.OnFailureListener
+-dontwarn com.google.android.play.core.tasks.OnSuccessListener
+-dontwarn com.google.android.play.core.tasks.Task%

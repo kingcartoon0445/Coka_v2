@@ -3,6 +3,7 @@ import 'package:source_base/core/api/api_endpoints.dart';
 import 'package:source_base/core/error/exceptions.dart';
 import 'package:source_base/data/datasources/remote/api_service.dart';
 import 'package:source_base/data/datasources/remote/param_model/lead_paging_request_model.dart';
+import 'package:source_base/presentation/blocs/filter_item/model/create_model.dart';
 
 class OrganizationRepository {
   final ApiService apiService;
@@ -261,9 +262,10 @@ class OrganizationRepository {
   }
 
   Future<Response> createLead(
-      String organizationId, Map<String, dynamic> data) async {
+      String organizationId, CreateLeadModel data) async {
     try {
-      final response = await apiService.createLeadService(organizationId, data);
+      final response =
+          await apiService.createLeadService(organizationId, data.toJson());
       return response;
     } catch (e) {
       return Response<Map<String, dynamic>>(

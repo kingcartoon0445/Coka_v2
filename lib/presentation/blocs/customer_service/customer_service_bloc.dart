@@ -418,39 +418,43 @@ class CustomerServiceBloc
     Emitter<CustomerServiceState> emit,
   ) async {
     log('Loading Facebook chats for organization: ${event.organizationId}');
-    emit(state.copyWith(status: CustomerServiceStatus.loading));
-
-    final response = await organizationRepository.getFacebookChatPaging(
-      event.organizationId,
-      20,
-      0,
-      event.provider,
-    );
-
-    final success = _ok(response.data);
-    log('API Response success: $success');
-
-    if (success) {
-      final CustomerServiceResponse parsed =
-          CustomerServiceResponse.fromJson(response.data);
-      final hasMore = _hasMore(
-        parsed.metadata?.offset,
-        parsed.metadata?.count,
-        parsed.metadata?.total,
+    emit(state.copyWith(
+      status: CustomerServiceStatus.loading,
+      customerServices: [],
+    ));
+    Future.delayed(const Duration(seconds: 1), () async {
+      final response = await organizationRepository.getFacebookChatPaging(
+        event.organizationId,
+        20,
+        0,
+        event.provider,
       );
 
-      emit(
-        state.copyWith(
-          status: CustomerServiceStatus.success,
-          customerServices: parsed.content ?? [],
-          facebookChatsMetadata: parsed.metadata,
-          hasMoreFacebookChats: hasMore,
-        ),
-      );
-    } else {
-      log('API Error: ${response.data}');
-      emit(state.copyWith(status: CustomerServiceStatus.error));
-    }
+      final success = _ok(response.data);
+      log('API Response success: $success');
+
+      if (success) {
+        final CustomerServiceResponse parsed =
+            CustomerServiceResponse.fromJson(response.data);
+        final hasMore = _hasMore(
+          parsed.metadata?.offset,
+          parsed.metadata?.count,
+          parsed.metadata?.total,
+        );
+
+        emit(
+          state.copyWith(
+            status: CustomerServiceStatus.success,
+            customerServices: parsed.content ?? [],
+            facebookChatsMetadata: parsed.metadata,
+            hasMoreFacebookChats: hasMore,
+          ),
+        );
+      } else {
+        log('API Error: ${response.data}');
+        emit(state.copyWith(status: CustomerServiceStatus.error));
+      }
+    });
   }
 
   Future<void> _onLoadMoreProviderChats(
@@ -463,8 +467,8 @@ class CustomerServiceBloc
 
       final response = await organizationRepository.getFacebookChatPaging(
         event.organizationId,
-        event.limit,
-        event.offset,
+        20,
+        0,
         event.provider,
       );
 

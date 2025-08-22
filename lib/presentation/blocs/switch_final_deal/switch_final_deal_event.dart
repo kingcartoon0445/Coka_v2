@@ -42,6 +42,11 @@ class SwicthSelected extends SwitchFinalDealEvent {
       this.businessProcess});
 }
 
+class GetProduct extends SwitchFinalDealEvent {
+  final String organizationId;
+  const GetProduct({required this.organizationId});
+}
+
 class AddProductToSelection extends SwitchFinalDealEvent {
   final ProductModel product;
   final int quantity;

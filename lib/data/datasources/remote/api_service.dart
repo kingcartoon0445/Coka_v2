@@ -537,10 +537,9 @@ class ApiService {
       String conversationId, int limit, int offset) async {
     try {
       final response = await _dioClient.get(
-        ApiEndpoints.chatList,
+        ApiEndpoints.chatList(conversationId),
         options: Options(headers: {'organizationId': organizationId}),
         queryParameters: {
-          'conversationId': conversationId,
           'limit': limit,
           'offset': offset,
         },
@@ -555,7 +554,8 @@ class ApiService {
         },
         statusCode: 500,
         statusMessage: 'Unknown error',
-        requestOptions: RequestOptions(path: ApiEndpoints.chatList),
+        requestOptions:
+            RequestOptions(path: ApiEndpoints.chatList(conversationId)),
       );
     }
   }
@@ -586,10 +586,18 @@ class ApiService {
     }
   }
 
+  String? getField(FormData fd, String key) {
+    for (final f in fd.fields) {
+      if (f.key == key) return f.value;
+    }
+    return null;
+  }
+
   Future<Response> sendMessageService(
       String organizationId, String conversationId, FormData formData) async {
     try {
-      final response = await _dioClient.post(ApiEndpoints.sendMessage,
+      final response = await _dioClient.post(
+          ApiEndpoints.sendMessage(getField(formData, 'conversationId') ?? ''),
           options: Options(headers: {'organizationid': organizationId}),
           data: formData);
       return response;
@@ -602,7 +610,8 @@ class ApiService {
         },
         statusCode: 500,
         statusMessage: 'Unknown error',
-        requestOptions: RequestOptions(path: ApiEndpoints.sendMessage),
+        requestOptions:
+            RequestOptions(path: ApiEndpoints.sendMessage(conversationId)),
       );
     }
   }
@@ -610,7 +619,8 @@ class ApiService {
   Future<Response> sendImageMessageService(
       String organizationId, FormData formData) async {
     try {
-      final response = await _dioClient.post(ApiEndpoints.sendMessage,
+      final response = await _dioClient.post(
+          ApiEndpoints.sendMessage(getField(formData, 'conversationId') ?? ''),
           options: Options(headers: {'organizationid': organizationId}),
           data: formData);
       return response;
@@ -623,7 +633,9 @@ class ApiService {
         },
         statusCode: 500,
         statusMessage: 'Unknown error',
-        requestOptions: RequestOptions(path: ApiEndpoints.sendMessage),
+        requestOptions: RequestOptions(
+            path: ApiEndpoints.sendMessage(
+                getField(formData, 'conversationId') ?? '')),
       );
     }
   }
@@ -631,7 +643,7 @@ class ApiService {
   Future<Response> deleteCustomerService(
       String id, String organizationId) async {
     try {
-      final response = await _dioClient.delete(ApiEndpoints.customerPath(id),
+      final response = await _dioClient.delete(ApiEndpoints.getLeadDetail(id),
           options: Options(headers: {'organizationId': organizationId}));
       return response;
     } catch (e) {
@@ -643,7 +655,7 @@ class ApiService {
         },
         statusCode: 500,
         statusMessage: 'Unknown error',
-        requestOptions: RequestOptions(path: ApiEndpoints.customerPath(id)),
+        requestOptions: RequestOptions(path: ApiEndpoints.getLeadDetail(id)),
       );
     }
   }
@@ -921,13 +933,11 @@ class ApiService {
   Future<Response> createLeadService(
       String organizationId, Map<String, dynamic> data) async {
     try {
-      final response = await _dioClient.postProducts(ApiEndpoints.createLead,
+      final response = await _dioClient.post(ApiEndpoints.createLead,
           options: Options(headers: {'organizationId': organizationId}),
           data: data);
       return response;
-    }
-    catch (e) {
-      
+    } catch (e) {
       return Response<Map<String, dynamic>>(
         data: {
           'success': false,
@@ -937,6 +947,121 @@ class ApiService {
         statusCode: 500,
         statusMessage: 'Unknown error',
         requestOptions: RequestOptions(path: ApiEndpoints.createLead),
+      );
+    }
+  }
+
+  Future<Response> getCustomerDetailService(String organizationId, String id,
+      {bool isCustomer = false}) async {
+    try {
+      final response = await _dioClient.get(
+          isCustomer
+              ? ApiEndpoints.getCustomerDetail(id)
+              : ApiEndpoints.getLeadDetail(id),
+          options: Options(headers: {'organizationId': organizationId}));
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions:
+            RequestOptions(path: ApiEndpoints.getCustomerDetail(id)),
+      );
+    }
+  }
+
+  Future<Response> updateCustomerService(
+      String organizationId, String id, Map<String, dynamic> data,
+      {bool isCustomer = false}) async {
+    try {
+      final response = await _dioClient.patch(
+          isCustomer
+              ? "${ApiEndpoints.getCustomerDetail(id)}/update-field"
+              : "${ApiEndpoints.getLeadDetail(id)}/update-field",
+          options: Options(headers: {'organizationId': organizationId}),
+          data: data);
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions:
+            RequestOptions(path: ApiEndpoints.getCustomerDetail(id)),
+      );
+    }
+  }
+
+  Future<Response> archiveOrderService(
+      String organizationId, String conversationId) async {
+    try {
+      final response = await _dioClient.putProducts(
+          ApiEndpoints.archiveOrder(conversationId),
+          options: Options(headers: {'organizationId': organizationId}));
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions:
+            RequestOptions(path: ApiEndpoints.archiveOrder(conversationId)),
+      );
+    }
+  }
+
+  Future<Response> deleteOrderService(
+      String organizationId, String conversationId) async {
+    try {
+      final response = await _dioClient.deleteProducts(
+          '${ApiEndpoints.businessProcessTask}/$conversationId',
+          options: Options(headers: {'organizationId': organizationId}));
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions:
+            RequestOptions(path: ApiEndpoints.archiveOrder(conversationId)),
+      );
+    }
+  }
+
+  Future<Response> connectZaloOA(
+      String organizationId, String accessToken) async {
+    try {
+      final response = await _dioClient
+          .get(ApiEndpoints.connectZaloOA(organizationId, accessToken));
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(
+            path: ApiEndpoints.connectZaloOA(organizationId, accessToken)),
       );
     }
   }

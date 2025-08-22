@@ -1,9 +1,11 @@
 import 'package:equatable/equatable.dart';
 import 'package:source_base/data/models/schedule_response.dart';
 import 'package:source_base/data/models/service_detail_response.dart';
+import 'package:source_base/presentation/blocs/deal_activity/model/customer_detail_model.dart';
 import 'package:source_base/presentation/blocs/deal_activity/model/order_detail_responese.dart';
 import 'package:source_base/presentation/blocs/final_deal/model/business_process_response.dart';
 import 'package:source_base/presentation/blocs/final_deal/model/business_process_task_response.dart';
+import 'package:source_base/presentation/blocs/switch_final_deal/models/product_response.dart';
 
 import 'model/deal_activity_response.dart';
 
@@ -14,12 +16,17 @@ enum DealActivityStatus {
   successUpdateStatus,
   error,
   errorChangeStage,
+  errorDuplicateOrder,
   successCreateReminder,
+  successUpdateNoteMark,
+  successUpdateCustomer,
+  successEditOrder,
 }
 
 class DealActivityState extends Equatable {
   final TaskModel? task;
   final String? workspaceId;
+
   final DealActivityStatus status;
   final List<BusinessProcessModel> businessProcesses;
   final List<DealActivityModel> dealActivityModels;
@@ -30,6 +37,7 @@ class DealActivityState extends Equatable {
   final CustomerOrderDataModel? customerOrderDataModel;
   final String? error;
   final String? errorTitle;
+  final CustomerDetailModel? customerDataModel;
 
   /// Constructor không const để xử lý runtime logic cho error/errorTitle.
   DealActivityState({
@@ -45,6 +53,7 @@ class DealActivityState extends Equatable {
     this.task,
     this.workspaceId,
     this.customerOrderDataModel,
+    this.customerDataModel,
   })  : error = _normalizeError(status, error),
         errorTitle = _normalizeErrorTitle(status, errorTitle);
 
@@ -64,6 +73,8 @@ class DealActivityState extends Equatable {
     TaskModel? task,
     String? workspaceId,
     CustomerOrderDataModel? customerOrderDataModel,
+    CustomerDetailModel? customerDataModel,
+    List<ProductModel>? products,
   }) {
     final nextStatus = status ?? this.status;
     final nextError = _normalizeError(nextStatus, error ?? this.error);
@@ -85,6 +96,7 @@ class DealActivityState extends Equatable {
       workspaceId: workspaceId ?? this.workspaceId,
       customerOrderDataModel:
           customerOrderDataModel ?? this.customerOrderDataModel,
+      customerDataModel: customerDataModel ?? this.customerDataModel,
     );
   }
 
@@ -119,5 +131,6 @@ class DealActivityState extends Equatable {
         task,
         workspaceId,
         customerOrderDataModel,
+        customerDataModel,
       ];
 }

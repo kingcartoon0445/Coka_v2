@@ -1,5 +1,6 @@
 // main.dart
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 import 'dart:convert';
 
@@ -37,7 +38,7 @@ const AndroidNotificationChannel _channel = AndroidNotificationChannel(
   importance: Importance.max,
   playSound: true,
   // ❗️Xoá nếu chưa có file raw/notify
-  sound: RawResourceAndroidNotificationSound("notify"),
+  // sound: RawResourceAndroidNotificationSound("notify"),
 );
 
 // ---------- BACKGROUND HANDLER ----------
@@ -72,7 +73,7 @@ Future<void> _showLocalFromMessage(RemoteMessage m) async {
     priority: Priority.high,
     playSound: true,
     // ❗️Xoá nếu chưa có file raw/notify
-    sound: RawResourceAndroidNotificationSound("notify"),
+    // sound: RawResourceAndroidNotificationSound("notify"),
   );
   const ios = DarwinNotificationDetails(
     presentAlert: true,
@@ -105,6 +106,7 @@ Future<void> _sendToken() async {
 
 Future<void> _updateTokenToServer(String token) async {
   try {
+    log("FCM token: $token");
     final deviceId = await AppConstants().getDeviceId();
     final version = await AppConstants().getVersion();
 

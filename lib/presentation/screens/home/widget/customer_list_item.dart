@@ -160,9 +160,9 @@ class CustomerListItem extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 4),
-        const Text(
-          'Chưa phân công',
-          style: TextStyle(
+        Text(
+          'unassigned'.tr(),
+          style: const TextStyle(
             fontSize: 10,
             color: Color(0xFF828489),
             fontStyle: FontStyle.italic,
@@ -366,7 +366,7 @@ class CustomerListItem extends StatelessWidget {
       builder: (BuildContext context) {
         return InkWell(
           onTap: () {
-            if (customer.channel == 'FACEBOOK') {
+            if (customer.channel == 'FACEBOOK' || customer.channel == 'ZALO') {
               _handleTap(context);
               return;
             }

@@ -86,14 +86,17 @@ Future<void> setupServiceLocator() async {
       switchFinalDealRepository: getIt<SwitchFinalDealRepository>()));
   getIt.registerFactory<ChatBloc>(
       () => ChatBloc(chatRepository: getIt<ChatRepository>()));
-  getIt.registerFactory<FinalDealBloc>(
-      () => FinalDealBloc(repository: getIt<FinalDealRepository>()));
+  getIt.registerFactory<FinalDealBloc>(() => FinalDealBloc(
+      repository: getIt<FinalDealRepository>(),
+      switchFinalDealRepository: getIt<SwitchFinalDealRepository>(),
+      dealActivityRepository: getIt<DealActivityRepository>()));
   getIt.registerFactory<SwitchFinalDealBloc>(() => SwitchFinalDealBloc(
       repository: getIt<SwitchFinalDealRepository>(),
       finalRepository: getIt<FinalDealRepository>()));
   getIt.registerFactory<DealActivityBloc>(() => DealActivityBloc(
       dealActivityRepository: getIt<DealActivityRepository>(),
-      calendarRepository: getIt<CalendarRepository>()));
+      calendarRepository: getIt<CalendarRepository>(),
+      switchFinalDealRepository: getIt<SwitchFinalDealRepository>()));
   getIt.registerFactory<MessageBloc>(() => MessageBloc(
         repository: getIt<MessageRepository>(),
       ));

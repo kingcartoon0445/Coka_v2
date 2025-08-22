@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:source_base/data/models/schedule_response.dart';
@@ -118,7 +119,7 @@ class WebReminderItem extends StatelessWidget {
       final now = DateTime.now();
 
       if (reminder.isDone == true) {
-        return "Đã hoàn thành";
+        return "completed".tr();
       }
 
       if (_isOverdue()) {
@@ -126,11 +127,17 @@ class WebReminderItem extends StatelessWidget {
         final overdueDuration = now.difference(endTime);
 
         if (overdueDuration.inDays > 0) {
-          return "Quá hạn ${overdueDuration.inDays} ngày";
+          return "overdue_days".tr(namedArgs: {
+            'days': overdueDuration.inDays.toString(),
+          });
         } else if (overdueDuration.inHours > 0) {
-          return "Quá hạn ${overdueDuration.inHours} giờ";
+          return "overdue_hours".tr(namedArgs: {
+            'hours': overdueDuration.inHours.toString(),
+          });
         } else {
-          return "Quá hạn ${overdueDuration.inMinutes} phút";
+          return "overdue_minutes".tr(namedArgs: {
+            'minutes': overdueDuration.inMinutes.toString(),
+          });
         }
       }
 
@@ -138,17 +145,23 @@ class WebReminderItem extends StatelessWidget {
 
       if (difference.isNegative) {
         // Đã bắt đầu nhưng chưa kết thúc
-        return "Đang diễn ra";
+        return "in_progress".tr();
       }
 
       if (difference.inDays > 0) {
-        return "Còn ${difference.inDays} ngày";
+        return "remaining_days".tr(namedArgs: {
+          'days': difference.inDays.toString(),
+        });
       } else if (difference.inHours > 0) {
-        return "Còn ${difference.inHours} giờ";
+        return "remaining_hours".tr(namedArgs: {
+          'hours': difference.inHours.toString(),
+        });
       } else if (difference.inMinutes > 0) {
-        return "Còn ${difference.inMinutes} phút";
+        return "remaining_minutes".tr(namedArgs: {
+          'minutes': difference.inMinutes.toString(),
+        });
       } else {
-        return "Sắp bắt đầu";
+        return "starting_soon".tr();
       }
     } catch (e) {
       return reminder.startTime ?? ''; // Fallback về format cũ nếu có lỗi
@@ -299,7 +312,7 @@ class WebReminderItem extends StatelessWidget {
             children: [
               const Icon(Icons.edit, size: 14, color: ReminderColors.gray600),
               const SizedBox(width: 6),
-              Text('Sửa',
+              Text('edit'.tr(),
                   style: ReminderTypography.body2.copyWith(fontSize: 12)),
             ],
           ),
@@ -312,7 +325,7 @@ class WebReminderItem extends StatelessWidget {
               const Icon(Icons.delete, size: 14, color: ReminderColors.error),
               const SizedBox(width: 6),
               Text(
-                'Xóa',
+                'delete'.tr(),
                 style: ReminderTypography.body2.copyWith(
                   color: ReminderColors.error,
                   fontSize: 12,
@@ -352,8 +365,9 @@ class WebReminderItem extends StatelessWidget {
   }
 
   Color _getBackgroundColor() {
-    if (reminder.isDone == true)
+    if (reminder.isDone == true) {
       return Colors.white; // Không có background màu cho done state
+    }
     if (_isOverdue()) return ReminderColors.overdue;
     return Colors.white;
   }
@@ -362,16 +376,16 @@ class WebReminderItem extends StatelessWidget {
     final dateFormat = DateFormat('dd/MM/yyyy HH:mm');
     try {
       final startTime = DateTime.parse(reminder.startTime ?? '');
-      String result = 'Bắt đầu: ${dateFormat.format(startTime)}';
+      String result = '${'start'.tr()}: ${dateFormat.format(startTime)}';
 
       if (reminder.endTime != null && reminder.endTime!.isNotEmpty) {
         final endTime = DateTime.parse(reminder.endTime!);
-        result += '\nKết thúc: ${dateFormat.format(endTime)}';
+        result += '\n${'end'.tr()}: ${dateFormat.format(endTime)}';
       }
 
       return result;
     } catch (e) {
-      return 'Thời gian: ${reminder.startTime}';
+      return '${'time'.tr()}: ${reminder.startTime}';
     }
   }
 }

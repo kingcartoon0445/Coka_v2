@@ -334,4 +334,3 @@ class ShowError extends CustomerServiceEvent {
   @override
   List<Object?> get props => [error, status];
 }
- 

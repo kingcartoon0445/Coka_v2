@@ -1,6 +1,8 @@
 import 'dart:developer';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:source_base/config/app_color.dart';
 import 'package:source_base/config/helper.dart';
 import 'package:source_base/presentation/blocs/final_deal/model/business_process_response.dart';
@@ -69,7 +71,7 @@ class _FinalDealScreenState extends State<FinalDealScreen>
         });
       }
     }, builder: (context, state) {
-      if (state.status == FinalDealStatus.loading) {
+      if (state.status == FinalDealStatus.loadingBusinessProcess) {
         return const Center(
           child: CircularProgressIndicator(),
         );
@@ -84,7 +86,7 @@ class _FinalDealScreenState extends State<FinalDealScreen>
                 Container(
                   color: Colors.white,
                   child: TabBar(
-                    padding: EdgeInsets.zero,
+                    padding: const EdgeInsets.only(left: 16, right: 16),
                     //  labelPadding: EdgeInsets.symmetric(horizontal: 12),
                     tabAlignment: TabAlignment.start,
                     labelPadding: const EdgeInsets.only(left: 6, right: 10),
@@ -113,9 +115,32 @@ class _FinalDealScreenState extends State<FinalDealScreen>
                 // Summary Section
                 BlocBuilder<FinalDealBloc, FinalDealState>(
                     builder: (context, state) {
-                  if (state.status == FinalDealStatus.loadingBusinessProcess) {
-                    return const Center(
-                      child: CircularProgressIndicator(),
+                  if (state.status == FinalDealStatus.loadingBusinessProcess ||
+                      state.status == FinalDealStatus.loadingListTask) {
+                    return Shimmer.fromColors(
+                      baseColor: Colors.grey[300]!,
+                      highlightColor: Colors.grey[100]!,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 100,
+                              height: 14,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(width: 5),
+                            Container(
+                              width: 50,
+                              height: 12,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(height: 2),
+                          ],
+                        ),
+                      ),
                     );
                   }
 
@@ -126,7 +151,8 @@ class _FinalDealScreenState extends State<FinalDealScreen>
                       children: [
                         Text(
                           Helpers.formatCurrency(
-                            state.taskes.map((e) => e.orderValue)
+                            state.taskes
+                                .map((e) => e.orderValue)
                                 .fold(0, (sum, item) => sum + (item ?? 0)),
                           ),
                           style: const TextStyle(
@@ -145,7 +171,7 @@ class _FinalDealScreenState extends State<FinalDealScreen>
                           ),
                         ),
                         Text(
-                          '${state.taskes.length} Giao dịch',
+                          '${state.taskes.length} ${'transaction'.tr()}',
                           style: const TextStyle(
                             fontSize: 14,
                             color: Colors.grey,

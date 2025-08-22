@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:equatable/equatable.dart';
+import 'package:source_base/presentation/blocs/filter_item/model/create_model.dart';
 
 abstract class FilterItemEvent extends Equatable {
   const FilterItemEvent();
@@ -38,7 +39,7 @@ class LoadFilterItem extends FilterItemEvent {
 
 class CreateLead extends FilterItemEvent {
   final String organizationId;
-  final Map<String, dynamic> data;
+  final CreateLeadModel data;
 
   const CreateLead({required this.organizationId, required this.data});
 }

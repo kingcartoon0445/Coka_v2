@@ -227,9 +227,8 @@ class _CustomersPageState extends State<CustomersPage>
               endDate: _currentFilter?.dateRange?.end,
               sourceIds: _currentFilter?.categories.map((e) => e.id).toList(),
               utmSources: _currentFilter?.sources.map((e) => e.name).toList(),
-              assignees: _currentFilter?.assignees
-                  .map((e) => e.id ?? '')
-                  .toList(),
+              assignees:
+                  _currentFilter?.assignees.map((e) => e.id ?? '').toList(),
               tags: _currentFilter?.tags.map((e) => e.name ?? '').toList(),
               customConditions: _currentFilter?.conditions ?? [],
               isBusiness: null,
@@ -428,7 +427,11 @@ class _CustomersPageState extends State<CustomersPage>
             backgroundColor: const Color(0xFFE3DFFF),
             child: const Icon(Icons.create, color: Colors.black),
             onTap: () {
-              showOpportunityCreateDialog(context);
+              showOpportunityCreateDialog(context).then((value) {
+                if (value == true) {
+                  _loadCustomerService();
+                }
+              });
             },
           ),
           SpeedDialChild(

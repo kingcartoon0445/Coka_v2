@@ -44,7 +44,7 @@ class CustomBottomNavigation extends StatelessWidget {
               size: 30,
               color: Color(0xFF5A48EF),
             ),
-            label: "customer_care".tr(),
+            label: "lead".tr(),
           ),
           NavigationDestination(
             icon: Stack(
