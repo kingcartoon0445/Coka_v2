@@ -374,19 +374,19 @@ class _TabViewState extends State<TabView> {
         Offset.zero & overlay.size,
       ),
       items: [
-        const PopupMenuItem<String>(
+        PopupMenuItem<String>(
           value: 'change_stage',
           child: Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.swap_horiz,
                 size: 20,
                 color: Colors.black87,
               ),
               SizedBox(width: 8),
               Text(
-                'Chuyển giai đoạn',
-                style: TextStyle(
+                'change_stage'.tr(),
+                style: const TextStyle(
                   fontSize: 14,
                   color: Colors.black87,
                 ),
@@ -394,19 +394,19 @@ class _TabViewState extends State<TabView> {
             ],
           ),
         ),
-        const PopupMenuItem<String>(
+        PopupMenuItem<String>(
           value: 'delete_transaction',
           child: Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.delete_outline,
                 size: 20,
                 color: Colors.red,
               ),
               SizedBox(width: 8),
               Text(
-                'Xoá giao dịch',
-                style: TextStyle(
+                'delete_transaction'.tr(),
+                style: const TextStyle(
                   fontSize: 14,
                   color: Colors.red,
                 ),

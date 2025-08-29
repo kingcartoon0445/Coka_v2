@@ -1,20 +1,16 @@
 import 'dart:async';
 
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart'; // <-- ADD
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:source_base/config/app_color.dart';
 import 'package:source_base/config/helper.dart';
 import 'package:source_base/config/routes.dart';
 import 'package:source_base/config/test_style.dart';
-import 'package:source_base/core/api/dio_client.dart';
 import 'package:source_base/data/datasources/local/shared_preferences_service.dart';
 import 'package:source_base/data/datasources/remote/param_model/lead_paging_request_model.dart';
 import 'package:source_base/data/models/organization_model.dart';
 import 'package:source_base/data/models/user_profile.dart';
-import 'package:source_base/data/repositories/message_repository.dart';
 import 'package:source_base/presentation/blocs/auth/auth_bloc.dart';
 import 'package:source_base/presentation/blocs/auth/auth_event.dart';
 import 'package:source_base/presentation/blocs/final_deal/model/workspace_response.dart';
@@ -28,11 +24,12 @@ import '../../blocs/customer_service/customer_service_action.dart';
 import '../../blocs/final_deal/final_deal_action.dart';
 import '../../blocs/organization/organization_action_bloc.dart';
 
+// ignore: must_be_immutable
 class OrganizationPage extends StatefulWidget {
-  final String organizationId;
+  String organizationId;
   final Widget child;
 
-  const OrganizationPage({
+  OrganizationPage({
     super.key,
     required this.organizationId,
     required this.child,
@@ -221,7 +218,23 @@ class _OrganizationPageState extends State<OrganizationPage> {
       userInfo: _userInfo,
       currentOrganizationId: widget.organizationId,
       organizations: _organizations,
-      onLogout: () => _handleLogout(context),
+      onLogout: () => Helpers.handleLogout(context),
+      onOrganizationChange: (organizationId) {
+        final location = GoRouterState.of(context).uri.path;
+        if (location.contains(AppPaths.finalDeal(widget.organizationId))) {
+          context.replace(AppPaths.finalDeal(organizationId));
+        }
+        setState(() {
+          widget.organizationId = organizationId;
+        });
+        if (location.contains(AppPaths.setting(widget.organizationId))) {
+          context.replace(AppPaths.setting(organizationId));
+        }
+
+        context.read<OrganizationBloc>().add(ChangeOrganization(
+              organizationId: organizationId,
+            ));
+      },
     );
   }
 
@@ -233,6 +246,9 @@ class _OrganizationPageState extends State<OrganizationPage> {
     }
     if (location.contains(AppPaths.finalDeal(widget.organizationId))) {
       return 1;
+    }
+    if (location.contains(AppPaths.setting(widget.organizationId))) {
+      return 4;
     }
     return 0;
   }
@@ -249,19 +265,16 @@ class _OrganizationPageState extends State<OrganizationPage> {
         context.replace(AppPaths.organization(widget.organizationId));
         break;
       case 1:
-        context.read<FinalDealBloc>().add(GetAllWorkspace(
-              organizationId:
-                  context.read<OrganizationBloc>().state.organizationId ?? '',
-            ));
+        context.read<FinalDealBloc>().add(
+              GetAllWorkspace(
+                organizationId:
+                    context.read<OrganizationBloc>().state.organizationId ?? '',
+              ),
+            );
         context.replace(AppPaths.finalDeal(widget.organizationId));
+      case 4:
+        context.replace(AppPaths.setting(widget.organizationId));
         break;
-    }
-  }
-
-  Future<void> _handleLogout(BuildContext context) async {
-    context.read<AuthBloc>().add(LogoutRequested());
-    if (context.mounted) {
-      context.replace('/');
     }
   }
 

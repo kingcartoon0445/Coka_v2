@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:source_base/config/app_color.dart';
 import 'package:source_base/presentation/blocs/final_deal/final_deal_bloc.dart';
@@ -7,7 +8,7 @@ import 'package:source_base/presentation/blocs/organization/organization_bloc.da
 import '../../../blocs/final_deal/final_deal_action.dart';
 
 class SwitchItem extends StatefulWidget {
- final String taskId;
+  final String taskId;
   const SwitchItem({
     super.key,
     required this.taskId,
@@ -52,9 +53,9 @@ class _SwitchItemState extends State<SwitchItem> {
             child: Row(
               // mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Chuyển giai đoạn',
-                  style: TextStyle(
+                Text(
+                  'change_stage'.tr(),
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                     color: Colors.black87,

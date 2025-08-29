@@ -62,17 +62,11 @@ class MessageItem extends StatelessWidget {
           ChangeStatusRead(organizationId: organizationId, conversationId: id));
     }
     // context.read<ChatBloc>().add(LoadFacebookChat(facebookChat: facebookChat));
-    context
-        .read<CustomerServiceBloc>()
-        .add(LoadFacebookChat(facebookChat: facebookChat));
-    context.read<ChatBloc>().add(ToolListenFirebase(
-          organizationId: organizationId ?? '',
-          conversationId: id,
-        ));
-    context.push(AppPaths.chatDetail).then((v) {
-      context
-          .read<CustomerServiceBloc>()
-          .add(const LoadFacebookChat(facebookChat: null));
+    context.push(AppPaths.chatDetail(id)).then((v) {
+      context.read<CustomerServiceBloc>().add(LoadFacebookChat(
+            conversationId: id,
+            facebookChat: null,
+          ));
       // ignore: use_build_context_synchronously
       context.read<ChatBloc>().add(DisableFirebaseListener());
     });

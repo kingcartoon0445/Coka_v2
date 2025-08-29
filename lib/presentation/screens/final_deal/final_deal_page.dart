@@ -12,7 +12,8 @@ import '../../blocs/final_deal/final_deal_action.dart';
 import '../../blocs/organization/organization_action_bloc.dart';
 
 class FinalDealScreen extends StatefulWidget {
-  const FinalDealScreen({super.key});
+  final String organizationId;
+  const FinalDealScreen({super.key, required this.organizationId});
 
   @override
   _FinalDealScreenState createState() => _FinalDealScreenState();
@@ -34,6 +35,16 @@ class _FinalDealScreenState extends State<FinalDealScreen>
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(FinalDealScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.organizationId != widget.organizationId) {
+      context.read<FinalDealBloc>().add(GetAllWorkspace(
+            organizationId: widget.organizationId,
+          ));
+    }
   }
 
   @override
@@ -303,9 +314,9 @@ class _FinalDealScreenState extends State<FinalDealScreen>
               child: Row(
                 // mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Chuyển giai đoạn',
-                    style: TextStyle(
+                  Text(
+                    'change_stage'.tr(),
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
                       color: Colors.black87,
@@ -403,19 +414,19 @@ class _FinalDealScreenState extends State<FinalDealScreen>
         Offset.zero & overlay.size,
       ),
       items: [
-        const PopupMenuItem<String>(
+        PopupMenuItem<String>(
           value: 'change_stage',
           child: Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.swap_horiz,
                 size: 20,
                 color: Colors.black87,
               ),
               SizedBox(width: 8),
               Text(
-                'Chuyển giai đoạn',
-                style: TextStyle(
+                'change_stage'.tr(),
+                style: const TextStyle(
                   fontSize: 14,
                   color: Colors.black87,
                 ),
@@ -423,19 +434,19 @@ class _FinalDealScreenState extends State<FinalDealScreen>
             ],
           ),
         ),
-        const PopupMenuItem<String>(
+        PopupMenuItem<String>(
           value: 'delete_transaction',
           child: Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.delete_outline,
                 size: 20,
                 color: Colors.red,
               ),
               SizedBox(width: 8),
               Text(
-                'Xoá giao dịch',
-                style: TextStyle(
+                'delete_transaction'.tr(),
+                style: const TextStyle(
                   fontSize: 14,
                   color: Colors.red,
                 ),

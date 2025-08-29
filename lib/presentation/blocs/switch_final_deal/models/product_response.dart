@@ -17,7 +17,8 @@ class ProductResponse {
     return ProductResponse(
       success: json['success'],
       message: json['message'],
-      data: List<ProductModel>.from(json['data'].map((x) => ProductModel.fromJson(x))),
+      data: List<ProductModel>.from(
+          json['data'].map((x) => ProductModel.fromJson(x))),
       pagination: Pagination.fromJson(json['pagination']),
     );
   }
@@ -67,7 +68,7 @@ class ProductModel extends ChipData {
       status: json['status'],
       images: List<String>.from(json['images'].map((x) => x)),
       tax: json['tax'],
-      categoryId: json['categoryId'],
+      categoryId: json['categoryId'] ?? "",
       category:
           json['category'] != null ? Category.fromJson(json['category']) : null,
       categories: List<Category>.from(

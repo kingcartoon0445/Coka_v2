@@ -1,4 +1,7 @@
+import 'package:source_base/data/datasources/remote/param_model/lead_paging_request_model.dart';
 import 'package:source_base/data/models/service_detail_response.dart';
+import 'package:source_base/data/repositories/deal_activity_repository.dart';
+import 'package:source_base/presentation/blocs/deal_activity/model/customer_detail_model.dart';
 
 import 'customer_service_event.dart';
 import 'customer_service_state.dart';
@@ -18,11 +21,13 @@ class CustomerServiceBloc
     extends Bloc<CustomerServiceEvent, CustomerServiceState> {
   final OrganizationRepository organizationRepository;
   final CalendarRepository calendarRepository;
+  final DealActivityRepository dealActivityRepository;
   StreamSubscription? _firebaseListener;
 
   CustomerServiceBloc({
     required this.organizationRepository,
     required this.calendarRepository,
+    required this.dealActivityRepository,
   }) : super(const CustomerServiceState()) {
     on<LoadCustomerService>(_onLoadCustomerService,
         transformer: bc.droppable());
@@ -50,6 +55,7 @@ class CustomerServiceBloc
     on<LoadFacebookChat>(_onLoadFacebookChat, transformer: bc.droppable());
     on<DeleteCustomer>(_onDeleteCustomer, transformer: bc.sequential());
     on<DeleteReminder>(_onDeleteReminder, transformer: bc.sequential());
+    on<LoadCustomerDetail>(_onLoadCustomerDetail, transformer: bc.sequential());
     on<ShowError>(_onShowError);
   }
 
@@ -71,7 +77,31 @@ class CustomerServiceBloc
     LoadFacebookChat event,
     Emitter<CustomerServiceState> emit,
   ) async {
-    emit(state.copyWith(facebookChat: event.facebookChat));
+    if (event.facebookChat != null) {
+      emit(state.copyWith(facebookChat: event.facebookChat));
+      return;
+    }
+
+    final response = await organizationRepository.getCustomerService(
+        state.organizationId ?? '',
+        LeadPagingRequest(
+          limit: 40,
+          offset: 0,
+        ));
+
+    if (_ok(response.data)) {
+      final CustomerServiceResponse parsed =
+          CustomerServiceResponse.fromJson(response.data);
+      final CustomerServiceModel? facebookChat = parsed.content?.firstWhere(
+        (element) => element.id == event.conversationId,
+        orElse: () => CustomerServiceModel(),
+      );
+      emit(state.copyWith(facebookChat: null, isDelete: true));
+
+      emit(state.copyWith(facebookChat: facebookChat));
+    }
+
+    // emit(state.copyWith(facebookChat: event.facebookChat));
   }
 
   Future<void> _onLoadCustomerService(
@@ -101,6 +131,7 @@ class CustomerServiceBloc
           customersMetadata: parsed.metadata,
           pagingRequest: event.pagingRequest ?? state.pagingRequest,
           hasMoreCustomers: hasMore,
+          organizationId: event.organizationId,
         ),
       );
     } else {
@@ -422,7 +453,8 @@ class CustomerServiceBloc
       status: CustomerServiceStatus.loading,
       customerServices: [],
     ));
-    Future.delayed(const Duration(seconds: 1), () async {
+
+    try {
       final response = await organizationRepository.getFacebookChatPaging(
         event.organizationId,
         20,
@@ -454,7 +486,11 @@ class CustomerServiceBloc
         log('API Error: ${response.data}');
         emit(state.copyWith(status: CustomerServiceStatus.error));
       }
-    });
+    } catch (e, st) {
+      log('Load first provider chats exception', error: e, stackTrace: st);
+      emit(state.copyWith(
+          status: CustomerServiceStatus.error, error: e.toString()));
+    }
   }
 
   Future<void> _onLoadMoreProviderChats(
@@ -585,7 +621,7 @@ class CustomerServiceBloc
     disableFirebaseListener();
   }
 
-  void _onToggleFirebaseListenerRequested(
+  Future<void> _onToggleFirebaseListenerRequested(
     ToggleFirebaseListenerRequested event,
     Emitter<CustomerServiceState> emit,
   ) async {
@@ -693,6 +729,28 @@ class CustomerServiceBloc
       );
     } else {
       emit(state.copyWith(status: CustomerServiceStatus.error));
+    }
+  }
+
+  Future<void> _onLoadCustomerDetail(
+    LoadCustomerDetail event,
+    Emitter<CustomerServiceState> emit,
+  ) async {
+    emit(state.copyWith(status: CustomerServiceStatus.loading));
+    final response = await dealActivityRepository.getCustomerDetail(
+      event.organizationId,
+      event.customerId,
+    );
+
+    if (_ok(response.data)) {
+      final CustomerDetailResponse customer =
+          CustomerDetailResponse.fromJson(response.data);
+      emit(state.copyWith(
+          customerDetail: customer.content!,
+          status: CustomerServiceStatus.successGetCustomerDetail));
+    } else {
+      emit(
+          state.copyWith(status: CustomerServiceStatus.errorGetCustomerDetail));
     }
   }
 

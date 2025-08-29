@@ -70,7 +70,7 @@ class CustomerDetailScreen extends StatelessWidget {
               prev.status != curr.status,
           builder: (context, state) {
             final cs = state.customerService;
-
+            final itemCF = state.customerDetail;
             if (state.status == CustomerServiceStatus.loading || cs == null) {
               return const Center(child: CircularProgressIndicator());
             }
@@ -137,27 +137,31 @@ class CustomerDetailScreen extends StatelessWidget {
                     const SizedBox(height: 24),
                     _SectionTitle('detail'.tr()),
                     const SizedBox(height: 8),
-
+                    _InfoRow(
+                        icon: Icons.featured_play_list_outlined,
+                        label: 'title'.tr(),
+                        value: cs.title ?? ''),
                     _InfoRow(
                         icon: Icons.calendar_month_outlined,
                         label: 'created_date'.tr(),
-                        value: '16/05/2025'),
+                        value: DateFormat('dd/MM/yyyy')
+                            .format(cs.createdDate ?? DateTime.now())),
                     _InfoRow(
                         icon: Icons.category_outlined,
                         label: 'classification'.tr(),
-                        value: 'Nhập tay'),
+                        value: itemCF?.source?.first ?? ''),
                     _InfoRow(
-                        icon: Icons.source,
-                        label: 'source'.tr(),
-                        value: 'Khách cũ'),
+                        icon: Icons.source, label: 'source'.tr(), value: ''),
                     _InfoRow(
                       icon: Icons.label_outline,
                       label: 'label'.tr(),
                       customChild: Wrap(
                         spacing: 6,
-                        children: const [
-                          _InfoChip(text: 'V.I.P', color: Colors.blue),
-                          _InfoChip(text: 'Hot', color: Colors.red),
+                        children: [
+                          for (final item in itemCF?.tags ?? []) ...[
+                            _InfoChip(
+                                text: item ?? '', color: AppColors.primary),
+                          ]
                         ],
                       ),
                     ),
@@ -167,30 +171,69 @@ class CustomerDetailScreen extends StatelessWidget {
                         List<Assignees>>(
                       selector: (s) => s.customerService?.assignees ?? const [],
                       builder: (context, assignees) {
-                        return _InfoRow(
-                          icon: Icons.person_outline_sharp,
-                          label: 'responsible'.tr(),
-                          customChild: Column(
-                            children: [
-                              for (final assignee in assignees)
-                                Row(
-                                  children: [
-                                    AppAvatar(
-                                      fallbackText: assignee.profileName ?? '',
-                                      imageUrl: assignee.avatar ?? '',
-                                      size: 24,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      assignee.profileName ?? '',
-                                      style: const TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w400),
-                                    ),
-                                  ],
-                                ),
-                            ],
-                          ),
+                        return Column(
+                          children: [
+                            _InfoRow(
+                              icon: Icons.person_outline_sharp,
+                              label: 'assignee_label'.tr(),
+                              customChild: Column(
+                                children: [
+                                  for (final assignee in assignees)
+                                    if (assignee.type == "OWNER") ...[
+                                      Row(
+                                        children: [
+                                          AppAvatar(
+                                            fallbackText:
+                                                assignee.profileName ?? '',
+                                            imageUrl: assignee.avatar ?? '',
+                                            size: 24,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            assignee.profileName ?? '',
+                                            style: const TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w400),
+                                          ),
+                                        ],
+                                      ),
+                                    ]
+                                ],
+                              ),
+                            ),
+                            _InfoRow(
+                              icon: Icons.person_outline_sharp,
+                              label: 'follower'.tr(),
+                              customChild: Column(
+                                children: [
+                                  for (final assignee in assignees)
+                                    if (assignee.type == "FOLLOWER") ...[
+                                      Padding(
+                                        padding: const EdgeInsets.fromLTRB(
+                                            0, 2, 0, 2),
+                                        child: Row(
+                                          children: [
+                                            AppAvatar(
+                                              fallbackText:
+                                                  assignee.profileName ?? '',
+                                              imageUrl: assignee.avatar ?? '',
+                                              size: 24,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              assignee.profileName ?? '',
+                                              style: const TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w400),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ]
+                                ],
+                              ),
+                            ),
+                          ],
                         );
                       },
                     ),
@@ -200,38 +243,61 @@ class CustomerDetailScreen extends StatelessWidget {
                     const SizedBox(height: 8),
 
                     _InfoRow(
-                        icon: Icons.person_outline,
-                        label: 'name'.tr(),
-                        value: cs.fullName ?? ''),
-                    const _InfoRow(icon: Icons.email_outlined, label: 'email'),
-                    const _InfoRow(icon: Icons.phone_outlined, label: 'phone'),
+                        icon: Icons.email_outlined,
+                        label: 'email'.tr(),
+                        value: itemCF?.customer?.email ?? ''),
+                    _InfoRow(
+                        icon: Icons.phone_outlined,
+                        label: 'phone'.tr(),
+                        value: itemCF?.customer?.phone ?? ''),
                     _InfoRow(
                       icon: Icons.label_important_outline,
                       label: 'label'.tr(),
                       customChild: Wrap(
                         spacing: 6,
                         children: [
-                          const _InfoChip(text: 'Cần bán', color: Colors.blue),
-                          const _InfoChip(text: 'Cần mua', color: Colors.red),
-                          const _InfoChip(text: 'Đã bán', color: Colors.green),
+                          for (final item in itemCF?.tags ?? []) ...[
+                            _InfoChip(
+                                text: item ?? '', color: AppColors.primary),
+                          ],
                           ActionChip(
                               label: const Text('+ Thêm nhãn'),
                               onPressed: () {}),
                         ],
                       ),
                     ),
-                    const _InfoRow(icon: Icons.male_outlined, label: 'gender'),
-                    const _InfoRow(
-                        icon: Icons.cake_outlined, label: 'birthday'),
-                    const _InfoRow(
-                        icon: Icons.work_outline, label: 'occupation'),
-                    const _InfoRow(icon: Icons.badge_outlined, label: 'ICD'),
-                    const _InfoRow(
-                        icon: Icons.location_on_outlined, label: 'location'),
-                    const _InfoRow(icon: Icons.devices_other, label: 'device'),
-                    const _InfoRow(icon: Icons.chat_outlined, label: 'Zalo'),
-                    const _InfoRow(
-                        icon: Icons.facebook_outlined, label: 'Facebook'),
+                    _InfoRow(
+                        icon: Icons.male_outlined,
+                        label: 'gender'.tr(),
+                        value: itemCF?.customer?.gender == 1
+                            ? 'male'.tr()
+                            : 'female'.tr()),
+                    _InfoRow(
+                        icon: Icons.cake_outlined,
+                        label: 'birthday'.tr(),
+                        value: itemCF?.dob ?? ''),
+                    _InfoRow(
+                        icon: Icons.work_outline,
+                        label: 'job'.tr(),
+                        value: itemCF?.customer?.work ?? ''),
+                    _InfoRow(
+                        icon: Icons.badge_outlined,
+                        label: 'CID'.tr(),
+                        value: itemCF?.customer?.physicalId ?? ''),
+                    _InfoRow(
+                        icon: Icons.location_on_outlined,
+                        label: 'location'.tr(),
+                        value: itemCF?.customer?.address ?? ''),
+                    // _InfoRow(
+                    //     icon: Icons.devices_other,
+                    //     label: 'device'.tr(),
+                    //     value: itemCF?.customer?.device ?? ''),
+                    // _InfoRow(
+                    //     icon: Icons.chat_outlined,
+                    //     label: 'Zalo'.tr(),
+                    //     value: itemCF?.customer?.zalo ?? ''),
+                    // const _InfoRow(
+                    //     icon: Icons.facebook_outlined, label: 'Facebook'),
                   ],
                 ),
               ],
@@ -385,6 +451,7 @@ class _InfoRow extends StatelessWidget {
             child: Text(label,
                 style: TextStyle(color: Colors.grey[800], fontSize: 14)),
           ),
+          const SizedBox(width: 12),
           Expanded(
               child: customChild ??
                   Text(value ?? 'Chưa có',

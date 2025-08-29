@@ -79,4 +79,10 @@ class DealActivityRepository {
     return await apiCalendarService.deleteOrderService(
         organizationId, conversationId);
   }
+
+  Future<Response> SendNoteJourneysService(
+      String organizationId, String taskId, String note) async {
+    return await apiCalendarService
+        .getJourneysService(organizationId, taskId, {'content': note});
+  }
 }

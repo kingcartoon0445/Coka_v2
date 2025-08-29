@@ -136,7 +136,7 @@ class WebReminderItem extends StatelessWidget {
           });
         } else {
           return "overdue_minutes".tr(namedArgs: {
-            'minutes': overdueDuration.inMinutes.toString(),
+            'minutes': overdueDuration.inMinutes.toString(),  
           });
         }
       }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-enum NotifyType { success, error }
+enum NotifyType { success, error, loading }
 
 Future<T?> ShowdialogNouti<T>(
   BuildContext context, {
@@ -24,13 +24,23 @@ Future<T?> ShowdialogNouti<T>(
           actionText: actionText,
           onAction: onAction,
         );
+      } else if (type == NotifyType.error) {
+        return UploadErrorDialog(
+          title: title.isEmpty ? 'Upload error' : title,
+          message: message.isEmpty ? 'Sorry! Something went wrong' : message,
+          actionText: actionText.isEmpty ? 'Try again' : actionText,
+          onAction: onAction,
+        );
+      } else {
+        // Loading dialog
+        return const Dialog(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          child: Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
       }
-      return UploadErrorDialog(
-        title: title.isEmpty ? 'Upload error' : title,
-        message: message.isEmpty ? 'Sorry! Something went wrong' : message,
-        actionText: actionText.isEmpty ? 'Try again' : actionText,
-        onAction: onAction,
-      );
     },
   );
 }

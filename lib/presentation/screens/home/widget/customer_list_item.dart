@@ -2,11 +2,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:source_base/config/app_color.dart';
-import 'package:source_base/config/helper.dart';
 import 'package:source_base/config/routes.dart';
 import 'package:source_base/data/models/customer_service_response.dart';
 import 'package:source_base/presentation/blocs/chat/chat_aciton.dart';
-import 'package:source_base/presentation/blocs/chat/chat_bloc.dart';
 import 'package:source_base/presentation/blocs/customer_service/customer_service_action.dart';
 import 'package:source_base/presentation/screens/shared/widgets/avatar_widget.dart';
 import 'package:source_base/presentation/screens/shared/widgets/context_menu.dart';
@@ -279,17 +277,19 @@ class CustomerListItem extends StatelessWidget {
     //       ChangeStatusRead(organizationId: organizationId, conversationId: id));
     // }
     // context.read<ChatBloc>().add(LoadFacebookChat(facebookChat: facebookChat));
-    context
-        .read<CustomerServiceBloc>()
-        .add(LoadFacebookChat(facebookChat: customer));
+    context.read<CustomerServiceBloc>().add(LoadFacebookChat(
+          conversationId: customer.id ?? '',
+          facebookChat: null,
+        ));
     context.read<ChatBloc>().add(ToolListenFirebase(
           organizationId: organizationId ?? '',
           conversationId: customer.id ?? '',
         ));
-    context.push(AppPaths.chatDetail).then((v) {
-      context
-          .read<CustomerServiceBloc>()
-          .add(const LoadFacebookChat(facebookChat: null));
+    context.push(AppPaths.chatDetail(customer.id ?? '')).then((v) {
+      context.read<CustomerServiceBloc>().add(LoadFacebookChat(
+            conversationId: customer.id ?? '',
+            facebookChat: null,
+          ));
       // ignore: use_build_context_synchronously
       context.read<ChatBloc>().add(DisableFirebaseListener());
     });
@@ -364,141 +364,148 @@ class CustomerListItem extends StatelessWidget {
 
     return Builder(
       builder: (BuildContext context) {
-        return InkWell(
-          onTap: () {
-            if (customer.channel == 'FACEBOOK' || customer.channel == 'ZALO') {
-              _handleTap(context);
-              return;
-            }
-            context.read<CustomerServiceBloc>().add(LoadJourneyPaging(
-                  organizationId: organizationId,
-                  customerService: customer,
-                ));
-            context.push(
-              AppPaths.customerService,
-            );
-            //đây
-          },
-          onLongPress: () {
-            // Debug message
-            print('Long press detected on customer: ${customer.fullName}');
+        return Column(
+          children: [
+            InkWell(
+              onTap: () {
+                if (customer.channel == 'FACEBOOK' ||
+                    customer.channel == 'ZALO') {
+                  _handleTap(context);
+                  return;
+                }
+                context.read<CustomerServiceBloc>().add(LoadJourneyPaging(
+                      organizationId: organizationId,
+                      customerService: customer,
+                    ));
+                context.push(
+                  AppPaths.customerService,
+                );
+                //đây
+              },
+              onLongPress: () {
+                // Debug message
+                print('Long press detected on customer: ${customer.fullName}');
 
-            // Thêm haptic feedback
-            HapticFeedback.mediumImpact();
+                // Thêm haptic feedback
+                HapticFeedback.mediumImpact();
 
-            // Lấy RenderBox của item hiện tại
-            final RenderBox itemBox = context.findRenderObject() as RenderBox;
-            // _showContextMenu(context, ref, itemBox);
-          },
-          splashColor: AppColors.primary.withValues(alpha: 0.1),
-          highlightColor: AppColors.primary.withValues(alpha: 0.05),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            child: Column(
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                // Lấy RenderBox của item hiện tại
+                final RenderBox itemBox =
+                    context.findRenderObject() as RenderBox;
+                // _showContextMenu(context, ref, itemBox);
+              },
+              splashColor: AppColors.primary.withValues(alpha: 0.1),
+              highlightColor: AppColors.primary.withValues(alpha: 0.05),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                child: Column(
                   children: [
-                    Center(
-                      child: AppAvatar(
-                        size: 48,
-                        shape: AvatarShape.circle,
-                        // imageUrl: customer.ava,
-                        fallbackText: customer.fullName,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  customer.fullName ?? 'Không có tên',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w400,
-                                    color: AppColors.text,
-                                  ),
-                                ),
-                              ),
-                              Text(
-                                timeAgo,
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w500,
-                                  color: Color(0xFF828489),
-                                ),
-                              ),
-                            ],
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Center(
+                          child: AppAvatar(
+                            size: 48,
+                            shape: AvatarShape.circle,
+                            // imageUrl: customer.ava,
+                            fallbackText: customer.fullName,
                           ),
-                          const SizedBox(height: 3),
-                          Row(
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(
-                                Icons.edit_outlined,
-                                size: 10,
-                                color: Color(0xFF828489),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      customer.fullName ?? 'Không có tên',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w400,
+                                        color: AppColors.text,
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    timeAgo,
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w500,
+                                      color: Color(0xFF828489),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 4),
-                              Flexible(
-                                child: Text(
-                                  customer.snippet ?? '',
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w500,
+                              const SizedBox(height: 3),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.edit_outlined,
+                                    size: 10,
                                     color: Color(0xFF828489),
-                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                ),
+                                  const SizedBox(width: 4),
+                                  Flexible(
+                                    child: Text(
+                                      customer.snippet ?? '',
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w500,
+                                        color: Color(0xFF828489),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 3),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildAssigneeInfo(),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  // shape: BoxShape.circle,
-                                  borderRadius: BorderRadius.circular(16),
-                                  color:
-                                      const Color.fromARGB(255, 181, 180, 180)
+                              const SizedBox(height: 3),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildAssigneeInfo(),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      // shape: BoxShape.circle,
+                                      borderRadius: BorderRadius.circular(16),
+                                      color: const Color.fromARGB(
+                                              255, 181, 180, 180)
                                           .withValues(alpha: 0.2),
-                                ),
-                                child: Text(
-                                  customer.channel ?? '',
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              )
+                                    ),
+                                    child: Text(
+                                      customer.channel ?? '',
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        color: AppColors.primary,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  )
+                                ],
+                              ),
                             ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
+                    const SizedBox(height: 6),
                   ],
                 ),
-                const SizedBox(height: 6),
-                Container(
-                  width: double.infinity,
-                  height: 1,
-                  color: Colors.grey.withValues(alpha: 0.2),
-                ),
-              ],
+              ),
             ),
-          ),
+            Container(
+              width: double.infinity,
+              height: 1,
+              color: Colors.grey.withValues(alpha: 0.6),
+            )
+          ],
         );
       },
     );

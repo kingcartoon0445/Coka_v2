@@ -312,4 +312,26 @@ class ApiCalendarService {
       );
     }
   }
+
+  Future<Response> getJourneysService(
+      String organizationId, String taskId, Map<String, dynamic> data) async {
+    try {
+      final response = await _dioClient.postProducts(
+          ApiEndpoints.journeys(taskId),
+          options: Options(headers: {'organizationid': organizationId}),
+          data: data);
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.journeys(taskId)),
+      );
+    }
+  }
 }

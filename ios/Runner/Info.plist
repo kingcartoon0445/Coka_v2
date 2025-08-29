@@ -12,8 +12,6 @@
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
-	<key>ITSAppUsesNonExemptEncryption</key>
-	<false/>
 	<key>CFBundleDisplayName</key>
 	<string>Coka</string>
 	<key>CFBundleExecutable</key>
@@ -33,10 +31,11 @@
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>fb1903610109953807</string>
-				<string>com.googleusercontent.apps.882931293778-um3bi17983j6k973mnrjd5gagj7u4h9f</string>
+				<string>fb1751811208512576</string>
 			</array>
 		</dict>
 	</array>
@@ -45,14 +44,14 @@
 	<key>FacebookAdvertiserIDCollectionEnabled</key>
 	<false/>
 	<key>FacebookAppID</key>
-	<string>1903610109953807</string>
+	<string>1751811208512576</string>
 	<key>FacebookAutoLogAppEventsEnabled</key>
 	<string>TRUE</string>
-	<key>FacebookClientToken</key>
-	<string>397fdac0529dd1155f785f1889de4d39</string>
 	<key>FacebookDisplayName</key>
-	<string>Coka</string>
+	<string>CoKa</string>
 	<key>FirebaseAppDelegateProxyEnabled</key>
+	<false/>
+	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSApplicationCategoryType</key>
 	<string></string>
@@ -61,7 +60,9 @@
 		<string>itms-beta</string>
 		<string>itms</string>
 		<string>fbapi</string>
+		<string>fbauth2</string>
 		<string>fb-messenger-share-api</string>
+		<string>fbshareextension</string>
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>

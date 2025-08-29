@@ -467,6 +467,16 @@ class _CustomerDetailPageState extends State<CustomerDetailPage>
                     )
                   : GestureDetector(
                       onTap: () {
+                        context.read<CustomerServiceBloc>().add(
+                              LoadCustomerDetail(
+                                organizationId: context
+                                        .read<OrganizationBloc>()
+                                        .state
+                                        .organizationId ??
+                                    '',
+                                customerId: state.customerService?.id ?? '',
+                              ),
+                            );
                         Navigator.push(
                           context,
                           MaterialPageRoute(

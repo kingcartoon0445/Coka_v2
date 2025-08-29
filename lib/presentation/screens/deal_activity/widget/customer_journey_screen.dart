@@ -1,6 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 import 'package:source_base/data/models/schedule_response.dart';
 import 'package:source_base/data/models/service_detail_response.dart';
 import 'package:source_base/data/models/stage.dart';
@@ -12,16 +14,15 @@ import 'package:source_base/presentation/blocs/organization/organization_state.d
 import 'package:source_base/presentation/screens/customers_service/customer_service_detail/widgets/journey_item.dart';
 import 'package:source_base/presentation/screens/customers_service/customer_service_detail/widgets/reminder/add_reminder_dialog.dart';
 import 'package:source_base/presentation/screens/customers_service/customer_service_detail/widgets/stage_select.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import 'activy_widget.dart';
 
-/// Refactored & optimized version of CustomerJourneyScreen
+/// CustomerJourneyScreen
 /// - Extracted widgets
 /// - Heavier use of consts
-/// - Reduced rebuilds via smaller widgets & Bloc selectors
-/// - Safer scroll pagination (guarded & debounced)
-/// - Cleaner date grouping/formatting
+/// - Reduced rebuilds via Bloc selectors
+/// - Scroll pagination with debounce
+/// - Grouping + formatting date
 class CustomerJourneyScreen extends StatefulWidget {
   final bool onlyNote;
   const CustomerJourneyScreen({super.key, this.onlyNote = false});
@@ -170,7 +171,6 @@ class _CustomerJourneyScreenState extends State<CustomerJourneyScreen>
   @override
   Widget build(BuildContext context) {
     final viewInsets = MediaQuery.of(context).viewInsets;
-    final keyboardVisible = viewInsets.bottom > 0;
 
     return Container(
       color: Colors.white,
@@ -206,20 +206,17 @@ class _CustomerJourneyScreenState extends State<CustomerJourneyScreen>
                     padding:
                         EdgeInsets.only(bottom: _isInputFocused ? 240 : 140),
                     children: [
-                      if (!widget.onlyNote) ...[
+                      if (!widget.onlyNote)
                         ActivityWidget(
-                          onAddReminder: () {
-                            _showAddReminderDialog(null);
-                          },
+                          onAddReminder: () => _showAddReminderDialog(null),
                           onToggleDone: (reminder, isDone) {
                             context.read<DealActivityBloc>().add(UpdateNoteMark(
                                   scheduleId: reminder.id ?? '',
                                   isDone: !reminder.isDone!,
                                 ));
                           },
-                          onEdit: (reminder) {
-                            _showAddReminderDialog(reminder);
-                          },
+                          onEdit: (reminder) =>
+                              _showAddReminderDialog(reminder),
                           onDelete: (reminder) {
                             context.read<DealActivityBloc>().add(
                                   DeleteReminderWorkspace(
@@ -244,16 +241,13 @@ class _CustomerJourneyScreenState extends State<CustomerJourneyScreen>
                                 ));
                           },
                         )
-                      ] else ...[
+                      else
                         _NoteComposer(
                           focusNode: _focusNode,
                           controller: _noteCtrl,
                           isInputFocused: _isInputFocused,
                           iconAnim: _iconAnim,
-                          onPhoneTap: () async {
-                            // Replace with real customer data
-                            await _openDialer(null);
-                          },
+                          onPhoneTap: () async => _openDialer(null),
                           onSend: () {
                             if (!_isInputFocused) return;
 
@@ -261,34 +255,23 @@ class _CustomerJourneyScreenState extends State<CustomerJourneyScreen>
                             if (_selectedStage == null && note.isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                    content: Text(
-                                        'please_select_stage_or_note'.tr())),
+                                  content: Text(
+                                    'please_select_stage_or_note'.tr(),
+                                  ),
+                                ),
                               );
                               return;
                             }
 
-                            context.read<CustomerServiceBloc>().add(
-                                  PostCustomerNote(
-                                    customerId: context
-                                            .read<CustomerServiceBloc>()
-                                            .state
-                                            .customerService
-                                            ?.id ??
-                                        '',
-                                    customerName: context
-                                            .read<OrganizationBloc>()
-                                            .state
-                                            .user
-                                            ?.fullName ??
-                                        '',
-                                    note: note,
-                                    organizationId: context
-                                            .read<OrganizationBloc>()
-                                            .state
-                                            .organizationId ??
-                                        '',
-                                  ),
-                                );
+                            context.read<DealActivityBloc>().add(SendNote(
+                                  organizationId: context
+                                          .read<OrganizationBloc>()
+                                          .state
+                                          .organizationId ??
+                                      '',
+                                  taskId: state.task?.id ?? '',
+                                  note: note,
+                                ));
 
                             _noteCtrl.clear();
                             setState(() {
@@ -299,39 +282,16 @@ class _CustomerJourneyScreenState extends State<CustomerJourneyScreen>
                             FocusScope.of(context).unfocus();
                           },
                         ),
-                      ],
                       const _HistoryHeader(),
                       if (noteSimpleModels.isEmpty)
                         const Center(
-                            child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: 12),
-                          child: Text('Chưa có hành trình nào'),
-                        ))
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 12),
+                            child: Text('Chưa có hành trình nào'),
+                          ),
+                        )
                       else
                         ..._buildGroupedJourneys(noteSimpleModels),
-                      // if (state.hasMoreServiceDetails)
-                      //   Padding(
-                      //     padding: const EdgeInsets.all(16),
-                      //     child: Center(
-                      //       child: state.status ==
-                      //               CustomerServiceStatus.loadingMore
-                      //           ? const Column(
-                      //               children: [
-                      //                 SizedBox(
-                      //                     width: 20,
-                      //                     height: 20,
-                      //                     child: CircularProgressIndicator(
-                      //                         strokeWidth: 2)),
-                      //                 SizedBox(height: 8),
-                      //                 Text('Đang tải thêm...',
-                      //                     style: TextStyle(
-                      //                         fontSize: 12,
-                      //                         color: Colors.grey)),
-                      //               ],
-                      //             )
-                      //           : const SizedBox.shrink(),
-                      //     ),
-                      //   ),
                     ],
                   );
                 },
@@ -399,10 +359,7 @@ class _CustomerJourneyScreenState extends State<CustomerJourneyScreen>
         editingReminder: editingReminder,
         contactData: null,
       ),
-    ).then((_) {
-      // Reload reminders after dialog closes
-      // _loadReminders();
-    });
+    );
   }
 
   List<Widget> _buildGroupedJourneys(
@@ -427,6 +384,7 @@ class _CustomerJourneyScreenState extends State<CustomerJourneyScreen>
 
 class _HistoryHeader extends StatelessWidget {
   const _HistoryHeader();
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -440,16 +398,20 @@ class _HistoryHeader extends StatelessWidget {
               color: const Color(0xFF5C33F0).withOpacity(0.1),
               borderRadius: BorderRadius.circular(6),
             ),
-            child:
-                const Icon(Icons.history, size: 16, color: Color(0xFF5C33F0)),
+            child: const Icon(
+              Icons.history,
+              size: 16,
+              color: Color(0xFF5C33F0),
+            ),
           ),
           const SizedBox(width: 8),
           Text(
             'history_label'.tr(),
             style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF1F2329)),
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF1F2329),
+            ),
           ),
         ],
       ),
@@ -463,13 +425,13 @@ class _DateDivider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const divider = Divider(height: 1, thickness: 1, color: Color(0xFFE8E8E8));
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
         children: [
-          const Expanded(
-              child:
-                  Divider(height: 1, thickness: 1, color: Color(0xFFE8E8E8))),
+          const Expanded(child: divider),
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 12),
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -480,14 +442,13 @@ class _DateDivider extends StatelessWidget {
             child: Text(
               title,
               style: const TextStyle(
-                  fontSize: 11,
-                  color: Color(0xFF666666),
-                  fontWeight: FontWeight.w500),
+                fontSize: 11,
+                color: Color(0xFF666666),
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
-          const Expanded(
-              child:
-                  Divider(height: 1, thickness: 1, color: Color(0xFFE8E8E8))),
+          const Expanded(child: divider),
         ],
       ),
     );
@@ -498,7 +459,7 @@ class _NoteComposer extends StatelessWidget {
   final FocusNode focusNode;
   final TextEditingController controller;
   final bool isInputFocused;
-  final AnimationController iconAnim;
+  final AnimationController iconAnim; // (đang không dùng, giữ để tương thích)
   final VoidCallback onSend;
   final VoidCallback onPhoneTap;
 
@@ -529,7 +490,6 @@ class _NoteComposer extends StatelessWidget {
             maxLines: 5,
             keyboardType: TextInputType.multiline,
             textCapitalization: TextCapitalization.sentences,
-            onTap: () {},
             decoration: InputDecoration(
               isDense: true,
               contentPadding:
@@ -556,13 +516,17 @@ class _NoteComposer extends StatelessWidget {
                   child: FadeTransition(opacity: anim, child: child),
                 ),
                 child: isInputFocused
-                    ? SvgPicture.asset('assets/icons/send_1_icon.svg',
+                    ? SvgPicture.asset(
+                        'assets/icons/send_1_icon.svg',
                         key: const ValueKey('send'),
-                        color: const Color(0xFF5C33F0))
-                    : const Icon(Icons.phone_outlined,
+                        color: const Color(0xFF5C33F0),
+                      )
+                    : const Icon(
+                        Icons.phone_outlined,
                         key: ValueKey('phone'),
                         color: Color(0xFF5C33F0),
-                        size: 24),
+                        size: 24,
+                      ),
               ),
             ),
           ),

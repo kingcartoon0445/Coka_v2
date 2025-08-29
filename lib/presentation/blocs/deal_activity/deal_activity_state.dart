@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:source_base/data/models/customer_service_response.dart';
 import 'package:source_base/data/models/schedule_response.dart';
 import 'package:source_base/data/models/service_detail_response.dart';
 import 'package:source_base/presentation/blocs/deal_activity/model/customer_detail_model.dart';
@@ -35,6 +36,7 @@ class DealActivityState extends Equatable {
   final List<ServiceDetailModel> noteSimpleModels;
   final List<ScheduleModel> scheduleModels;
   final CustomerOrderDataModel? customerOrderDataModel;
+  final CustomerServiceModel? customerServiceModel;
   final String? error;
   final String? errorTitle;
   final CustomerDetailModel? customerDataModel;
@@ -54,6 +56,7 @@ class DealActivityState extends Equatable {
     this.workspaceId,
     this.customerOrderDataModel,
     this.customerDataModel,
+    this.customerServiceModel,
   })  : error = _normalizeError(status, error),
         errorTitle = _normalizeErrorTitle(status, errorTitle);
 
@@ -74,6 +77,7 @@ class DealActivityState extends Equatable {
     String? workspaceId,
     CustomerOrderDataModel? customerOrderDataModel,
     CustomerDetailModel? customerDataModel,
+    CustomerServiceModel? customerServiceModel,
     List<ProductModel>? products,
   }) {
     final nextStatus = status ?? this.status;
@@ -97,6 +101,7 @@ class DealActivityState extends Equatable {
       customerOrderDataModel:
           customerOrderDataModel ?? this.customerOrderDataModel,
       customerDataModel: customerDataModel ?? this.customerDataModel,
+      customerServiceModel: customerServiceModel ?? this.customerServiceModel,
     );
   }
 
@@ -132,5 +137,6 @@ class DealActivityState extends Equatable {
         workspaceId,
         customerOrderDataModel,
         customerDataModel,
+        customerServiceModel,
       ];
 }

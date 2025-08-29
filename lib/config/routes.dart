@@ -7,6 +7,10 @@ import 'package:source_base/presentation/screens/customers_service/customer_serv
 import 'package:source_base/presentation/screens/deal_activity/deal_activity_screen.dart';
 import 'package:source_base/presentation/screens/home/home_screen.dart';
 import 'package:source_base/presentation/screens/organization/organization_page.dart';
+import 'package:source_base/presentation/screens/setting/child/create_organization_screen.dart';
+import 'package:source_base/presentation/screens/setting/child/invitation_page.dart';
+import 'package:source_base/presentation/screens/setting/child/join_organization_page.dart';
+import 'package:source_base/presentation/screens/setting/setting_page.dart';
 
 import '../presentation/screens/final_deal/final_deal_page.dart';
 
@@ -17,6 +21,8 @@ class AppPaths {
 
   // Auth paths
   static const String login = '/';
+  static String setting(String organizationId) =>
+      '/organization/settings/$organizationId';
   static const String completeProfile = '/complete-profile';
 
   static String finalDeal(String organizationId) =>
@@ -25,8 +31,9 @@ class AppPaths {
   static String verifyOtp(String email, String otpId) =>
       '/verify-otp?email=$email&otpId=$otpId';
   // Organization creation
-  static const String createOrganization = '/organization/create';
-  static const String chatDetail = '/organization/messages/detail';
+  static const String createOrganization = '/create-organization';
+  static String chatDetail(String conversationId) =>
+      '/organization/messages/detail/$conversationId';
   // Organization base paths
   static String organization(String organizationId) =>
       '/organization/$organizationId';
@@ -148,6 +155,10 @@ class AppNavigation {
   // Helper method to navigate to campaigns
   static String goToCampaigns(String organizationId) =>
       AppPaths.campaigns(organizationId);
+
+  // Helper method to navigate to chat detail
+  static String goToChatDetail(String conversationId) =>
+      AppPaths.chatDetail(conversationId);
 }
 
 // Route parameters - useful for extracting params from context
@@ -212,7 +223,15 @@ final GoRouter router = GoRouter(
         ),
         GoRoute(
           path: AppPaths.finalDeal(':organizationId'),
-          builder: (context, state) => FinalDealScreen(),
+          builder: (context, state) => FinalDealScreen(
+            organizationId: state.pathParameters['organizationId']!,
+          ),
+        ),
+        GoRoute(
+          path: AppPaths.setting(':organizationId'),
+          builder: (context, state) => SettingPage(
+            organizationId: state.pathParameters['organizationId']!,
+          ),
         ),
 
         // GoRoute(
@@ -231,7 +250,7 @@ final GoRouter router = GoRouter(
         //     ),
         //   ],
         // ),
-        // GoRoute(
+        // // GoRoute(
         //   path: AppPaths.campaigns(':organizationId'),
         //   builder: (context, state) => CampaignsPage(
         //     organizationId: state.pathParameters['organizationId']!,
@@ -280,7 +299,10 @@ final GoRouter router = GoRouter(
         // ),
       ],
     ),
-
+    GoRoute(
+      path: AppPaths.createOrganization,
+      builder: (context, state) => const CreateOrganizationPage(),
+    ),
     GoRoute(
       path: AppPaths.login,
       name: 'login',
@@ -290,6 +312,16 @@ final GoRouter router = GoRouter(
       path: '/home',
       name: 'home',
       builder: (context, state) => const HomeScreen(),
+    ),
+    GoRoute(
+      path: AppPaths.invitations(':organizationId'),
+      name: 'invitations',
+      builder: (context, state) => const InvitationPage(),
+    ),
+    GoRoute(
+      path: AppPaths.joinRequests(':organizationId'),
+      name: 'joinRequests',
+      builder: (context, state) => const JoinOrganizationPage(),
     ),
     GoRoute(
       path: AppPaths.verifyOtp(':email', ':otpId'),
@@ -314,9 +346,11 @@ final GoRouter router = GoRouter(
         path: AppPaths.completeProfile,
         builder: (context, state) => const CompleteProfilePage()),
     GoRoute(
-      path: AppPaths.chatDetail,
+      path: AppPaths.chatDetail(':conversationId'),
       name: 'chatDetail',
-      builder: (context, state) => const ChatDetailPage(),
+      builder: (context, state) => ChatDetailPage(
+        idConversation: state.pathParameters['conversationId']!,
+      ),
     ),
     // ShellRoute(
     //   builder: (context, state, child) => OrganizationPage(

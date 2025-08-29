@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:source_base/data/models/customer_service_response.dart';
-import 'package:source_base/data/models/facebook_chat_response.dart';
 import 'package:source_base/presentation/blocs/organization/organization_bloc.dart';
 import 'package:source_base/presentation/screens/chat_detail_page/model/message_model.dart';
 import 'package:source_base/presentation/screens/shared/widgets/avatar_widget.dart';
@@ -14,11 +13,10 @@ import 'package:source_base/presentation/widget/loading_indicator.dart';
 import '../../blocs/chat/chat_aciton.dart';
 import '../../blocs/customer_service/customer_service_action.dart';
 import 'widget/assign_to_bottomsheet.dart';
-import 'widget/download_file.dart';
-import 'widget/full_image.dart';
 
 class ChatDetailPage extends StatefulWidget {
-  const ChatDetailPage({super.key});
+  final String idConversation;
+  const ChatDetailPage({super.key, required this.idConversation});
 
   @override
   State<ChatDetailPage> createState() => _ChatDetailPageState();
@@ -36,8 +34,17 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
   @override
   void initState() {
     super.initState();
+
     organizationId = context.read<OrganizationBloc>().state.organizationId;
-    conversationId = context.read<CustomerServiceBloc>().state.facebookChat?.id;
+    context.read<CustomerServiceBloc>().add(LoadFacebookChat(
+          conversationId: widget.idConversation,
+          facebookChat: null,
+        ));
+    context.read<ChatBloc>().add(ToolListenFirebase(
+          organizationId: organizationId ?? '',
+          conversationId: conversationId ?? '',
+        ));
+    conversationId = widget.idConversation;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _loadInitialMessages();
@@ -276,14 +283,8 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<ChatBloc, ChatState>(
-      listener: (context, state) {
-        // Handle state changes if needed
-      },
+    return BlocBuilder<ChatBloc, ChatState>(
       builder: (context, state) {
-        final conversation =
-            context.read<CustomerServiceBloc>().state.facebookChat;
-
         return Scaffold(
           backgroundColor: Colors.white,
           appBar: AppBar(
@@ -304,34 +305,39 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
                 color: Colors.grey,
               ),
             ),
-            title: Row(
-              children: [
-                AppAvatar(
-                  imageUrl: conversation?.avatar,
-                  fallbackText: conversation?.fullName,
-                  size: 40,
-                  shape: AvatarShape.circle,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            title: BlocSelector<CustomerServiceBloc, CustomerServiceState,
+                    CustomerServiceModel?>(
+                selector: (state) => state.facebookChat,
+                builder: (context, conversation) {
+                  return Row(
                     children: [
-                      Text(
-                        conversation?.fullName ?? '',
-                        style: const TextStyle(fontSize: 16),
-                        overflow: TextOverflow.ellipsis,
+                      AppAvatar(
+                        imageUrl: conversation?.avatar,
+                        fallbackText: conversation?.fullName,
+                        size: 40,
+                        shape: AvatarShape.circle,
                       ),
-                      Text(
-                        conversation?.pageName ?? '',
-                        style: const TextStyle(fontSize: 12),
-                        overflow: TextOverflow.ellipsis,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              conversation?.fullName ?? '',
+                              style: const TextStyle(fontSize: 16),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              conversation?.pageName ?? '',
+                              style: const TextStyle(fontSize: 12),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
                       ),
                     ],
-                  ),
-                ),
-              ],
-            ),
+                  );
+                }),
             // actions: [
             //   IconButton(
             //     onPressed: () => _showAssignBottomSheet(conversation!),

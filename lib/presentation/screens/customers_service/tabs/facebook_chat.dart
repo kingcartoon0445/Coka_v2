@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:source_base/config/helper.dart';
 import 'package:source_base/core/api/api_endpoints.dart';
@@ -247,7 +246,7 @@ class _FacebookMessagesTabState extends State<FacebookMessagesTab> {
                     ),
                     const SizedBox(height: 24),
                     ElevatedButton.icon(
-                      onPressed: () => _connectFacebookPage(),
+                      onPressed: () => Helpers().connectFacebookPage(context),
                       icon: const Icon(Icons.add_link),
                       label: const Text('Kết nối trang Facebook'),
                       style: ElevatedButton.styleFrom(
@@ -295,7 +294,7 @@ class _FacebookMessagesTabState extends State<FacebookMessagesTab> {
                     ),
                     const SizedBox(height: 24),
                     ElevatedButton.icon(
-                      onPressed: () => _connectZaloPage(),
+                      onPressed: () => Helpers().connectZaloPage(context),
                       icon: const Icon(Icons.add_link),
                       label: const Text('Kết nối trang Zalo'),
                       style: ElevatedButton.styleFrom(
@@ -587,66 +586,5 @@ class _FacebookMessagesTabState extends State<FacebookMessagesTab> {
   void _navigateToChat(CustomerServiceModel conversation) {
     // TODO: Navigate to chat detail page
     print('Navigate to chat: ${conversation.id}');
-  }
-
-  void _connectZaloPage() async {
-    // TODO: Navigate to Zalo connection page
-    print('Connect Zalo page');
-    String token = await getIt<SharedPreferencesService>()
-            .getString(PrefKey.accessToken) ??
-        '';
-
-    String organizationId =
-        context.read<OrganizationBloc>().state.organizationId ?? "";
-    String url =
-        '${DioClient.baseUrl}/api/v2/public/integration/auth/zalo/message?organizationId=$organizationId&accessToken=$token';
-
-    if (!await launchUrl(Uri.parse(url),
-        mode: LaunchMode.externalApplication)) {
-      throw Exception("Could not launch $url");
-    }
-  }
-
-  void _connectFacebookPage() async {
-    // TODO: Navigate to Facebook connection page
-
-    final result = await FacebookAuth.i.login(
-      permissions: [
-        "email",
-        "openid",
-        "pages_show_list",
-        "pages_messaging",
-        "instagram_basic",
-        "leads_retrieval",
-        "instagram_manage_messages",
-        "pages_read_engagement",
-        "pages_manage_metadata",
-        "pages_read_user_content",
-        "pages_manage_engagement",
-        "public_profile"
-      ],
-    );
-
-    if (result.status == LoginStatus.success) {
-      // Future.delayed(const Duration(milliseconds: 50), () => showLoadingDialog(context));
-
-      MessageRepository(DioClient()).connectFacebook(
-          context.read<OrganizationBloc>().state.organizationId ?? "",
-          {"socialAccessToken": result.accessToken!.tokenString}).then((res) {
-        if (Helpers.isResponseSuccess(res)) {
-          // final chatChannelController = Get.put(ChatChannelController());
-          // chatChannelController.onRefresh();
-          // Get.back();
-          // Navigator.of(context).pop(); // Đóng dialog loading
-          // Đóng dialog loading
-          successAlert(title: "Thành công", desc: "Đã kết nối với facebook");
-        } else {
-          // errorAlert(title: "Lỗi", desc: res["message"]);
-        }
-      });
-    } else {
-      // errorAlert(title: "Thất bại", desc: "Đã có lỗi xảy ra, xin vui lòng thử lại");
-    }
-    print('Connect Facebook page');
   }
 }

@@ -91,6 +91,11 @@ class CustomerDetailModel {
     customer = json['customer'] != null
         ? new Customer.fromJson(json['customer'])
         : null;
+    tags = [];
+    for (var item in json['tags']) {
+      tags!.add(item.toString());
+    }
+    print(tags);
     // deal = json['deal'] != null ? new Deal.fromJson(json['deal']) : null;
     // source = json['source'];
     // utmSource = json['utmSource'];

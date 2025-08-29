@@ -4,7 +4,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:source_base/config/app_color.dart';
-import 'package:source_base/config/routes.dart';
 import 'package:source_base/config/test_style.dart' show TextStyles;
 import 'package:source_base/data/models/organization_model.dart';
 import 'package:source_base/data/models/user_profile.dart';
@@ -17,6 +16,7 @@ class OrganizationDrawer extends StatelessWidget {
   final String currentOrganizationId;
   final List<OrganizationModel> organizations;
   final VoidCallback onLogout;
+  final Function(String) onOrganizationChange;
 
   const OrganizationDrawer({
     super.key,
@@ -24,6 +24,7 @@ class OrganizationDrawer extends StatelessWidget {
     required this.currentOrganizationId,
     required this.organizations,
     required this.onLogout,
+    required this.onOrganizationChange,
   });
 
   bool get isAdminOrOwner {
@@ -69,7 +70,7 @@ class OrganizationDrawer extends StatelessWidget {
                     alignment: Alignment.center,
                     child: InkWell(
                       onTap: () {
-                        context.push(AppPaths.createOrganization);
+                        // context.push(AppPaths.createOrganization);
                       },
                       child: Container(
                         width: 40,
@@ -115,7 +116,7 @@ class OrganizationDrawer extends StatelessWidget {
                         children: [
                           InkWell(
                             onTap: () {
-                              context.go(AppPaths.organization(org.id ?? ''));
+                              onOrganizationChange(org.id ?? '');
                               Navigator.pop(context);
                             },
                             child: AppAvatar(

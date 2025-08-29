@@ -50,24 +50,26 @@ class _OpportunityCreateDialogState extends State<_OpportunityCreateDialog> {
 
   String? error;
 
-  static final _inputDecoration = InputDecoration(
-    hintText: 'all'.tr(),
-    suffixIcon:
-        const Icon(Icons.keyboard_arrow_down, color: AppColors.text, size: 20),
-    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: const BorderSide(color: Color(0xFFD0D5DD)),
-    ),
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: const BorderSide(color: Color(0xFFD0D5DD)),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: const BorderSide(color: Color(0xFFD0D5DD)),
-    ),
-  );
+  static InputDecoration _inputDecoration(String? hintText) {
+    return InputDecoration(
+      hintText: hintText ?? 'all'.tr(),
+      suffixIcon: const Icon(Icons.keyboard_arrow_down,
+          color: AppColors.text, size: 20),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFFD0D5DD)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFFD0D5DD)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFFD0D5DD)),
+      ),
+    );
+  }
 
   @override
   void dispose() {
@@ -166,7 +168,7 @@ class _OpportunityCreateDialogState extends State<_OpportunityCreateDialog> {
                                 : [_customerPaging!],
                             allowInputText: false,
                             suggestions: customerPaginges,
-                            decoration: _inputDecoration,
+                            decoration: _inputDecoration("Chọn tổ chức"),
                             isOnlyOne: true,
                             onChanged: (data) {
                               if (data.isNotEmpty) {
@@ -222,7 +224,8 @@ class _OpportunityCreateDialogState extends State<_OpportunityCreateDialog> {
                                 _memberModel == null ? [] : [_memberModel!],
                             allowInputText: false,
                             suggestions: memberModels,
-                            decoration: _inputDecoration,
+                            decoration:
+                                _inputDecoration("Chọn người phụ trách"),
                             isOnlyOne: true,
                             onChanged: (data) {
                               if (data.isNotEmpty) {
@@ -243,7 +246,7 @@ class _OpportunityCreateDialogState extends State<_OpportunityCreateDialog> {
                             initialValue: _label == null ? [] : _label!,
                             allowInputText: false,
                             suggestions: labels,
-                            decoration: _inputDecoration,
+                            decoration: _inputDecoration("Chọn nhãn"),
                             isOnlyOne: false,
                             onChanged: (data) {
                               if (data.isNotEmpty) {
@@ -264,7 +267,8 @@ class _OpportunityCreateDialogState extends State<_OpportunityCreateDialog> {
                             initialValue: _category == null ? [] : [_category!],
                             allowInputText: false,
                             suggestions: categories,
-                            decoration: _inputDecoration,
+                            decoration:
+                                _inputDecoration("Chọn loại khách hàng"),
                             isOnlyOne: true,
                             onChanged: (data) {
                               if (data.isNotEmpty) {
@@ -286,7 +290,8 @@ class _OpportunityCreateDialogState extends State<_OpportunityCreateDialog> {
                                 _utmSource == null ? [] : [_utmSource!],
                             allowInputText: false,
                             suggestions: utmSources,
-                            decoration: _inputDecoration,
+                            decoration:
+                                _inputDecoration("Chọn nguồn khách hàng"),
                             isOnlyOne: true,
                             onChanged: (data) {
                               if (data.isNotEmpty) {

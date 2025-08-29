@@ -206,24 +206,26 @@ class _FilterModalState extends State<FilterModal> {
     color: Color(0xFF344054),
   );
 
-  static final _inputDecoration = InputDecoration(
-    hintText: 'all'.tr(),
-    suffixIcon:
-        const Icon(Icons.keyboard_arrow_down, color: AppColors.text, size: 20),
-    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: const BorderSide(color: Color(0xFFD0D5DD)),
-    ),
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: const BorderSide(color: Color(0xFFD0D5DD)),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: const BorderSide(color: Color(0xFFD0D5DD)),
-    ),
-  );
+  static InputDecoration _inputDecoration(String? hintText) {
+    return InputDecoration(
+      hintText: hintText ?? 'all'.tr(),
+      suffixIcon: const Icon(Icons.keyboard_arrow_down,
+          color: AppColors.text, size: 20),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFFD0D5DD)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFFD0D5DD)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFFD0D5DD)),
+      ),
+    );
+  }
 
   final List<MemberModel> _selectedAssignees = [];
   List<Category> _selectedCategories = [];
@@ -268,11 +270,11 @@ class _FilterModalState extends State<FilterModal> {
 
   final systemFilters = [
     SystemFilterModel(
-        name: "Khách hàng có mail",
+        name: "customers_have_emails".tr(),
         value: false,
         field: {'field': "email", 'operation': "IS NOT NULL"}),
     SystemFilterModel(
-        name: "Khách hàng có số điện thoại",
+        name: "customers_have_phone".tr(),
         value: false,
         field: {"field": "phone", "operation": "IS NOT NULL"}),
   ];
@@ -545,7 +547,7 @@ class _FilterModalState extends State<FilterModal> {
                     initialValue: _selectedPagingModels,
                     allowInputText: false,
                     suggestions: state.paginges,
-                    decoration: _inputDecoration,
+                    decoration: _inputDecoration('label'.tr()),
                     onChanged: (data) {
                       setState(() {
                         _selectedPagingModels = data;
@@ -657,7 +659,7 @@ class _FilterModalState extends State<FilterModal> {
               initialValue: _selectedRatings,
               allowInputText: false,
               suggestions: _ratings,
-              decoration: _inputDecoration,
+              decoration: _inputDecoration('rating'.tr()),
               onChanged: (data) {
                 setState(() {
                   _selectedRatings = data;
@@ -688,7 +690,7 @@ class _FilterModalState extends State<FilterModal> {
               initialValue: _selectedCategories,
               allowInputText: false,
               suggestions: _categories,
-              decoration: _inputDecoration,
+              decoration: _inputDecoration('select_by_type'.tr()),
               onChanged: (data) {
                 setState(() {
                   _selectedCategories = data;
@@ -732,7 +734,7 @@ class _FilterModalState extends State<FilterModal> {
                     initialValue: _selectedSources,
                     allowInputText: false,
                     suggestions: state.utmSources,
-                    decoration: _inputDecoration,
+                    decoration: _inputDecoration('select_by_source'.tr()),
                     onChanged: (data) {
                       setState(() {
                         _selectedSources = data;

@@ -382,7 +382,7 @@ class ApiService {
   Future<Response> getListMember(String organizationId) async {
     try {
       final response = await _dioClient.get(
-        ApiEndpoints.getListMember,
+        ApiEndpoints.getListMember(organizationId),
         options: Options(headers: {'organizationId': organizationId}),
       );
       return response;
@@ -1062,6 +1062,350 @@ class ApiService {
         statusMessage: 'Unknown error',
         requestOptions: RequestOptions(
             path: ApiEndpoints.connectZaloOA(organizationId, accessToken)),
+      );
+    }
+  }
+
+  Future<Response> getChannelListService(String organizationId) async {
+    try {
+      final response = await _dioClient.get(ApiEndpoints.getChannelList,
+          options: Options(headers: {'organizationId': organizationId}));
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.getChannelList),
+      );
+    }
+  }
+
+  Future<Response> createWebFormService(
+      String organizationId, Map<String, dynamic> data) async {
+    try {
+      final response = await _dioClient.post(ApiEndpoints.createWebForm,
+          options: Options(headers: {'organizationId': organizationId}),
+          data: data);
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.createWebForm),
+      );
+    }
+  }
+
+  Future<Response> verifyWebFormService(
+      String organizationId, String id) async {
+    try {
+      final response = await _dioClient.post(ApiEndpoints.verifyWebForm(id),
+          options: Options(headers: {'organizationId': organizationId}));
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.verifyWebForm(id)),
+      );
+    }
+  }
+
+  Future<Response> connectChannelService(
+      String organizationId, String id, Map<String, dynamic> data) async {
+    try {
+      final response = await _dioClient.patch(ApiEndpoints.connectChannel(id),
+          data: data,
+          options: Options(headers: {'organizationId': organizationId}));
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.connectChannel(id)),
+      );
+    }
+  }
+
+  Future<Response> disconnectChannelService(
+      String organizationId, String id, String provider) async {
+    try {
+      final response = await _dioClient.delete(
+          ApiEndpoints.disconnectChannel(id, provider),
+          options: Options(headers: {'organizationId': organizationId}));
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions:
+            RequestOptions(path: ApiEndpoints.disconnectChannel(id, provider)),
+      );
+    }
+  }
+
+  Future<Response> createWebhookService(
+      String organizationId, Map<String, dynamic> data) async {
+    try {
+      final response = await _dioClient.post(ApiEndpoints.createWebhook,
+          options: Options(headers: {'organizationId': organizationId}),
+          data: data);
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.createWebhook),
+      );
+    }
+  }
+
+  Future<Response> createIntegrationService(
+      String organizationId, Map<String, dynamic> data) async {
+    try {
+      final response = await _dioClient.post(ApiEndpoints.createIntegration,
+          options: Options(headers: {'organizationId': organizationId}),
+          data: data);
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.createLead),
+      );
+    }
+  }
+
+  Future<Response> getTiktokLeadConnectionsService(
+      String organizationId) async {
+    try {
+      final response = await _dioClient.get(
+          ApiEndpoints.getTiktokLeadConnections,
+          options: Options(headers: {'organizationId': organizationId}));
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions:
+            RequestOptions(path: ApiEndpoints.getTiktokLeadConnections),
+      );
+    }
+  }
+
+  Future<Response> getTiktokItemListService(
+      String organizationId, String subscribedId, String isConnect) async {
+    try {
+      final response = await _dioClient.get(
+          ApiEndpoints.getTiktokItemList(
+              organizationId, subscribedId, isConnect),
+          options: Options(headers: {'organizationId': organizationId}));
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(
+            path: ApiEndpoints.getTiktokItemList(
+                organizationId, subscribedId, isConnect)),
+      );
+    }
+  }
+
+  Future<Response> getTiktokConfigurationService(
+      String organizationId, String connectionId, String pageId) async {
+    try {
+      final response = await _dioClient.get(
+          ApiEndpoints.getTiktokConfiguration(connectionId, pageId),
+          options: Options(headers: {'organizationId': organizationId}));
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(
+            path: ApiEndpoints.getTiktokConfiguration(connectionId, pageId)),
+      );
+    }
+  }
+
+  Future<Response> searchOrganizationService(
+      String searchText, String organizationId) async {
+    try {
+      final response = await _dioClient.get(
+          ApiEndpoints.searchOrganization(searchText),
+          queryParameters: {'limit': 20, 'offset': 0},
+          options: Options(headers: {'organizationId': organizationId}));
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions:
+            RequestOptions(path: ApiEndpoints.searchOrganization(searchText)),
+      );
+    }
+  }
+
+  Future<Response> joinOrganizationService(String organizationId) async {
+    try {
+      final response = await _dioClient.post(
+        ApiEndpoints.joinOrganization,
+        options: Options(headers: {'organizationId': organizationId}),
+      );
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.joinOrganization),
+      );
+    }
+  }
+
+  Future<Response> getInvitationListService(
+      String organizationId, String type) async {
+    try {
+      final response = await _dioClient.get(
+          ApiEndpoints.getInvitationList(type),
+          options: Options(headers: {'organizationId': organizationId}));
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions:
+            RequestOptions(path: ApiEndpoints.getInvitationList(type)),
+      );
+    }
+  }
+
+  Future<Response> getMemberJoinRequestService(
+    String organizationId,
+    String type,
+  ) async {
+    try {
+      final response = await _dioClient.get(
+        ApiEndpoints.getInvitationList(type),
+        options: Options(headers: {'organizationId': organizationId}),
+      );
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions:
+            RequestOptions(path: ApiEndpoints.getInvitationList(type)),
+      );
+    }
+  }
+
+  Future<Response> acceptInvitationService(
+      String organizationId, String id) async {
+    try {
+      final response = await _dioClient.post(ApiEndpoints.acceptInvitation(id),
+          options: Options(headers: {'organizationId': organizationId}));
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.acceptInvitation(id)),
+      );
+    }
+  }
+
+  Future<Response> rejectInvitationService(
+      String organizationId, String id) async {
+    try {
+      final response = await _dioClient.post(ApiEndpoints.rejectInvitation(id),
+          options: Options(headers: {'organizationId': organizationId}));
+      return response;
+    } catch (e) {
+      return Response<Map<String, dynamic>>(
+        data: {
+          'success': false,
+          'error': 'unknown_error',
+          'message': e.toString(),
+        },
+        statusCode: 500,
+        statusMessage: 'Unknown error',
+        requestOptions: RequestOptions(path: ApiEndpoints.rejectInvitation(id)),
       );
     }
   }

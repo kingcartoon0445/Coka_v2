@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:source_base/config/helper.dart';
+import 'package:source_base/data/models/customer_service_response.dart';
 import 'package:source_base/data/models/schedule_response.dart';
 import 'package:source_base/data/models/service_detail_response.dart';
 import 'package:source_base/data/repositories/calendar_repository.dart';
@@ -36,6 +37,7 @@ class DealActivityBloc extends Bloc<DealActivityEvent, DealActivityState> {
     on<DuplicateOrder>(_onDuplicateOrder);
     on<ArchiveOrder>(_onArchiveOrder);
     on<DeleteOrder>(_onDeleteOrder);
+    on<SendNote>(_onSendNote);
   }
 
   Future<void> _onLoadDealActivity(
@@ -327,6 +329,18 @@ class DealActivityBloc extends Bloc<DealActivityEvent, DealActivityState> {
           status: DealActivityStatus.error,
           error: response.data['message'],
           errorTitle: 'Chức năng lưu đơn hàng'));
+    }
+  }
+
+  Future<void> _onSendNote(
+      SendNote event, Emitter<DealActivityState> emit) async {
+    final response = await dealActivityRepository.SendNoteJourneysService(
+        event.organizationId, event.taskId, event.note);
+    bool isSuccess = Helpers.isResponseSuccess(response.data);
+    if (isSuccess) {
+      add(LoadDealActivity(
+          organizationId: event.organizationId,
+          workspaceId: state.workspaceId ?? ''));
     }
   }
 }

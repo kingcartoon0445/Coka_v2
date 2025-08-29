@@ -145,3 +145,17 @@ class DuplicateOrder extends DealActivityEvent {
   final String taskId;
   const DuplicateOrder({required this.organizationId, required this.taskId});
 }
+
+class SendNote extends DealActivityEvent {
+  final String organizationId;
+  final String taskId;
+  final String note;
+  const SendNote(
+      {required this.organizationId, required this.taskId, required this.note});
+}
+
+class LoadCustomerDetail extends DealActivityEvent {
+  final String organizationId;
+  final String id;
+  const LoadCustomerDetail({required this.organizationId, required this.id});
+}

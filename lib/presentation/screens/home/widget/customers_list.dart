@@ -19,7 +19,7 @@ class CustomersList extends StatefulWidget {
   final bool isArchive;
   final VoidCallback? onRefresh;
 
-  const CustomersList({
+  const   CustomersList({
     super.key,
     required this.organizationId,
     this.stageGroupId,

@@ -4,10 +4,12 @@ import 'package:source_base/config/routes.dart';
 import 'package:source_base/dio/service_locator.dart';
 import 'package:source_base/presentation/blocs/auth/auth_bloc.dart';
 import 'package:source_base/presentation/blocs/chat/chat_bloc.dart';
+import 'package:source_base/presentation/blocs/customer_service/connection_channel/connection_channel_bloc.dart';
 import 'package:source_base/presentation/blocs/customer_service/customer_service_bloc.dart';
 import 'package:source_base/presentation/blocs/deal_activity/deal_activity_bloc.dart';
 import 'package:source_base/presentation/blocs/message/message_bloc.dart';
 import 'package:source_base/presentation/blocs/organization/organization_action_bloc.dart';
+import 'package:source_base/presentation/blocs/setting/setting_bloc.dart';
 import 'package:source_base/presentation/blocs/switch_final_deal/switch_final_deal_bloc.dart';
 import 'package:source_base/presentation/blocs/theme/theme_bloc.dart';
 
@@ -52,6 +54,12 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider<MessageBloc>(
           create: (_) => getIt<MessageBloc>(),
+        ),
+        BlocProvider<ConnectionChannelBloc>(
+          create: (_) => getIt<ConnectionChannelBloc>(),
+        ),
+        BlocProvider<SettingBloc>(
+          create: (_) => getIt<SettingBloc>(),
         ),
       ],
       child: BlocBuilder<ThemeBloc, ThemeState>(
