@@ -1,11 +1,12 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:source_base/config/routes.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';import 'package:source_base/config/routes.dart';
 import 'package:source_base/dio/service_locator.dart';
 import 'package:source_base/presentation/blocs/auth/auth_bloc.dart';
 import 'package:source_base/presentation/blocs/chat/chat_bloc.dart';
 import 'package:source_base/presentation/blocs/customer_service/connection_channel/connection_channel_bloc.dart';
 import 'package:source_base/presentation/blocs/customer_service/customer_service_bloc.dart';
+import 'package:source_base/presentation/blocs/customer_detail/customer_detail_bloc.dart';
 import 'package:source_base/presentation/blocs/deal_activity/deal_activity_bloc.dart';
 import 'package:source_base/presentation/blocs/message/message_bloc.dart';
 import 'package:source_base/presentation/blocs/organization/organization_action_bloc.dart';
@@ -36,6 +37,9 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider<CustomerServiceBloc>(
           create: (_) => getIt<CustomerServiceBloc>(),
+        ),
+        BlocProvider<CustomerDetailBloc>(
+          create: (_) => getIt<CustomerDetailBloc>(),
         ),
         BlocProvider<FilterItemBloc>(
           create: (_) => getIt<FilterItemBloc>(),

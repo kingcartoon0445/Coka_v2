@@ -1,11 +1,13 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:source_base/config/app_color.dart';
 import 'package:source_base/config/routes.dart';
 import 'package:source_base/data/models/customer_service_response.dart';
-import 'package:source_base/data/models/facebook_chat_response.dart';
+import 'package:source_base/presentation/blocs/customer_detail/customer_detail_bloc.dart';
+import 'package:source_base/presentation/blocs/customer_detail/customer_detail_event.dart';
 import 'package:source_base/presentation/screens/shared/widgets/avatar_widget.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
@@ -61,14 +63,17 @@ class MessageItem extends StatelessWidget {
       context.read<CustomerServiceBloc>().add(
           ChangeStatusRead(organizationId: organizationId, conversationId: id));
     }
+    context.read<CustomerDetailBloc>().add(LoadFacebookChat(
+          conversationId: id,
+          facebookChat: facebookChat,
+          isChat: true,
+          organizationId: organizationId,
+        ));
     // context.read<ChatBloc>().add(LoadFacebookChat(facebookChat: facebookChat));
     context.push(AppPaths.chatDetail(id)).then((v) {
-      context.read<CustomerServiceBloc>().add(LoadFacebookChat(
-            conversationId: id,
-            facebookChat: null,
-          ));
       // ignore: use_build_context_synchronously
       context.read<ChatBloc>().add(DisableFirebaseListener());
+      context.read<CustomerDetailBloc>().add(CancelSearchCustomer());
     });
     // Kiểm tra conversation trong state tương ứng và cập nhật selected conversation
     // if (platform == 'FACEBOOK') {

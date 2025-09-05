@@ -1,18 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:source_base/config/helper.dart';
-import 'package:source_base/core/api/api_endpoints.dart';
-import 'package:source_base/core/api/dio_client.dart';
-import 'package:source_base/data/datasources/local/shared_preferences_service.dart';
-import 'package:source_base/data/models/customer_service_response.dart';
-import 'package:source_base/data/repositories/message_repository.dart';
-import 'package:source_base/dio/service_locator.dart';
+import 'package:source_base/config/helper.dart'; 
+import 'package:source_base/data/models/customer_service_response.dart'; 
 import 'package:source_base/presentation/blocs/organization/organization_bloc.dart';
-import 'package:source_base/presentation/screens/customers_service/widgets/message_item.dart';
-import 'package:source_base/presentation/screens/customers_service/widgets/web_view.dart';
-import 'package:source_base/presentation/screens/shared/widgets/awesome_alert.dart';
-import 'package:source_base/presentation/screens/shared/widgets/enhanced_avatar_widget.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:source_base/presentation/screens/customers_service/widgets/message_item.dart'; 
+import 'package:source_base/presentation/screens/shared/widgets/enhanced_avatar_widget.dart'; 
 import '../../../blocs/customer_service/customer_service_action.dart';
 
 class FacebookMessagesTab extends StatefulWidget {

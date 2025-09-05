@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 // import 'providers/customer_detail_provider.dart'; // Tạm thời comment lại
 // import 'providers/customer_activity_provider.dart'; // Tạm thời comment lại
@@ -10,7 +11,9 @@ import 'package:source_base/presentation/screens/customer/customer_screen.dart';
 import 'package:source_base/presentation/screens/customers_service/customer_service_detail/widgets/customer_journey.dart';
 
 import 'package:source_base/presentation/screens/shared/widgets/avatar_widget.dart';
-import '../../../blocs/customer_service/customer_service_action.dart';
+import 'package:source_base/presentation/blocs/customer_detail/customer_detail_bloc.dart';
+import 'package:source_base/presentation/blocs/customer_detail/customer_detail_event.dart';
+import 'package:source_base/presentation/blocs/customer_detail/customer_detail_state.dart';
 import 'widgets/assign_to_bottomsheet.dart';
 // import '../../../../../../shared/widgets/avatar_widget.dart'; // Remove duplicate import
 
@@ -307,7 +310,7 @@ class _CustomerDetailPageState extends State<CustomerDetailPage>
     );
   }
 
-  Widget _buildCustomerInfoTab(CustomerServiceState state) {
+  Widget _buildCustomerInfoTab(CustomerDetailState state) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -343,7 +346,7 @@ class _CustomerDetailPageState extends State<CustomerDetailPage>
     );
   }
 
-  Widget _buildActivityTab(CustomerServiceState state) {
+  Widget _buildActivityTab(CustomerDetailState state) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -430,8 +433,8 @@ class _CustomerDetailPageState extends State<CustomerDetailPage>
   Widget build(BuildContext context) {
     // final customerDetailAsync = ref.watch(customerDetailProvider(widget.customerId));
 
-    return BlocBuilder<CustomerServiceBloc, CustomerServiceState>(
-        bloc: context.read<CustomerServiceBloc>(),
+    return BlocBuilder<CustomerDetailBloc, CustomerDetailState>(
+        bloc: context.read<CustomerDetailBloc>(),
         builder: (context, state) {
           return Scaffold(
             appBar: AppBar(
@@ -441,7 +444,7 @@ class _CustomerDetailPageState extends State<CustomerDetailPage>
                 icon: const Icon(Icons.arrow_back),
                 onPressed: () => context.pop(),
               ),
-              title: state.status == CustomerServiceStatus.loadingUserInfo
+              title: state.status == CustomerDetailStatus.loadingUserInfo
                   ? Shimmer.fromColors(
                       baseColor: Colors.grey[300]!,
                       highlightColor: Colors.grey[100]!,
@@ -467,14 +470,16 @@ class _CustomerDetailPageState extends State<CustomerDetailPage>
                     )
                   : GestureDetector(
                       onTap: () {
-                        context.read<CustomerServiceBloc>().add(
+                        context.read<CustomerDetailBloc>().add(
                               LoadCustomerDetail(
+                                
                                 organizationId: context
                                         .read<OrganizationBloc>()
                                         .state
                                         .organizationId ??
                                     '',
                                 customerId: state.customerService?.id ?? '',
+                                isCustomer: false,
                               ),
                             );
                         Navigator.push(
@@ -509,8 +514,18 @@ class _CustomerDetailPageState extends State<CustomerDetailPage>
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis),
                                 const SizedBox(height: 2),
-                                _buildCompactAssigneeInfo(
-                                    state.customerService!),
+                                if (state.customerService != null)
+                                  _buildCompactAssigneeInfo(
+                                      state.customerService!)
+                                else
+                                  Text(
+                                    '${'assignee_label'.tr()}: ${'unassigned'.tr()}',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: Colors.grey[600],
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
                               ],
                             ),
                           ),
@@ -528,7 +543,9 @@ class _CustomerDetailPageState extends State<CustomerDetailPage>
                 tabAlignment: TabAlignment.start,
                 onTap: (value) {
                   if (value == 0) {
-                    context.read<CustomerServiceBloc>().add(LoadJourneyPaging(
+                    context
+                        .read<CustomerDetailBloc>()
+                        .add(LoadCustomerDetailValue(
                           organizationId: context
                                   .read<OrganizationBloc>()
                                   .state
@@ -536,7 +553,9 @@ class _CustomerDetailPageState extends State<CustomerDetailPage>
                               '',
                         ));
                   } else if (value == 1) {
-                    context.read<CustomerServiceBloc>().add(LoadJourneyPaging(
+                    context
+                        .read<CustomerDetailBloc>()
+                        .add(LoadCustomerDetailValue(
                           organizationId: context
                                   .read<OrganizationBloc>()
                                   .state
@@ -730,7 +749,7 @@ class _CustomerDetailPageState extends State<CustomerDetailPage>
               //   )
               // ],
             ),
-            body: state.status == CustomerServiceStatus.loading
+            body: state.status == CustomerDetailStatus.loading
                 ? _buildLoadingSkeleton()
                 : TabBarView(
                     controller: _tabController,

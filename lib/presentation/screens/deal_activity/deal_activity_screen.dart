@@ -1,5 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:source_base/config/app_color.dart';
 import 'package:source_base/presentation/blocs/deal_activity/deal_activity_action.dart';
 import 'package:source_base/presentation/screens/deal_activity/widget/customer_journey_screen.dart';

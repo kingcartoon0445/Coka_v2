@@ -1,14 +1,15 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:source_base/data/models/service_detail_response.dart';
 import 'package:source_base/data/models/stage.dart';
 import 'package:source_base/presentation/screens/customers_service/customer_service_detail/widgets/reminder/customer_reminder_card.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../../blocs/customer_service/customer_service_action.dart';
+import '../../../../blocs/customer_detail/customer_detail_bloc.dart';
+import '../../../../blocs/customer_detail/customer_detail_event.dart';
+import '../../../../blocs/customer_detail/customer_detail_state.dart';
 import '../../../../blocs/organization/organization_action_bloc.dart';
 import 'stage_select.dart';
 import 'journey_item.dart';
@@ -92,9 +93,9 @@ class _CustomerJourneyState extends State<CustomerJourney>
     if (now.difference(_lastLoadMore).inMilliseconds < 350) return;
     _lastLoadMore = now;
 
-    final state = context.read<CustomerServiceBloc>().state;
+    final state = context.read<CustomerDetailBloc>().state;
     if (!state.hasMoreServiceDetails ||
-        state.status == CustomerServiceStatus.loadingMore ||
+        state.status == CustomerDetailStatus.loadingMore ||
         _isPaginating) return;
 
     _isPaginating = true;
@@ -102,7 +103,7 @@ class _CustomerJourneyState extends State<CustomerJourney>
 
     final currentScroll = _scrollCtrl.position.pixels;
 
-    context.read<CustomerServiceBloc>().add(
+    context.read<CustomerDetailBloc>().add(
           LoadMoreServiceDetails(
             organizationId:
                 context.read<OrganizationBloc>().state.organizationId ?? '',
@@ -178,17 +179,18 @@ class _CustomerJourneyState extends State<CustomerJourney>
             onTap: () => FocusScope.of(context).unfocus(),
             child: RefreshIndicator(
               onRefresh: () async {
-                context.read<CustomerServiceBloc>().add(
-                      LoadJourneyPaging(
+                context.read<CustomerDetailBloc>().add(
+                      LoadCustomerDetailValue(
                         organizationId: context
                                 .read<OrganizationBloc>()
                                 .state
                                 .organizationId ??
                             '',
+                        type: widget.onlyNote ? 'create_note' : null,
                       ),
                     );
               },
-              child: BlocBuilder<CustomerServiceBloc, CustomerServiceState>(
+              child: BlocBuilder<CustomerDetailBloc, CustomerDetailState>(
                 buildWhen: (prev, next) =>
                     prev.serviceDetails != next.serviceDetails ||
                     prev.status != next.status,
@@ -229,10 +231,10 @@ class _CustomerJourneyState extends State<CustomerJourney>
                               return;
                             }
 
-                            context.read<CustomerServiceBloc>().add(
+                            context.read<CustomerDetailBloc>().add(
                                   PostCustomerNote(
                                     customerId: context
-                                            .read<CustomerServiceBloc>()
+                                            .read<CustomerDetailBloc>()
                                             .state
                                             .customerService
                                             ?.id ??
@@ -274,23 +276,23 @@ class _CustomerJourneyState extends State<CustomerJourney>
                         Padding(
                           padding: const EdgeInsets.all(16),
                           child: Center(
-                            child: state.status ==
-                                    CustomerServiceStatus.loadingMore
-                                ? Column(
-                                    children: const [
-                                      SizedBox(
-                                          width: 20,
-                                          height: 20,
-                                          child: CircularProgressIndicator(
-                                              strokeWidth: 2)),
-                                      SizedBox(height: 8),
-                                      Text('Đang tải thêm...',
-                                          style: TextStyle(
-                                              fontSize: 12,
-                                              color: Colors.grey)),
-                                    ],
-                                  )
-                                : const SizedBox.shrink(),
+                            child:
+                                state.status == CustomerDetailStatus.loadingMore
+                                    ? Column(
+                                        children: const [
+                                          SizedBox(
+                                              width: 20,
+                                              height: 20,
+                                              child: CircularProgressIndicator(
+                                                  strokeWidth: 2)),
+                                          SizedBox(height: 8),
+                                          Text('Đang tải thêm...',
+                                              style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.grey)),
+                                        ],
+                                      )
+                                    : const SizedBox.shrink(),
                           ),
                         ),
                     ],

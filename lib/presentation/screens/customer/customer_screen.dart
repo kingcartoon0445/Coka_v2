@@ -1,13 +1,20 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:source_base/config/app_color.dart';
 import 'package:source_base/data/models/customer_service_response.dart';
+import 'package:source_base/data/models/paging_response.dart';
+import 'package:source_base/presentation/blocs/customer_service/customer_service_bloc.dart';
 import 'package:source_base/presentation/blocs/organization/organization_bloc.dart';
+import 'package:source_base/presentation/blocs/switch_final_deal/models/customer_paging_response.dart';
+import 'package:source_base/presentation/screens/customer/dialog_user.dart';
 import 'package:source_base/presentation/screens/customers_service/switch_final_deal.dart';
 import 'package:source_base/presentation/screens/shared/widgets/avatar_widget.dart';
-
-import '../../blocs/customer_service/customer_service_action.dart';
+import 'package:source_base/presentation/blocs/deal_activity/model/customer_detail_model.dart';
+import 'package:source_base/presentation/blocs/customer_detail/customer_detail_bloc.dart';
+import 'package:source_base/presentation/blocs/customer_detail/customer_detail_event.dart';
+import 'package:source_base/presentation/blocs/customer_detail/customer_detail_state.dart';
 import '../../blocs/switch_final_deal/switch_final_deal_action.dart';
 
 /// Refactor highlights
@@ -16,16 +23,21 @@ import '../../blocs/switch_final_deal/switch_final_deal_action.dart';
 /// - Trích xuất widget con để chúng rebuild theo selector riêng
 /// - Điều hướng/pop được thực hiện trong listener, UI chỉ phát event
 /// - Loại bỏ lặp lại context.read nhiều lần/nested pop
-class CustomerDetailScreen extends StatelessWidget {
+class CustomerDetailScreen extends StatefulWidget {
   const CustomerDetailScreen({Key? key}) : super(key: key);
 
+  @override
+  State<CustomerDetailScreen> createState() => _CustomerDetailScreenState();
+}
+
+class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
+  bool editLabel = false;
   @override
   Widget build(BuildContext context) {
     // Lấy organizationId một lần, chỉ rebuild khi organizationId thay đổi
     final organizationId = context.select<OrganizationBloc, String?>(
       (b) => b.state.organizationId,
     );
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -35,22 +47,32 @@ class CustomerDetailScreen extends StatelessWidget {
           onPressed: () => context.pop(),
         ),
       ),
-      body: SafeArea(
-        child: BlocConsumer<CustomerServiceBloc, CustomerServiceState>(
+      body: Container(
+        color: Colors.white,
+        child: BlocConsumer<CustomerDetailBloc, CustomerDetailState>(
           listenWhen: (prev, curr) => prev.status != curr.status,
           listener: (context, state) {
             // Điều hướng & side-effects
             switch (state.status) {
-              case CustomerServiceStatus.successStorageCustomer:
+              case CustomerDetailStatus.successLinkToLead:
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Đã liên kết khách hàng')),
+                );
+                context.read<CustomerDetailBloc>().add(LoadCustomerDetail(
+                      organizationId: organizationId ?? '',
+                      customerId: state.customerService?.id ?? '',
+                      isCustomer: false,
+                    ));
+                break;
+              case CustomerDetailStatus.successStorageCustomer:
                 // Sau khi convert/unarchive, thoát về list & reload
                 context.pop();
                 context.pop();
-                context.read<CustomerServiceBloc>().add(LoadCustomerService(
+                context.read<CustomerDetailBloc>().add(LoadCustomerDetailValue(
                       organizationId: organizationId ?? '',
-                      pagingRequest: null,
                     ));
                 break;
-              case CustomerServiceStatus.successDeleteReminder:
+              case CustomerDetailStatus.successDeleteReminder:
                 context.pop(); // đóng dialog
                 context.pop(); // đóng detail
                 context.pop(); // đóng customer
@@ -66,12 +88,14 @@ class CustomerDetailScreen extends StatelessWidget {
           // Chỉ rebuild UI khi các phần dữ liệu hiển thị thay đổi
           buildWhen: (prev, curr) =>
               prev.customerService != curr.customerService ||
-              prev.pagingRequest?.isArchive != curr.pagingRequest?.isArchive ||
               prev.status != curr.status,
           builder: (context, state) {
             final cs = state.customerService;
-            final itemCF = state.customerDetail;
-            if (state.status == CustomerServiceStatus.loading || cs == null) {
+            final leadInfo = state.leadDetail;
+            final customerInfo = state.customerDetailModel;
+            final List<PagingModel> labels = state.paginges;
+            List<PagingModel> initLabels = state.initLabels;
+            if (state.status == CustomerDetailStatus.loading || cs == null) {
               return const Center(child: CircularProgressIndicator());
             }
 
@@ -81,46 +105,38 @@ class CustomerDetailScreen extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    _Header(fullName: cs.fullName ?? ''),
+                    _Header(
+                      fullName: cs.fullName ?? '',
+                      imgUrl: cs.avatar ?? "",
+                    ),
                     const SizedBox(height: 12),
-
                     _ActionBar(
-                      isArchive: state.pagingRequest?.isArchive ?? false,
+                      isArchive:
+                          false, // CustomerDetailBloc không có pagingRequest
                       onArchiveToggle: () {
-                        if ((state.pagingRequest?.isArchive ?? false)) {
-                          context.read<CustomerServiceBloc>().add(
-                                StorageUnArchiveCustomer(
-                                  customerId: cs.id ?? '',
-                                  organizationId: organizationId ?? '',
-                                ),
-                              );
-                        } else {
-                          context.read<CustomerServiceBloc>().add(
-                                StorageConvertToCustomer(
-                                  customerId: cs.id ?? '',
-                                  organizationId: organizationId ?? '',
-                                ),
-                              );
-                        }
+                        // Logic archive/unarchive có thể được thêm vào CustomerDetailBloc nếu cần
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text('Chức năng đang được phát triển')),
+                        );
                       },
                       onDeleteTap: () {
                         showDialog(
                           context: context,
                           builder: (context) => _ConfirmDeleteDialog(
-                            onConfirm: () =>
-                                context.read<CustomerServiceBloc>().add(
-                                      DeleteCustomer(
-                                        customerId: cs.id ?? '',
-                                        organizationId: organizationId ?? '',
-                                      ),
-                                    ),
+                            onConfirm: () {
+                              // Có thể thêm DeleteCustomer event vào CustomerDetailBloc nếu cần
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content:
+                                        Text('Chức năng đang được phát triển')),
+                              );
+                            },
                           ),
                         );
                       },
                     ),
-
                     const SizedBox(height: 16),
-
                     _ConvertButton(
                       onTap: () {
                         context
@@ -133,171 +149,173 @@ class CustomerDetailScreen extends StatelessWidget {
                         );
                       },
                     ),
-
                     const SizedBox(height: 24),
-                    _SectionTitle('detail'.tr()),
-                    const SizedBox(height: 8),
-                    _InfoRow(
-                        icon: Icons.featured_play_list_outlined,
-                        label: 'title'.tr(),
-                        value: cs.title ?? ''),
-                    _InfoRow(
-                        icon: Icons.calendar_month_outlined,
-                        label: 'created_date'.tr(),
-                        value: DateFormat('dd/MM/yyyy')
-                            .format(cs.createdDate ?? DateTime.now())),
-                    _InfoRow(
-                        icon: Icons.category_outlined,
-                        label: 'classification'.tr(),
-                        value: itemCF?.source?.first ?? ''),
-                    _InfoRow(
-                        icon: Icons.source, label: 'source'.tr(), value: ''),
-                    _InfoRow(
-                      icon: Icons.label_outline,
-                      label: 'label'.tr(),
-                      customChild: Wrap(
-                        spacing: 6,
-                        children: [
-                          for (final item in itemCF?.tags ?? []) ...[
-                            _InfoChip(
-                                text: item ?? '', color: AppColors.primary),
-                          ]
-                        ],
+                    if (leadInfo == null) ...[
+                      // Opportunity/Deals section
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "Opportunity/Deals",
+                          style: TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.w600),
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 8),
+                      InkWell(
+                        onTap: () {
+                          showDialog<CustomerServiceModel>(
+                            context: context,
+                            builder: (_) =>
+                                SelectUserDialog<CustomerServiceModel>(
+                              items: state.customerServices ?? [],
+                              displayName: (c) => c.fullName ?? '',
+                              avatarUrl: (c) => c.avatar,
+                            ),
+                          ).then((selectedUser) {
+                            context
+                                .read<CustomerDetailBloc>()
+                                .add(CancelSearch());
+                            if (selectedUser != null) {
+                              // linking now handled elsewhere
 
-                    // Chỉ rebuild phần Assignees khi danh sách thay đổi
-                    BlocSelector<CustomerServiceBloc, CustomerServiceState,
-                        List<Assignees>>(
-                      selector: (s) => s.customerService?.assignees ?? const [],
-                      builder: (context, assignees) {
-                        return Column(
-                          children: [
-                            _InfoRow(
-                              icon: Icons.person_outline_sharp,
-                              label: 'assignee_label'.tr(),
-                              customChild: Column(
+                              context.read<CustomerDetailBloc>().add(
+                                    LinkToLeadEvent(
+                                        conversationId:
+                                            state.customerService?.id ?? "",
+                                        leadId: selectedUser.id ?? "",
+                                        organizationId: organizationId ?? ""),
+                                  );
+                            }
+                          });
+                        },
+                        child: Container(
+                          width: double.infinity,
+                          // height: 100,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.all(12),
+                          child: const Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Text("Opportunity/Deals"),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
-                                  for (final assignee in assignees)
-                                    if (assignee.type == "OWNER") ...[
-                                      Row(
-                                        children: [
-                                          AppAvatar(
-                                            fallbackText:
-                                                assignee.profileName ?? '',
-                                            imageUrl: assignee.avatar ?? '',
-                                            size: 24,
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Text(
-                                            assignee.profileName ?? '',
-                                            style: const TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w400),
-                                          ),
-                                        ],
-                                      ),
-                                    ]
+                                  Icon(Icons.arrow_drop_down_rounded, size: 24),
                                 ],
                               ),
-                            ),
-                            _InfoRow(
-                              icon: Icons.person_outline_sharp,
-                              label: 'follower'.tr(),
-                              customChild: Column(
-                                children: [
-                                  for (final assignee in assignees)
-                                    if (assignee.type == "FOLLOWER") ...[
-                                      Padding(
-                                        padding: const EdgeInsets.fromLTRB(
-                                            0, 2, 0, 2),
-                                        child: Row(
-                                          children: [
-                                            AppAvatar(
-                                              fallbackText:
-                                                  assignee.profileName ?? '',
-                                              imageUrl: assignee.avatar ?? '',
-                                              size: 24,
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Text(
-                                              assignee.profileName ?? '',
-                                              style: const TextStyle(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.w400),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ]
-                                ],
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-
-                    const SizedBox(height: 24),
-                    _SectionTitle('customer'.tr()),
-                    const SizedBox(height: 8),
-
-                    _InfoRow(
-                        icon: Icons.email_outlined,
-                        label: 'email'.tr(),
-                        value: itemCF?.customer?.email ?? ''),
-                    _InfoRow(
-                        icon: Icons.phone_outlined,
-                        label: 'phone'.tr(),
-                        value: itemCF?.customer?.phone ?? ''),
-                    _InfoRow(
-                      icon: Icons.label_important_outline,
-                      label: 'label'.tr(),
-                      customChild: Wrap(
-                        spacing: 6,
-                        children: [
-                          for (final item in itemCF?.tags ?? []) ...[
-                            _InfoChip(
-                                text: item ?? '', color: AppColors.primary),
-                          ],
-                          ActionChip(
-                              label: const Text('+ Thêm nhãn'),
-                              onPressed: () {}),
-                        ],
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
-                    _InfoRow(
-                        icon: Icons.male_outlined,
-                        label: 'gender'.tr(),
-                        value: itemCF?.customer?.gender == 1
+
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          onPressed: () {},
+                          child: const Text(
+                            "Create new opportunity",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ] else ...[
+                      _CustomerDetailInfoSection(
+                        title: cs.title ?? '',
+                        createdDate: DateFormat('dd/MM/yyyy').format(
+                            DateTime.parse(leadInfo.createdDate ??
+                                DateTime.now().toString())),
+                        classification: leadInfo.source?.first ?? '',
+                        tags:
+                            (leadInfo.tags ?? []).whereType<String>().toList(),
+                        assignees: leadInfo.assignees ?? const [],
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                    if (customerInfo != null) ...[
+                      _CustomerInfoSection(
+                        email: customerInfo.email ?? '',
+                        phone: customerInfo.phone ?? '',
+                        gender: customerInfo.gender == 1
                             ? 'male'.tr()
-                            : 'female'.tr()),
-                    _InfoRow(
-                        icon: Icons.cake_outlined,
-                        label: 'birthday'.tr(),
-                        value: itemCF?.dob ?? ''),
-                    _InfoRow(
-                        icon: Icons.work_outline,
-                        label: 'job'.tr(),
-                        value: itemCF?.customer?.work ?? ''),
-                    _InfoRow(
-                        icon: Icons.badge_outlined,
-                        label: 'CID'.tr(),
-                        value: itemCF?.customer?.physicalId ?? ''),
-                    _InfoRow(
-                        icon: Icons.location_on_outlined,
-                        label: 'location'.tr(),
-                        value: itemCF?.customer?.address ?? ''),
-                    // _InfoRow(
-                    //     icon: Icons.devices_other,
-                    //     label: 'device'.tr(),
-                    //     value: itemCF?.customer?.device ?? ''),
-                    // _InfoRow(
-                    //     icon: Icons.chat_outlined,
-                    //     label: 'Zalo'.tr(),
-                    //     value: itemCF?.customer?.zalo ?? ''),
-                    // const _InfoRow(
-                    //     icon: Icons.facebook_outlined, label: 'Facebook'),
+                            : 'female'.tr(),
+                        birthday: customerInfo.dob ?? '',
+                        job: customerInfo.work ?? '',
+                        cid: customerInfo.physicalId ?? '',
+                        address: customerInfo.address ?? '',
+                      ),
+                    ] else ...[
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          "Opportunity/Deals",
+                          style: TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      InkWell(
+                        onTap: () {
+                          showDialog<CustomerPaging>(
+                            context: context,
+                            builder: (_) => SelectUserDialog<CustomerPaging>(
+                              items: state.customerPaginges ?? [],
+                              displayName: (c) => c.name ?? '',
+                              avatarUrl: (c) => c.name,
+                            ),
+                          );
+                        },
+                        child: Container(
+                          width: double.infinity,
+                          // height: 100,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.all(12),
+                          child: const Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Text("Opportunity/Deals"),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Icon(Icons.arrow_drop_down_rounded, size: 24),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          onPressed: () {},
+                          child: const Text(
+                            "Create new opportunity",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 24),
+                    // Customer info is now rendered inside _CustomerDetailInfoSection
                   ],
                 ),
               ],
@@ -311,14 +329,19 @@ class CustomerDetailScreen extends StatelessWidget {
 
 class _Header extends StatelessWidget {
   final String fullName;
-  const _Header({required this.fullName});
+  final String imgUrl;
+  const _Header({required this.fullName, required this.imgUrl});
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        AppAvatar(fallbackText: fullName, size: 60),
+        AppAvatar(
+          fallbackText: fullName,
+          size: 60,
+          imageUrl: imgUrl,
+        ),
         const SizedBox(height: 12),
         Text(fullName,
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
@@ -443,6 +466,7 @@ class _InfoRow extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, size: 20, color: Colors.grey[700]),
           const SizedBox(width: 12),
@@ -474,6 +498,188 @@ class _InfoChip extends StatelessWidget {
           Text(text, style: const TextStyle(color: Colors.white, fontSize: 12)),
       backgroundColor: color,
       visualDensity: VisualDensity.compact,
+    );
+  }
+}
+
+class _CustomerDetailInfoSection extends StatelessWidget {
+  final String title;
+  final String createdDate;
+  final String classification;
+  final List<String> tags;
+  final List<Assignees> assignees;
+
+  const _CustomerDetailInfoSection({
+    required this.title,
+    required this.createdDate,
+    required this.classification,
+    required this.tags,
+    required this.assignees,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _SectionTitle('detail'.tr()),
+        const SizedBox(height: 8),
+        _InfoRow(
+            icon: Icons.featured_play_list_outlined,
+            label: 'title'.tr(),
+            value: title),
+        _InfoRow(
+            icon: Icons.calendar_month_outlined,
+            label: 'created_date'.tr(),
+            value: createdDate),
+        _InfoRow(
+            icon: Icons.category_outlined,
+            label: 'classification'.tr(),
+            value: classification),
+        _InfoRow(icon: Icons.source, label: 'source'.tr(), value: ''),
+        _InfoRow(
+          icon: Icons.label_outline,
+          label: 'label'.tr(),
+          customChild: Wrap(
+            spacing: 6,
+            children: [
+              for (final item in tags) ...[
+                _InfoChip(text: item, color: AppColors.primary),
+              ]
+            ],
+          ),
+        ),
+        _InfoRow(
+          icon: Icons.person_outline_outlined,
+          label: 'assignee_label'.tr(),
+          customChild: Wrap(
+            spacing: 6,
+            children: [
+              for (final assignee in assignees)
+                if (assignee.type == "OWNER") ...[
+                  Row(
+                    children: [
+                      AppAvatar(
+                        fallbackText: assignee.profileName ?? '',
+                        imageUrl: assignee.avatar ?? '',
+                        size: 24,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        assignee.profileName ?? '',
+                        style: const TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.w400),
+                      ),
+                    ],
+                  ),
+                ]
+            ],
+          ),
+        ),
+
+        _InfoRow(
+          icon: Icons.person_outline_outlined,
+          label: 'follower'.tr(),
+          customChild: Wrap(
+            spacing: 6,
+            children: [
+              for (final assignee in assignees)
+                if (assignee.type == "FOLLOWER") ...[
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 2, 0, 2),
+                    child: Row(
+                      children: [
+                        AppAvatar(
+                          fallbackText: assignee.profileName ?? '',
+                          imageUrl: assignee.avatar ?? '',
+                          size: 24,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          assignee.profileName ?? '',
+                          style: const TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.w400),
+                        ),
+                      ],
+                    ),
+                  ),
+                ]
+            ],
+          ),
+        ),
+
+        // const SizedBox(height: 16),
+        // _SectionTitle('follower'.tr()),
+        // const SizedBox(height: 8),
+        // Column(
+        //   children: [
+        //     for (final assignee in assignees)
+        //       if (assignee.type == "FOLLOWER") ...[
+        //         Padding(
+        //           padding: const EdgeInsets.fromLTRB(0, 2, 0, 2),
+        //           child: Row(
+        //             children: [
+        //               AppAvatar(
+        //                 fallbackText: assignee.profileName ?? '',
+        //                 imageUrl: assignee.avatar ?? '',
+        //                 size: 24,
+        //               ),
+        //               const SizedBox(width: 8),
+        //               Text(
+        //                 assignee.profileName ?? '',
+        //                 style: const TextStyle(
+        //                     fontSize: 14, fontWeight: FontWeight.w400),
+        //               ),
+        //             ],
+        //           ),
+        //         ),
+        //       ]
+        //   ],
+        // ),
+      ],
+    );
+  }
+}
+
+class _CustomerInfoSection extends StatelessWidget {
+  final String email;
+  final String phone;
+  final String gender;
+  final String birthday;
+  final String job;
+  final String cid;
+  final String address;
+
+  const _CustomerInfoSection({
+    required this.email,
+    required this.phone,
+    required this.gender,
+    required this.birthday,
+    required this.job,
+    required this.cid,
+    required this.address,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _SectionTitle('customer'.tr()),
+        const SizedBox(height: 8),
+        _InfoRow(icon: Icons.email_outlined, label: 'email'.tr(), value: email),
+        _InfoRow(icon: Icons.phone_outlined, label: 'phone'.tr(), value: phone),
+        _InfoRow(
+            icon: Icons.male_outlined, label: 'gender'.tr(), value: gender),
+        _InfoRow(
+            icon: Icons.cake_outlined, label: 'birthday'.tr(), value: birthday),
+        _InfoRow(icon: Icons.work_outline, label: 'job'.tr(), value: job),
+        _InfoRow(icon: Icons.badge_outlined, label: 'CID'.tr(), value: cid),
+        _InfoRow(
+            icon: Icons.location_on_outlined,
+            label: 'location'.tr(),
+            value: address),
+      ],
     );
   }
 }

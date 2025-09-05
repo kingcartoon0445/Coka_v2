@@ -39,7 +39,7 @@ class DealActivityState extends Equatable {
   final CustomerServiceModel? customerServiceModel;
   final String? error;
   final String? errorTitle;
-  final CustomerDetailModel? customerDataModel;
+  final LeadDetailModel? customerDataModel;
 
   /// Constructor không const để xử lý runtime logic cho error/errorTitle.
   DealActivityState({
@@ -76,7 +76,7 @@ class DealActivityState extends Equatable {
     TaskModel? task,
     String? workspaceId,
     CustomerOrderDataModel? customerOrderDataModel,
-    CustomerDetailModel? customerDataModel,
+    LeadDetailModel? customerDataModel,
     CustomerServiceModel? customerServiceModel,
     List<ProductModel>? products,
   }) {

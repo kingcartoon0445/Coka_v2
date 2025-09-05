@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:source_base/config/app_color.dart';
@@ -26,7 +27,8 @@ import '../../blocs/organization/organization_action_bloc.dart';
 
 // ignore: must_be_immutable
 class OrganizationPage extends StatefulWidget {
-  String organizationId;
+  String organizationId; // giữ để tương thích router bên ngoài
+
   final Widget child;
 
   OrganizationPage({
@@ -40,36 +42,43 @@ class OrganizationPage extends StatefulWidget {
 }
 
 class _OrganizationPageState extends State<OrganizationPage> {
+  // Trạng thái cục bộ
+  late String _orgId; // ✅ không mutate widget.organizationId trực tiếp
   UserProfile? _userInfo;
   OrganizationModel? _organizationInfo;
   List<OrganizationModel> _organizations = [];
   bool _isLoadingOrganizationsError = false;
   int _unreadNotificationCount = 0;
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  // NEW: lưu tab trước + hướng để animate
+  // Điều hướng animation bottom tabs
   int _lastTabIndex = 0;
-  bool _isForward = true; // true = slide từ phải sang (đi tới tab lớn hơn)
+  bool _isForward = true;
 
   @override
   void initState() {
     super.initState();
+    _orgId = widget.organizationId;
+
+    // load organizations list
     context.read<OrganizationBloc>().add(const LoadOrganizations(
           limit: '10',
           offset: '0',
           searchText: '',
         ));
+
     _initData();
   }
 
   @override
-  void didUpdateWidget(OrganizationPage oldWidget) {
+  void didUpdateWidget(covariant OrganizationPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    print(
-        'didUpdateWidget - old: ${oldWidget.organizationId}, new: ${widget.organizationId}');
     if (oldWidget.organizationId != widget.organizationId) {
-      print('Organization ID changed - reloading data');
+      debugPrint(
+          'Organization ID changed: ${oldWidget.organizationId} → ${widget.organizationId}');
+      _orgId = widget.organizationId; // đồng bộ id mới từ props
       _loadOrganizations();
+      _loadUserInfo();
     }
   }
 
@@ -82,41 +91,24 @@ class _OrganizationPageState extends State<OrganizationPage> {
   }
 
   Future<void> _loadOrganizations() async {
-    if (mounted) {
-      setState(() {
-        _isLoadingOrganizationsError = false;
-      });
-    }
+    if (!mounted) return;
+    setState(() => _isLoadingOrganizationsError = false);
+    // data list sẽ đến qua Bloc listener
   }
 
   Future<void> _loadUserInfo() async {
-    try {
-      if (mounted) {
-        context.read<OrganizationBloc>().add(LoadUserInfo(
-              organizationId: widget.organizationId,
-            ));
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Không thể tải thông tin người dùng')),
-        );
-      }
-    }
+    if (!mounted) return;
+    context.read<OrganizationBloc>().add(LoadUserInfo(organizationId: _orgId));
   }
 
   Future<void> _loadUnreadNotificationCount() async {
     try {
-      // final notificationRepository = NotificationRepository(ApiClient());
-      // final response = await notificationRepository.getUnreadCount();
-      if (mounted) {
-        setState(() {
-          // _unreadNotificationCount = response['content'] ?? 0;
-        });
-      }
+      if (!mounted) return;
+      setState(() {
+        // _unreadNotificationCount = response['content'] ?? 0;
+      });
     } catch (e) {
-      print('Lỗi khi load số lượng thông báo chưa đọc: $e');
-      // Không hiển thị lỗi cho user vì đây không phải chức năng quan trọng
+      debugPrint('Load unread notifications failed: $e');
     }
   }
 
@@ -135,21 +127,15 @@ class _OrganizationPageState extends State<OrganizationPage> {
     return Shimmer.fromColors(
       baseColor: Colors.grey[300]!,
       highlightColor: Colors.grey[100]!,
-      child: Column(
+      child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 130,
-            height: 14,
-            color: Colors.white,
-          ),
-          const SizedBox(height: 2),
-          Container(
-            width: 80,
-            height: 12,
-            color: Colors.white,
-          ),
+          SizedBox(
+              width: 130, height: 14, child: ColoredBox(color: Colors.white)),
+          SizedBox(height: 2),
+          SizedBox(
+              width: 80, height: 12, child: ColoredBox(color: Colors.white)),
         ],
       ),
     );
@@ -159,9 +145,7 @@ class _OrganizationPageState extends State<OrganizationPage> {
     return Padding(
       padding: const EdgeInsets.only(left: 16.0, top: 8.0, bottom: 8.0),
       child: GestureDetector(
-        onTap: () {
-          _scaffoldKey.currentState?.openDrawer();
-        },
+        onTap: () => _scaffoldKey.currentState?.openDrawer(),
         child: AppAvatar(
           size: 48,
           shape: AvatarShape.rectangle,
@@ -173,42 +157,30 @@ class _OrganizationPageState extends State<OrganizationPage> {
     );
   }
 
-  Widget _buildTitle(BuildContext context, int index) {
+  Widget _buildTitle(BuildContext context, int tabIndex) {
     final location = GoRouterState.of(context).uri.path;
-    if (location.contains('/messages')) {
-      return const Text('Tin nhắn');
-    }
-    if (location.contains('/campaigns')) {
-      return const Text('Chiến dịch');
-    }
+
+    if (location.contains('/messages')) return const Text('Tin nhắn');
+    if (location.contains('/campaigns')) return const Text('Chiến dịch');
 
     if (_isLoadingOrganizationsError) {
-      return const Text(
-        'Lỗi tải tổ chức',
-        style: TextStyle(color: Colors.red),
-      );
+      return const Text('Lỗi tải tổ chức', style: TextStyle(color: Colors.red));
     }
 
-    if (_organizationInfo == null && widget.organizationId != 'default') {
+    if (_organizationInfo == null && _orgId != 'default') {
       return _buildSkeletonTitle();
-    } else {}
-    if (index == 1) {
-      return const CustomDropdown();
     }
+
+    if (tabIndex == 1) return const CustomDropdown();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          _userInfo?.fullName ?? '',
-          style: TextStyles.heading3,
-        ),
+        Text(_userInfo?.fullName ?? '', style: TextStyles.heading3),
         if (_organizationInfo != null)
-          Text(
-            _getRoleText(_organizationInfo?.type),
-            style: TextStyles.subtitle2,
-          ),
+          Text(_getRoleText(_organizationInfo?.type),
+              style: TextStyles.subtitle2),
       ],
     );
   }
@@ -216,53 +188,63 @@ class _OrganizationPageState extends State<OrganizationPage> {
   Widget _buildDrawer() {
     return OrganizationDrawer(
       userInfo: _userInfo,
-      currentOrganizationId: widget.organizationId,
+      currentOrganizationId: _orgId,
       organizations: _organizations,
       onLogout: () => Helpers.handleLogout(context),
-      onOrganizationChange: (organizationId) {
+      onOrganizationChange: (newOrgId) {
         final location = GoRouterState.of(context).uri.path;
-        if (location.contains(AppPaths.finalDeal(widget.organizationId))) {
-          context.replace(AppPaths.finalDeal(organizationId));
+
+        // Điều hướng nếu đang ở các route phụ thuộc orgId
+        if (location.contains(AppPaths.finalDeal(_orgId))) {
+          context.replace(AppPaths.finalDeal(newOrgId));
         }
-        setState(() {
-          widget.organizationId = organizationId;
-        });
-        if (location.contains(AppPaths.setting(widget.organizationId))) {
-          context.replace(AppPaths.setting(organizationId));
+        if (location.contains(AppPaths.setting(_orgId))) {
+          context.replace(AppPaths.setting(newOrgId));
         }
 
+        setState(() => _orgId = newOrgId);
+
+        // phát sự kiện thay đổi organization
         context.read<OrganizationBloc>().add(ChangeOrganization(
-              organizationId: organizationId,
+              organizationId: newOrgId,
             ));
+
+        // load lại list khách
+        context.read<CustomerServiceBloc>().add(
+              LoadCustomerService(
+                organizationId:
+                    context.read<OrganizationBloc>().state.organizationId ?? '',
+                pagingRequest:
+                    LeadPagingRequest(limit: 10, offset: 0, channels: ["LEAD"]),
+              ),
+            );
+
+        // lưu mặc định
+        SharedPreferencesService().setString(
+          PrefKey.defaultOrganizationId,
+          newOrgId,
+        );
       },
     );
   }
 
   int _calculateSelectedIndex(BuildContext context) {
-    final location = GoRouterState.of(context).uri.path;
-
-    if (location.contains(AppPaths.organization(widget.organizationId))) {
-      return 0;
-    }
-    if (location.contains(AppPaths.finalDeal(widget.organizationId))) {
-      return 1;
-    }
-    if (location.contains(AppPaths.setting(widget.organizationId))) {
-      return 4;
-    }
+    final path = GoRouterState.of(context).uri.path;
+    if (path.contains(AppPaths.organization(_orgId))) return 0;
+    if (path.contains(AppPaths.finalDeal(_orgId))) return 1;
+    if (path.contains(AppPaths.setting(_orgId))) return 4;
     return 0;
   }
 
-  // Kiểm tra xem có đang ở trang AI Chatbot không
   bool _isAIChatbotPage(BuildContext context) {
-    final location = GoRouterState.of(context).uri.path;
-    return location.contains('/campaigns/ai-chatbot');
+    final path = GoRouterState.of(context).uri.path;
+    return path.contains('/campaigns/ai-chatbot');
   }
 
   void _onItemTapped(int index, BuildContext context) {
     switch (index) {
       case 0:
-        context.replace(AppPaths.organization(widget.organizationId));
+        context.replace(AppPaths.organization(_orgId));
         break;
       case 1:
         context.read<FinalDealBloc>().add(
@@ -271,9 +253,12 @@ class _OrganizationPageState extends State<OrganizationPage> {
                     context.read<OrganizationBloc>().state.organizationId ?? '',
               ),
             );
-        context.replace(AppPaths.finalDeal(widget.organizationId));
+        context.replace(AppPaths.finalDeal(_orgId));
+        break; // ✅ FIX: thiếu break gây rơi xuống case 4
       case 4:
-        context.replace(AppPaths.setting(widget.organizationId));
+        context.replace(AppPaths.setting(_orgId));
+        break;
+      default:
         break;
     }
   }
@@ -292,139 +277,97 @@ class _OrganizationPageState extends State<OrganizationPage> {
         maxChildSize: 0.95,
         expand: false,
         builder: (context, scrollController) {
-          const notificationWidget = NotificationListWidget(
+          return const NotificationListWidget(
             showTitle: false,
             showMoreOption: false,
             fullScreen: true,
           );
-
-          return notificationWidget;
         },
       ),
-    ).then((_) {
-      // Reload unread count khi đóng notification modal
-      _loadUnreadNotificationCount();
-    });
+    ).then((_) => _loadUnreadNotificationCount());
   }
 
   @override
   Widget build(BuildContext context) {
-    // Kiểm tra xem có đang ở trang AI Chatbot không
     final isAIChatbotPage = _isAIChatbotPage(context);
-
-    // NEW: xác định tab hiện tại và cập nhật hướng nếu thay đổi
     final currentTabIndex = _calculateSelectedIndex(context);
+
+    // Cập nhật hướng animation khi tab đổi
     if (currentTabIndex != _lastTabIndex) {
       _isForward = currentTabIndex > _lastTabIndex;
-      // Cập nhật _lastTabIndex sau frame để tránh setState trong build
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) setState(() => _lastTabIndex = currentTabIndex);
+        if (mounted) _lastTabIndex = currentTabIndex;
       });
     }
 
     return BlocConsumer<OrganizationBloc, OrganizationState>(
-      bloc: context.read<OrganizationBloc>(),
       listener: (context, state) {
         if (state.status == OrganizationStatus.error) {
           Helpers.showSnackBar(context, state.error ?? 'Unknown error');
         }
+
         if (state.status == OrganizationStatus.loadUserInfoSuccess) {
-          setState(() {
-            _userInfo = state.user;
-          });
+          setState(() => _userInfo = state.user);
         }
+
         if (state.status == OrganizationStatus.loadOrganizationsSuccess) {
           _organizations = state.organizations;
-          if (widget.organizationId != 'default') {
-            final currentOrg = _organizations.firstWhere(
-              (org) => org.id == widget.organizationId,
-            );
-            setState(() {
-              _organizationInfo = currentOrg;
-            });
 
-            print('Lưu organization mặc định: ${widget.organizationId}');
-            context.read<OrganizationBloc>().add(
-                  ChangeOrganization(
-                    organizationId: widget.organizationId,
-                  ),
-                );
-            SharedPreferencesService().setString(
-              PrefKey.defaultOrganizationId,
-              widget.organizationId,
+          if (_orgId != 'default') {
+            final currentOrg = _organizations.firstWhere(
+              (org) => org.id == _orgId,
+              orElse: () => _organizations.isNotEmpty
+                  ? _organizations.first
+                  : OrganizationModel(),
             );
+
+            if (mounted) {
+              setState(() => _organizationInfo = currentOrg);
+            }
+
+            context.read<OrganizationBloc>().add(
+                  ChangeOrganization(organizationId: _orgId),
+                );
+
+            SharedPreferencesService()
+                .setString(PrefKey.defaultOrganizationId, _orgId);
 
             context.read<CustomerServiceBloc>().add(
                   LoadCustomerService(
-                    organizationId: widget.organizationId,
+                    organizationId:
+                        context.read<OrganizationBloc>().state.organizationId ??
+                            '',
                     pagingRequest: LeadPagingRequest(
-                      searchText: null,
-                      limit: 10,
-                      offset: 0,
-                      fields: null,
-                      status: null,
-                      startDate: null,
-                      endDate: null,
-                      stageIds: null,
-                      sourceIds: null,
-                      utmSources: null,
-                      ratings: null,
-                      teamIds: null,
-                      assignees: null,
-                      tags: null,
-                      isBusiness: null,
-                      isArchive: null,
-                    ),
+                        limit: 10, offset: 0, channels: ["LEAD"]),
                   ),
                 );
           } else {
-            if (mounted) {
+            // Nếu 'default', chọn phần tử đầu tiên (nếu có)
+            if (_organizations.isNotEmpty && mounted) {
+              final currentOrg = _organizations.first;
               setState(() {
-                final currentOrg = _organizations.first;
-                if (currentOrg != null) {
-                  if (mounted) {
-                    setState(() {
-                      _organizationInfo = currentOrg;
-                    });
-                  }
-                  print('Lưu organization mặc định: ${widget.organizationId}');
-                  context.read<OrganizationBloc>().add(ChangeOrganization(
-                        organizationId: _organizationInfo!.id!,
-                      ));
-                  context.read<CustomerServiceBloc>().add(
-                        LoadCustomerService(
-                          organizationId: context
-                                  .read<OrganizationBloc>()
-                                  .state
-                                  .organizationId ??
-                              '',
-                          pagingRequest: LeadPagingRequest(
-                            searchText: null,
-                            limit: 10,
-                            offset: 0,
-                            fields: null,
-                            status: null,
-                            startDate: null,
-                            endDate: null,
-                            stageIds: null,
-                            sourceIds: null,
-                            utmSources: null,
-                            ratings: null,
-                            teamIds: null,
-                            assignees: null,
-                            tags: null,
-                            isBusiness: null,
-                            isArchive: null,
-                          ),
-                        ),
-                      );
-
-                  SharedPreferencesService().setString(
-                    PrefKey.defaultOrganizationId,
-                    _organizationInfo!.id!,
-                  );
-                }
+                _organizationInfo = currentOrg;
+                _orgId = currentOrg.id ?? _orgId;
               });
+
+              context
+                  .read<OrganizationBloc>()
+                  .add(ChangeOrganization(organizationId: _orgId));
+
+              context.read<CustomerServiceBloc>().add(
+                    LoadCustomerService(
+                      organizationId: context
+                              .read<OrganizationBloc>()
+                              .state
+                              .organizationId ??
+                          '',
+                      pagingRequest: LeadPagingRequest(
+                          limit: 10, offset: 0, channels: ["LEAD"]),
+                    ),
+                  );
+
+              SharedPreferencesService()
+                  .setString(PrefKey.defaultOrganizationId, _orgId);
             }
           }
         }
@@ -489,8 +432,6 @@ class _OrganizationPageState extends State<OrganizationPage> {
                     const SizedBox(width: 8),
                   ],
                 ),
-
-          // BODY: AnimatedSwitcher với hướng slide theo tab
           body: AnimatedSwitcher(
             duration: const Duration(milliseconds: 350),
             switchInCurve: Curves.easeInOut,
@@ -509,12 +450,11 @@ class _OrganizationPageState extends State<OrganizationPage> {
                 child: FadeTransition(opacity: fade, child: child),
               );
             },
-            // ✅ Chỉ giữ currentChild, loại previousChildren → không còn 2 cây với GlobalKey trùng
-            layoutBuilder: (currentChild, previousChildren) =>
+            layoutBuilder: (currentChild, _) =>
                 currentChild ?? const SizedBox.shrink(),
             child: KeyedSubtree(
               key: ValueKey<int>(currentTabIndex),
-              child: widget.child, // xem Cách 2
+              child: widget.child,
             ),
           ),
           bottomNavigationBar: isAIChatbotPage
@@ -535,44 +475,33 @@ class CustomDropdown extends StatefulWidget {
   const CustomDropdown({super.key});
 
   @override
-  _CustomDropdownState createState() => _CustomDropdownState();
+  State<CustomDropdown> createState() => _CustomDropdownState();
 }
 
 class _CustomDropdownState extends State<CustomDropdown> {
   bool isOpen = false;
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<FinalDealBloc, FinalDealState>(
       builder: (context, state) {
         return Align(
-          alignment: Alignment.centerLeft, // Cho dropdown mở từ trên xuống
+          alignment: Alignment.centerLeft,
           child: PopupMenuButton<WorkspaceModel>(
             color: Colors.white,
-            onOpened: () {
-              setState(() {
-                isOpen = true;
-              });
-            },
-            onCanceled: () {
-              setState(() {
-                isOpen = false;
-              });
-            },
+            onOpened: () => setState(() => isOpen = true),
+            onCanceled: () => setState(() => isOpen = false),
             onSelected: (WorkspaceModel value) {
-              setState(() {
-                context.read<FinalDealBloc>().add(SelectWorkspace(
-                      workspace: value,
-                      organizationId: context
-                              .read<OrganizationBloc>()
-                              .state
-                              .organizationId ??
-                          '',
-                    ));
-                isOpen = false;
-              });
+              context.read<FinalDealBloc>().add(SelectWorkspace(
+                    workspace: value,
+                    organizationId:
+                        context.read<OrganizationBloc>().state.organizationId ??
+                            '',
+                  ));
+              setState(() => isOpen = false);
             },
-            itemBuilder: (BuildContext context) {
-              return state.workspaces.map((WorkspaceModel choice) {
+            itemBuilder: (context) {
+              return state.workspaces.map((choice) {
                 final isSelected = choice == state.selectedWorkspace;
                 return PopupMenuItem<WorkspaceModel>(
                   value: choice,
@@ -595,24 +524,19 @@ class _CustomDropdownState extends State<CustomDropdown> {
                 );
               }).toList();
             },
-            offset: const Offset(0, 45), // mở lên trên một chút
-
+            offset: const Offset(0, 45),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-              ),
+              decoration: const BoxDecoration(color: Colors.white),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    state.selectedWorkspace?.name ?? '',
-                    style: const TextStyle(fontSize: 16),
-                  ),
+                  Text(state.selectedWorkspace?.name ?? '',
+                      style: const TextStyle(fontSize: 16)),
                   const SizedBox(width: 8),
-                  isOpen
-                      ? const Icon(Icons.keyboard_arrow_up)
-                      : const Icon(Icons.keyboard_arrow_down),
+                  Icon(isOpen
+                      ? Icons.keyboard_arrow_up
+                      : Icons.keyboard_arrow_down),
                 ],
               ),
             ),

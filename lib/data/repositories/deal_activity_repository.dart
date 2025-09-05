@@ -55,6 +55,12 @@ class DealActivityRepository {
     );
   }
 
+  Future<Response> getDetailConversation(
+      String organizationId, String conversationId) async {
+    return await apiService.getDetailConversationService(
+        organizationId, conversationId);
+  }
+
   Future<Response> updateCustomer(
       String organizationId, String id, String fieldName, String value,
       {bool isCustomer = false}) async {

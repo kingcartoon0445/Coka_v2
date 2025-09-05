@@ -1,3 +1,4 @@
+import 'package:bloc/bloc.dart';
 import 'package:source_base/config/helper.dart';
 import 'package:source_base/data/repositories/deal_activity_repository.dart';
 import 'package:source_base/data/repositories/final_deal_repository.dart';

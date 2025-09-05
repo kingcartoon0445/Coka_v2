@@ -19,7 +19,7 @@ class CustomersList extends StatefulWidget {
   final bool isArchive;
   final VoidCallback? onRefresh;
 
-  const   CustomersList({
+  const CustomersList({
     super.key,
     required this.organizationId,
     this.stageGroupId,
@@ -86,15 +86,15 @@ class _CustomersListState extends State<CustomersList> {
 
   void _loadInitialData() {
     final pagingRequest = LeadPagingRequest(
-      limit: _limit,
-      offset: 0,
-      searchText: widget.searchQuery,
-    );
+        limit: _limit,
+        offset: 0,
+        searchText: widget.searchQuery,
+        channels: ["LEAD"]);
 
     context.read<CustomerServiceBloc>().add(
           LoadCustomerService(
             organizationId: widget.organizationId,
-            pagingRequest: null,
+            pagingRequest: pagingRequest,
           ),
         );
   }

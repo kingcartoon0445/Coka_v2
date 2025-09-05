@@ -2,16 +2,20 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:source_base/data/models/customer_service_response.dart';
+import 'package:source_base/presentation/blocs/customer_detail/customer_detail_event.dart';
+import 'package:source_base/presentation/blocs/customer_detail/customer_detail_state.dart';
 import 'package:source_base/presentation/blocs/organization/organization_bloc.dart';
 import 'package:source_base/presentation/screens/chat_detail_page/model/message_model.dart';
+import 'package:source_base/presentation/screens/customer/customer_screen.dart';
 import 'package:source_base/presentation/screens/shared/widgets/avatar_widget.dart';
 import 'package:source_base/presentation/widget/loading_indicator.dart';
 import '../../blocs/chat/chat_aciton.dart';
-import '../../blocs/customer_service/customer_service_action.dart';
+import '../../blocs/customer_detail/customer_detail_bloc.dart';
 import 'widget/assign_to_bottomsheet.dart';
 
 class ChatDetailPage extends StatefulWidget {
@@ -36,10 +40,10 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
     super.initState();
 
     organizationId = context.read<OrganizationBloc>().state.organizationId;
-    context.read<CustomerServiceBloc>().add(LoadFacebookChat(
-          conversationId: widget.idConversation,
-          facebookChat: null,
-        ));
+    // context.read<CustomerDetailBloc>().add(LoadFacebookChat(
+    //       conversationId: widget.idConversation,
+    //       facebookChat: null,
+    //     ));
     context.read<ChatBloc>().add(ToolListenFirebase(
           organizationId: organizationId ?? '',
           conversationId: conversationId ?? '',
@@ -305,37 +309,62 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
                 color: Colors.grey,
               ),
             ),
-            title: BlocSelector<CustomerServiceBloc, CustomerServiceState,
+            title: BlocSelector<CustomerDetailBloc, CustomerDetailState,
                     CustomerServiceModel?>(
-                selector: (state) => state.facebookChat,
+                selector: (state) => state.customerService,
                 builder: (context, conversation) {
-                  return Row(
-                    children: [
-                      AppAvatar(
-                        imageUrl: conversation?.avatar,
-                        fallbackText: conversation?.fullName,
-                        size: 40,
-                        shape: AvatarShape.circle,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              conversation?.fullName ?? '',
-                              style: const TextStyle(fontSize: 16),
-                              overflow: TextOverflow.ellipsis,
+                  return InkWell(
+                    onTap: () {
+                      context.read<CustomerDetailBloc>().add(
+                            LoadCustomerDetail(
+                              
+                              organizationId: context
+                                      .read<OrganizationBloc>()
+                                      .state
+                                      .organizationId ??
+                                  '',
+                              customerId: conversation?.id ?? '',
+                              isCustomer: false,
                             ),
-                            Text(
-                              conversation?.pageName ?? '',
-                              style: const TextStyle(fontSize: 12),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
+                          );
+
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const CustomerDetailScreen(
+                              // customerId: conversation?.id ?? '',
+                              ),
                         ),
-                      ),
-                    ],
+                      );
+                    },
+                    child: Row(
+                      children: [
+                        AppAvatar(
+                          imageUrl: conversation?.avatar,
+                          fallbackText: conversation?.fullName,
+                          size: 40,
+                          shape: AvatarShape.circle,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                conversation?.fullName ?? '',
+                                style: const TextStyle(fontSize: 16),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              Text(
+                                conversation?.pageName ?? '',
+                                style: const TextStyle(fontSize: 12),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   );
                 }),
             // actions: [

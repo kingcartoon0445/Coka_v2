@@ -1,16 +1,19 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:source_base/data/models/customer_service_response.dart';
 import 'package:source_base/data/models/reminder.dart';
 import 'package:source_base/data/models/schedule_response.dart';
-import 'package:source_base/presentation/blocs/organization/organization_bloc.dart';
+import 'package:source_base/presentation/blocs/organization/organization_action_bloc.dart';
 import 'package:source_base/presentation/screens/customers_service/customer_service_detail/widgets/reminder/add_reminder_dialog.dart';
 import 'package:source_base/presentation/screens/customers_service/widgets/web_reminder_item.dart';
 import 'package:source_base/presentation/screens/theme/reminder_theme.dart';
 import 'package:source_base/presentation/widget/dialog_member.dart';
 import 'package:source_base/presentation/widget/reminder_constants.dart';
 
-import '../../../../../blocs/customer_service/customer_service_action.dart';
+import '../../../../../blocs/customer_detail/customer_detail_bloc.dart';
+import '../../../../../blocs/customer_detail/customer_detail_event.dart';
+import '../../../../../blocs/customer_detail/customer_detail_state.dart';
 
 class CustomerReminderCard extends StatefulWidget {
   final CustomerServiceModel? customerData;
@@ -37,11 +40,7 @@ class _CustomerReminderCardState extends State<CustomerReminderCard> {
 
   void _loadReminders() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // ref.read(reminderListProvider.notifier).loadReminders(
-      //   organizationId: widget.organizationId,
-      //   workspaceId: widget.workspaceId,
-      //   contactId: widget.customerId,
-      // );
+      // Placeholder for loading reminders if needed
     });
   }
 
@@ -50,39 +49,38 @@ class _CustomerReminderCardState extends State<CustomerReminderCard> {
       context: context,
       builder: (context) => AddReminderDialog(
         organizationId:
-            context.read<OrganizationBloc>().state.organizationId.toString(),
+            (context.read<OrganizationBloc>().state.organizationId ?? ''),
         workspaceId: '',
         contactId: '',
         contactData: widget.customerData,
         onCreateReminder: (reminderBody) {
-          context.read<CustomerServiceBloc>().add(CreateReminder(
-                organizationId: context
-                    .read<OrganizationBloc>()
-                    .state
-                    .organizationId
-                    .toString(),
-                body: reminderBody!,
-              ));
+          final orgId =
+              context.read<OrganizationBloc>().state.organizationId ?? '';
+          if (reminderBody != null && orgId.isNotEmpty) {
+            context.read<CustomerDetailBloc>().add(CreateReminder(
+                  organizationId: orgId,
+                  body: reminderBody,
+                ));
+          }
         },
         onUpdateReminder: (reminderBody) {
-          context.read<CustomerServiceBloc>().add(UpdateReminder(
-                organizationId: context
-                    .read<OrganizationBloc>()
-                    .state
-                    .organizationId
-                    .toString(),
-                body: reminderBody!,
-              ));
+          final orgId =
+              context.read<OrganizationBloc>().state.organizationId ?? '';
+          if (reminderBody != null && orgId.isNotEmpty) {
+            context.read<CustomerDetailBloc>().add(UpdateReminder(
+                  organizationId: orgId,
+                  body: reminderBody,
+                ));
+          }
         },
       ),
     ).then((_) {
-      // Reload reminders after dialog closes
       _loadReminders();
     });
   }
 
   void _toggleReminderDone(ScheduleModel reminder, bool isDone) {
-    context.read<CustomerServiceBloc>().add(UpdateNoteMark(
+    context.read<CustomerDetailBloc>().add(UpdateNoteMark(
           ScheduleId: reminder.id ?? '',
           isDone: isDone,
           Notes: '',
@@ -97,30 +95,30 @@ class _CustomerReminderCardState extends State<CustomerReminderCard> {
       context: context,
       builder: (context) => AddReminderDialog(
         organizationId:
-            context.read<OrganizationBloc>().state.organizationId ?? '',
+            (context.read<OrganizationBloc>().state.organizationId ?? ''),
         workspaceId: '',
         contactId: '',
         contactData: widget.customerData,
         editingReminder: reminder,
         onCreateReminder: (reminderBody) {
-          context.read<CustomerServiceBloc>().add(CreateReminder(
-                organizationId: context
-                    .read<OrganizationBloc>()
-                    .state
-                    .organizationId
-                    .toString(),
-                body: reminderBody!,
-              ));
+          final orgId =
+              context.read<OrganizationBloc>().state.organizationId ?? '';
+          if (reminderBody != null && orgId.isNotEmpty) {
+            context.read<CustomerDetailBloc>().add(CreateReminder(
+                  organizationId: orgId,
+                  body: reminderBody,
+                ));
+          }
         },
         onUpdateReminder: (reminderBody) {
-          context.read<CustomerServiceBloc>().add(UpdateReminder(
-                organizationId: context
-                    .read<OrganizationBloc>()
-                    .state
-                    .organizationId
-                    .toString(),
-                body: reminderBody!,
-              ));
+          final orgId =
+              context.read<OrganizationBloc>().state.organizationId ?? '';
+          if (reminderBody != null && orgId.isNotEmpty) {
+            context.read<CustomerDetailBloc>().add(UpdateReminder(
+                  organizationId: orgId,
+                  body: reminderBody,
+                ));
+          }
         },
       ),
     ).then((_) {
@@ -142,8 +140,7 @@ class _CustomerReminderCardState extends State<CustomerReminderCard> {
           TextButton(
             onPressed: () async {
               try {
-                // await ref.read(reminderListProvider.notifier).deleteReminder(reminder.id);
-                context.read<CustomerServiceBloc>().add(DeleteReminder(
+                context.read<CustomerDetailBloc>().add(DeleteReminder(
                       organizationId: context
                               .read<OrganizationBloc>()
                               .state
@@ -173,38 +170,34 @@ class _CustomerReminderCardState extends State<CustomerReminderCard> {
 
   @override
   Widget build(BuildContext context) {
-    // List<Reminder> remindersAsync = [];
-    // final pendingReminders = ref.watch(pendingRemindersProvider);
-    // final todayReminders = ref.watch(todayRemindersProvider);
-    // List<Reminder> overdueReminders = [];
-    // Lấy tất cả reminders và sắp xếp: pending trước, completed sau
-    // List<Reminder>  state.scheduleDetails = [];
-
-    return BlocConsumer<CustomerServiceBloc, CustomerServiceState>(
-        bloc: context.read<CustomerServiceBloc>(),
+    return BlocConsumer<CustomerDetailBloc, CustomerDetailState>(
+        bloc: context.read<CustomerDetailBloc>(),
+        listenWhen: (prev, next) =>
+            prev.status != next.status &&
+            (next.status == CustomerDetailStatus.successDeleteReminder),
         listener: (context, state) {
-          if (state.status == CustomerServiceStatus.successDeleteReminder) {
+          if (state.status == CustomerDetailStatus.successDeleteReminder) {
             ShowdialogNouti(context,
                 type: NotifyType.success,
                 title: 'Thành công',
                 message: 'Đã xóa nhắc hẹn');
           }
         },
+        buildWhen: (prev, next) =>
+            prev.scheduleDetails != next.scheduleDetails ||
+            prev.status != next.status,
         builder: (context, state) {
-          if (state.status == CustomerServiceStatus.error) {
+          if (state.status == CustomerDetailStatus.error) {
             return _buildErrorState();
-          } else if (state.status == CustomerServiceStatus.loading) {
+          } else if (state.status == CustomerDetailStatus.loading) {
             return _buildLoadingState();
           }
 
-          // final scheduleDetails = state.scheduleDetails;
-          final todayReminders = state.scheduleDetails
-              .where((reminder) => _isToday(reminder))
-              .toList();
-          final overdueReminders = state.scheduleDetails
-              .where((reminder) => _isOverdue(reminder))
-              .toList();
-          // final  state.scheduleDetails = scheduleDetails;
+          final schedule = state.scheduleDetails;
+          final todayReminders = schedule.where(_isToday).toList();
+          final overdueReminders = schedule.where(_isOverdue).toList();
+          final visibleReminders =
+              _showAllReminders ? schedule : schedule.take(2);
 
           return Theme(
             data: ReminderTheme.lightTheme,
@@ -215,7 +208,6 @@ class _CustomerReminderCardState extends State<CustomerReminderCard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Header
                     Row(
                       children: [
                         Container(
@@ -240,8 +232,6 @@ class _CustomerReminderCardState extends State<CustomerReminderCard> {
                           ),
                         ),
                         const SizedBox(width: 8),
-
-                        // Di chuyển badges về phía trái, sau title
                         Expanded(
                           child: SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
@@ -264,7 +254,7 @@ class _CustomerReminderCardState extends State<CustomerReminderCard> {
                                     color: ReminderColors.warning,
                                     icon: Icons.today,
                                   ),
-                                if (state.scheduleDetails.isNotEmpty) ...[
+                                if (schedule.isNotEmpty) ...[
                                   const SizedBox(width: 6),
                                   Container(
                                     padding: const EdgeInsets.symmetric(
@@ -275,7 +265,7 @@ class _CustomerReminderCardState extends State<CustomerReminderCard> {
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Text(
-                                      '${state.scheduleDetails.length}',
+                                      '${schedule.length}',
                                       style:
                                           ReminderTypography.caption.copyWith(
                                         color: ReminderColors.primary,
@@ -290,53 +280,46 @@ class _CustomerReminderCardState extends State<CustomerReminderCard> {
                             ),
                           ),
                         ),
-
                         GestureDetector(
-                          onTap: () => _showAddReminderDialog(),
+                          onTap: _showAddReminderDialog,
                           child: Container(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 4),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(
+                              children: const [
+                                Icon(
                                   Icons.add,
                                   size: 14,
                                   color: ReminderColors.primary,
                                 ),
-                                const SizedBox(width: 2),
-                                Text(
-                                  "add".tr(),
-                                  style: ReminderTypography.button.copyWith(
-                                    color: ReminderColors.primary,
-                                    fontSize: 12,
-                                  ),
-                                ),
+                                SizedBox(width: 2),
                               ],
                             ),
+                          ),
+                        ),
+                        Text(
+                          "add".tr(),
+                          style: ReminderTypography.button.copyWith(
+                            color: ReminderColors.primary,
+                            fontSize: 12,
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 8),
-
-                    // Content
                     Column(
                       children: [
-                        // Tất cả reminders (đã sắp xếp pending trước, completed sau)
                         const SizedBox(height: 8),
-                        ...(_showAllReminders
-                                ? state.scheduleDetails
-                                : state.scheduleDetails.take(2))
-                            .map((reminder) => WebReminderItem(
-                                  reminder: reminder,
-                                  onTap: () {},
-                                  onToggleDone: (isDone) =>
-                                      _toggleReminderDone(reminder, isDone),
-                                  onEdit: () => _editReminder(reminder),
-                                  onDelete: () => _deleteReminder(reminder),
-                                )),
-                        if (state.scheduleDetails.length > 2) ...[
+                        ...visibleReminders.map((reminder) => WebReminderItem(
+                              reminder: reminder,
+                              onTap: () {},
+                              onToggleDone: (isDone) =>
+                                  _toggleReminderDone(reminder, isDone),
+                              onEdit: () => _editReminder(reminder),
+                              onDelete: () => _deleteReminder(reminder),
+                            )),
+                        if (schedule.length > 2) ...[
                           const SizedBox(height: 6),
                           Center(
                             child: GestureDetector(
@@ -351,7 +334,7 @@ class _CustomerReminderCardState extends State<CustomerReminderCard> {
                                 child: Text(
                                   _showAllReminders
                                       ? "collapse".tr()
-                                      : "${"view_more".tr()} ${state.scheduleDetails.length - 2} ${"activity_label".tr()}",
+                                      : "${"view_more".tr()} ${schedule.length - 2} ${"activity_label".tr()}",
                                   style: ReminderTypography.body2.copyWith(
                                     color: ReminderColors.primary,
                                     fontWeight: FontWeight.w500,
@@ -362,107 +345,9 @@ class _CustomerReminderCardState extends State<CustomerReminderCard> {
                             ),
                           ),
                         ],
-                        if (state.scheduleDetails.isEmpty) _buildEmptyState(),
+                        if (schedule.isEmpty) _buildEmptyState(),
                       ],
                     ),
-                    // Column(
-                    //   children: [
-                    //     // Tất cả reminders (đã sắp xếp pending trước, completed sau)
-                    //     const SizedBox(height: 8),
-                    //     ...(_showAllReminders
-                    //             ?  state.scheduleDetails
-                    //             :  state.scheduleDetails.take(2))
-                    //         .map((reminder) => WebReminderItem(
-                    //               reminder: reminder,
-                    //               onTap: () {},
-                    //               onToggleDone: (isDone) =>
-                    //                   _toggleReminderDone(reminder, isDone),
-                    //               onEdit: () => _editReminder(reminder),
-                    //               onDelete: () => _deleteReminder(reminder),
-                    //             )),
-                    //     if ( state.scheduleDetails.length > 2) ...[
-                    //       const SizedBox(height: 6),
-                    //       Center(
-                    //         child: GestureDetector(
-                    //           onTap: () {
-                    //             setState(() {
-                    //               _showAllReminders = !_showAllReminders;
-                    //             });
-                    //           },
-                    //           child: Container(
-                    //             padding: const EdgeInsets.symmetric(
-                    //                 horizontal: 8, vertical: 4),
-                    //             child: Text(
-                    //               _showAllReminders
-                    //                   ? 'Thu gọn'
-                    //                   : 'Xem thêm ${ state.scheduleDetails.length - 2} hoạt động',
-                    //               style: ReminderTypography.body2.copyWith(
-                    //                 color: ReminderColors.primary,
-                    //                 fontWeight: FontWeight.w500,
-                    //                 fontSize: 12,
-                    //               ),
-                    //             ),
-                    //           ),
-                    //         ),
-                    //       ),
-                    //     ],
-
-                    //   ],
-                    // ),
-
-                    // remindersAsync.when(
-                    //   data: (_) {
-                    //     if ( state.scheduleDetails.isEmpty) {
-                    //       return _buildEmptyState();
-                    //     }
-
-                    //     return Column(
-                    //       children: [
-                    //         // Tất cả reminders (đã sắp xếp pending trước, completed sau)
-                    //         const SizedBox(height: 8),
-                    //         ...(_showAllReminders
-                    //                 ?  state.scheduleDetails
-                    //                 :  state.scheduleDetails.take(2))
-                    //             .map((reminder) => WebReminderItem(
-                    //                   reminder: reminder,
-                    //                   onTap: () {},
-                    //                   onToggleDone: (isDone) =>
-                    //                       _toggleReminderDone(reminder, isDone),
-                    //                   onEdit: () => _editReminder(reminder),
-                    //                   onDelete: () => _deleteReminder(reminder),
-                    //                 )),
-                    //         if ( state.scheduleDetails.length > 2) ...[
-                    //           const SizedBox(height: 6),
-                    //           Center(
-                    //             child: GestureDetector(
-                    //               onTap: () {
-                    //                 setState(() {
-                    //                   _showAllReminders = !_showAllReminders;
-                    //                 });
-                    //               },
-                    //               child: Container(
-                    //                 padding: const EdgeInsets.symmetric(
-                    //                     horizontal: 8, vertical: 4),
-                    //                 child: Text(
-                    //                   _showAllReminders
-                    //                       ? 'Thu gọn'
-                    //                       : 'Xem thêm ${ state.scheduleDetails.length - 2} hoạt động',
-                    //                   style: ReminderTypography.body2.copyWith(
-                    //                     color: ReminderColors.primary,
-                    //                     fontWeight: FontWeight.w500,
-                    //                     fontSize: 12,
-                    //                   ),
-                    //                 ),
-                    //               ),
-                    //             ),
-                    //           ),
-                    //         ],
-                    //       ],
-                    //     );
-                    //   },
-                    //   loading: () => _buildLoadingState(),
-                    //   error: (error, _) => _buildErrorState(),
-                    // ),
                   ],
                 ),
               ),

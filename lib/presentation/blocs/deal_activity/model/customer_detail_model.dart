@@ -1,15 +1,15 @@
 import 'package:source_base/data/models/customer_service_response.dart';
 
-class CustomerDetailResponse {
+class LeadDetailResponse {
   int? code;
-  CustomerDetailModel? content;
+  LeadDetailModel? content;
 
-  CustomerDetailResponse({this.code, this.content});
+  LeadDetailResponse({this.code, this.content});
 
-  CustomerDetailResponse.fromJson(Map<String, dynamic> json) {
+  LeadDetailResponse.fromJson(Map<String, dynamic> json) {
     code = json['code'];
     content = json['content'] != null
-        ? new CustomerDetailModel.fromJson(json['content'])
+        ? new LeadDetailModel.fromJson(json['content'])
         : null;
   }
 
@@ -23,7 +23,7 @@ class CustomerDetailResponse {
   }
 }
 
-class CustomerDetailModel {
+class LeadDetailModel {
   String? id;
   String? fullName;
   String? email;
@@ -48,7 +48,7 @@ class CustomerDetailModel {
   String? createdDate;
   String? lastModifiedDate;
 
-  CustomerDetailModel(
+  LeadDetailModel(
       {this.id,
       this.fullName,
       this.email,
@@ -73,7 +73,7 @@ class CustomerDetailModel {
       this.createdDate,
       this.lastModifiedDate});
 
-  CustomerDetailModel.fromJson(Map<String, dynamic> json) {
+  LeadDetailModel.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     fullName = json['fullName'];
     email = json['email'];
@@ -97,7 +97,15 @@ class CustomerDetailModel {
     }
     print(tags);
     // deal = json['deal'] != null ? new Deal.fromJson(json['deal']) : null;
-    // source = json['source'];
+    if (json['source'] != null) {
+      if (json['source'] is List) {
+        source = (json['source'] as List).map((e) => e.toString()).toList();
+      } else {
+        source = [];
+      }
+    } else {
+      source = [];
+    }
     // utmSource = json['utmSource'];
     if (json['device'] != null) {
       device = <String>[];

@@ -16,6 +16,7 @@ import 'package:source_base/data/repositories/user_repository.dart';
 import 'package:source_base/presentation/blocs/auth/auth_bloc.dart';
 import 'package:source_base/presentation/blocs/customer_service/connection_channel/connection_channel_bloc.dart';
 import 'package:source_base/presentation/blocs/customer_service/customer_service_bloc.dart';
+import 'package:source_base/presentation/blocs/customer_detail/customer_detail_bloc.dart';
 import 'package:source_base/presentation/blocs/deal_activity/deal_activity_bloc.dart';
 import 'package:source_base/presentation/blocs/message/message_bloc.dart';
 import 'package:source_base/presentation/blocs/organization/organization_bloc.dart';
@@ -83,6 +84,12 @@ Future<void> setupServiceLocator() async {
         organizationRepository: getIt<OrganizationRepository>(),
         calendarRepository: getIt<CalendarRepository>(),
         dealActivityRepository: getIt<DealActivityRepository>(),
+      ));
+  getIt.registerFactory<CustomerDetailBloc>(() => CustomerDetailBloc(
+        organizationRepository: getIt<OrganizationRepository>(),
+        calendarRepository: getIt<CalendarRepository>(),
+        dealActivityRepository: getIt<DealActivityRepository>(),
+        switchFinalDealRepository: getIt<SwitchFinalDealRepository>(),
       ));
   getIt.registerFactory<FilterItemBloc>(() => FilterItemBloc(
       organizationRepository: getIt<OrganizationRepository>(),

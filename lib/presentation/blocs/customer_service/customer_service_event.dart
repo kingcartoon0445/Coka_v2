@@ -298,19 +298,6 @@ class DisableFirebaseListenerRequested extends CustomerServiceEvent {
   List<Object?> get props => [organizationId];
 }
 
-class LoadFacebookChat extends CustomerServiceEvent {
-  final String conversationId;
-  final CustomerServiceModel? facebookChat;
-
-  const LoadFacebookChat({
-    required this.conversationId,
-    this.facebookChat,
-  });
-
-  @override
-  List<Object?> get props => [facebookChat];
-}
-
 class DeleteCustomer extends CustomerServiceEvent {
   final String customerId;
   final String organizationId;
@@ -348,4 +335,22 @@ class ShowError extends CustomerServiceEvent {
 
   @override
   List<Object?> get props => [error, status];
+}
+
+class LoadPaginges extends CustomerServiceEvent {
+  final String organizationId;
+
+  const LoadPaginges({
+    required this.organizationId,
+  });
+
+  @override
+  List<Object?> get props => [organizationId];
+}
+
+class DisposeCustomerService extends CustomerServiceEvent {
+  const DisposeCustomerService();
+
+  @override
+  List<Object?> get props => [];
 }

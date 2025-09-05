@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:source_base/config/app_color.dart';
 import 'package:source_base/config/helper.dart';
@@ -197,8 +198,7 @@ class _CustomerSection extends StatefulWidget {
 class _CustomerSectionState extends State<_CustomerSection> {
   @override
   Widget build(BuildContext context) {
-    return BlocSelector<DealActivityBloc, DealActivityState,
-        CustomerDetailModel?>(
+    return BlocSelector<DealActivityBloc, DealActivityState, LeadDetailModel?>(
       selector: (s) => s.customerDataModel,
       builder: (context, customer) {
         final orgId = context.select<DealActivityBloc, String?>(

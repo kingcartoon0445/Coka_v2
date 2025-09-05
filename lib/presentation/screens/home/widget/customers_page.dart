@@ -3,6 +3,7 @@ import 'dart:developer' as developer;
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:flutter_svg/svg.dart';
@@ -67,7 +68,7 @@ class _CustomersPageState extends State<CustomersPage>
   Timer? _fabLabelTimer;
 
   static final Map<_TabKey, ({String name, Color badgeColor})> _tabConfig = {
-    _TabKey.all: (name: 'all'.tr(), badgeColor: const Color(0xFF5C33F0)),
+    _TabKey.all: (name: 'Cơ hội'.tr(), badgeColor: const Color(0xFF5C33F0)),
     _TabKey.fb: (
       name: 'facebook_messenger'.tr(),
       badgeColor: const Color(0xFF92F7A8)
@@ -126,6 +127,14 @@ class _CustomersPageState extends State<CustomersPage>
 
     switch (_indexToKey(i)) {
       case _TabKey.all:
+        context.read<CustomerServiceBloc>().add(
+              ToggleFirebaseListenerRequested(
+                organizationId: widget.organizationId,
+                isEnabled: true,
+                platform: PlatformSocial.facebook,
+                userId: context.read<OrganizationBloc>().state.user?.id ?? '',
+              ),
+            );
         _loadCustomerService();
         break;
       case _TabKey.fb:
@@ -485,6 +494,7 @@ class _CustomersPageState extends State<CustomersPage>
             organizationId: orgId,
             pagingRequest: LeadPagingRequest(
               limit: 20,
+              channels: ["LEAD"],
               offset: 0,
               searchText: _searchQuery,
               startDate: _currentFilter?.dateRange?.start,

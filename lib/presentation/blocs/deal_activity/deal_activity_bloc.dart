@@ -110,8 +110,8 @@ class DealActivityBloc extends Bloc<DealActivityEvent, DealActivityState> {
         .getCustomerDetail(event.organizationId, id, isCustomer: isCustomer);
     bool isSuccessCustomer = Helpers.isResponseSuccess(customerResponse.data);
     if (isSuccessCustomer) {
-      CustomerDetailResponse customerDetailResponse =
-          CustomerDetailResponse.fromJson(customerResponse.data);
+      LeadDetailResponse customerDetailResponse =
+          LeadDetailResponse.fromJson(customerResponse.data);
       emit(state.copyWith(customerDataModel: customerDetailResponse.content));
     }
   }

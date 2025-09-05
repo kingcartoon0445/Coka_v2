@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:source_base/config/app_color.dart';
 import 'package:source_base/config/helper.dart';
 import 'package:source_base/presentation/blocs/customer_service/connection_channel/connection_channel_action.dart';
@@ -169,10 +170,10 @@ class _TiktokFormConfigDialogState extends State<TiktokFormConfigDialog> {
             final account = _accountOptions?.firstWhere((e) => e.name == val);
             context.read<ConnectionChannelBloc>().add(GetTiktokItemListEvent(
                   organizationId:
-                      context.read<OrganizationBloc>().state.organizationId ??  
+                      context.read<OrganizationBloc>().state.organizationId ??
                           '',
                   subscribedId: account?.id ?? '',
-                  isConnect: 'false',
+                  isConnect: false,
                 ));
           },
         ),

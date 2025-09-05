@@ -6,74 +6,119 @@ class MessageRepository {
   final DioClient _dioClient;
 
   MessageRepository(this._dioClient);
-  Future<Map<String, dynamic>> connectFacebook(
-      String organizationId, dynamic data) async {
-    final response = await _dioClient.post(
-      ApiEndpoints.fbConnect,
-      data: data,
-      options: Options(headers: {'organizationid': organizationId}),
-    );
 
-    return response.data;
+  // ------------------------------
+  // Helpers
+  // ------------------------------
+
+  Options _org(String organizationId) =>
+      Options(headers: {'organizationId': organizationId});
+
+  Response<Map<String, dynamic>> _error(String path, Object e,
+      {int status = 500, String code = 'unknown_error'}) {
+    return Response<Map<String, dynamic>>(
+      data: {'success': false, 'error': code, 'message': e.toString()},
+      statusCode: status,
+      statusMessage: code,
+      requestOptions: RequestOptions(path: path),
+    );
   }
 
-  Future<Map<String, dynamic>> getConversationList(
-    String organizationId, {
-    int page = 0,
-    String? provider,
-  }) async {
+  Future<Response> _safe(String path, Future<Response> Function() call) async {
     try {
-      final response = await _dioClient.get(
-        '/api/organizations/$organizationId/conversations',
-        queryParameters: {
-          'page': page,
-          'limit': 20,
-          if (provider != null) 'provider': provider,
-        },
-      );
-      return response.data;
+      return await call();
     } catch (e) {
-      throw Exception('Failed to load conversations: $e');
+      return _error(path, e);
     }
   }
 
+  // ------------------------------
+  // Facebook / Omni
+  // ------------------------------
+
+  /// Kết nối Facebook Lead (v2)
+  Future<Map<String, dynamic>> connectFacebook(
+      String organizationId, dynamic data) async {
+    final path = ApiEndpoints.fbConnectLead();
+    final res = await _safe(
+      path,
+      () => _dioClient.post(path, data: data, options: _org(organizationId)),
+    );
+    return (res.data as Map<String, dynamic>);
+  }
+
+  /// Danh sách hội thoại omni
+  /// NOTE: API mới là `/api/v1/omni/conversation/getlistpaging`.
+  /// Giữ tham số quen dùng (page, limit, provider) → map vào query.
+  Future<Map<String, dynamic>> getConversationList(
+    String organizationId, {
+    int page = 0,
+    int limit = 20,
+    String? provider,
+  }) async {
+    final path = ApiEndpoints.conversationList();
+    final res = await _safe(
+      path,
+      () => _dioClient.get(
+        path,
+        options: _org(organizationId),
+        queryParameters: {
+          'page': page,
+          'limit': limit,
+          if (provider != null) 'provider': provider,
+        },
+      ),
+    );
+    if (res.statusCode != null && res.statusCode! >= 400) {
+      throw Exception('Failed to load conversations: ${res.statusMessage}');
+    }
+    return (res.data as Map<String, dynamic>);
+  }
+
+  /// Đánh dấu đã đọc hội thoại
   Future<void> updateStatusReadRepos(
     String organizationId, {
     required String conversationId,
   }) async {
-    try {
-      await _dioClient.put(
-        '/api/organizations/$organizationId/conversations/$conversationId/read',
-      );
-    } catch (e) {
-      throw Exception('Failed to update read status: $e');
+    final path = ApiEndpoints.updateStatusRead(conversationId);
+    final res = await _safe(
+      path,
+      () => _dioClient.patch(path, options: _org(organizationId)),
+    );
+    if (res.statusCode != null && res.statusCode! >= 400) {
+      throw Exception('Failed to update read status: ${res.statusMessage}');
     }
   }
 
+  /// Gán hội thoại cho user
+  /// API gợi ý: dùng omni/conversation, convention endpoint `/{id}/assign`
+  /// (Nếu BE yêu cầu body khác, cập nhật tại đây.)
   Future<void> assignConversation(
     String organizationId,
     String conversationId,
     String userId,
   ) async {
-    try {
-      await _dioClient.put(
-        '/api/organizations/$organizationId/conversations/$conversationId/assign',
-        data: {
-          'userId': userId,
-        },
-      );
-    } catch (e) {
-      throw Exception('Failed to assign conversation: $e');
+    final path = '${ApiEndpoints.assignConversation()}/$conversationId/assign';
+    final res = await _safe(
+      path,
+      () => _dioClient.put(
+        path,
+        options: _org(organizationId),
+        data: {'userId': userId},
+      ),
+    );
+    if (res.statusCode != null && res.statusCode! >= 400) {
+      throw Exception('Failed to assign conversation: ${res.statusMessage}');
     }
   }
 
+  /// Lấy OData tổ chức (paging)
   Future<Map<String, dynamic>> getOData() async {
-    try {
-      final response =
-          await _dioClient.get('/api/v1/organization/getlistpaging');
-      return response.data;
-    } catch (e) {
-      throw Exception('Failed to get organization data: $e');
+    final path = ApiEndpoints.organizationPaging();
+    final res = await _safe(path, () => _dioClient.get(path));
+    if (res.statusCode != null && res.statusCode! >= 400) {
+      throw Exception('Failed to get organization data: ${res.statusMessage}');
     }
+    return (res.data as Map<String, dynamic>);
   }
 }

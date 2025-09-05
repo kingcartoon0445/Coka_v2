@@ -1,4 +1,5 @@
 import 'package:source_base/data/datasources/remote/param_model/lead_paging_request_model.dart';
+import 'package:source_base/data/models/paging_response.dart';
 import 'package:source_base/data/models/service_detail_response.dart';
 import 'package:source_base/data/repositories/deal_activity_repository.dart';
 import 'package:source_base/presentation/blocs/deal_activity/model/customer_detail_model.dart';
@@ -52,11 +53,14 @@ class CustomerServiceBloc
     on<ToggleFirebaseListenerRequested>(_onToggleFirebaseListenerRequested,
         transformer: bc.restartable());
     on<DisableFirebaseListenerRequested>(_onDisableFirebaseListenerRequested);
-    on<LoadFacebookChat>(_onLoadFacebookChat, transformer: bc.droppable());
+    // on<LoadFacebookChat>(_onLoadFacebookChat, transformer: bc.droppable());
     on<DeleteCustomer>(_onDeleteCustomer, transformer: bc.sequential());
     on<DeleteReminder>(_onDeleteReminder, transformer: bc.sequential());
     on<LoadCustomerDetail>(_onLoadCustomerDetail, transformer: bc.sequential());
+    on<LoadPaginges>(_onLoadPaginges, transformer: bc.sequential());
     on<ShowError>(_onShowError);
+    on<DisposeCustomerService>(_onDisposeCustomerService,
+        transformer: bc.sequential());
   }
 
   // -------------------- Helpers --------------------
@@ -73,36 +77,36 @@ class CustomerServiceBloc
   }
 
   // -------------------- Event Handlers --------------------
-  Future<void> _onLoadFacebookChat(
-    LoadFacebookChat event,
-    Emitter<CustomerServiceState> emit,
-  ) async {
-    if (event.facebookChat != null) {
-      emit(state.copyWith(facebookChat: event.facebookChat));
-      return;
-    }
+  // Future<void> _onLoadFacebookChat(
+  //   LoadFacebookChat event,
+  //   Emitter<CustomerServiceState> emit,
+  // ) async {
+  //   if (event.facebookChat != null) {
+  //     emit(state.copyWith(facebookChat: event.facebookChat));
+  //     return;
+  //   }
 
-    final response = await organizationRepository.getCustomerService(
-        state.organizationId ?? '',
-        LeadPagingRequest(
-          limit: 40,
-          offset: 0,
-        ));
+  //   final response = await organizationRepository.getCustomerService(
+  //       state.organizationId ?? '',
+  //       LeadPagingRequest(
+  //         limit: 40,
+  //         offset: 0,
+  //       ));
 
-    if (_ok(response.data)) {
-      final CustomerServiceResponse parsed =
-          CustomerServiceResponse.fromJson(response.data);
-      final CustomerServiceModel? facebookChat = parsed.content?.firstWhere(
-        (element) => element.id == event.conversationId,
-        orElse: () => CustomerServiceModel(),
-      );
-      emit(state.copyWith(facebookChat: null, isDelete: true));
+  //   if (_ok(response.data)) {
+  //     final CustomerServiceResponse parsed =
+  //         CustomerServiceResponse.fromJson(response.data);
+  //     final CustomerServiceModel? facebookChat = parsed.content?.firstWhere(
+  //       (element) => element.id == event.conversationId,
+  //       orElse: () => CustomerServiceModel(),
+  //     );
+  //     emit(state.copyWith(facebookChat: null, isDelete: true));
 
-      emit(state.copyWith(facebookChat: facebookChat));
-    }
+  //     emit(state.copyWith(facebookChat: facebookChat));
+  //   }
 
-    // emit(state.copyWith(facebookChat: event.facebookChat));
-  }
+  //   // emit(state.copyWith(facebookChat: event.facebookChat));
+  // }
 
   Future<void> _onLoadCustomerService(
     LoadCustomerService event,
@@ -437,6 +441,13 @@ class CustomerServiceBloc
     }
   }
 
+  Future<void> _onDisposeCustomerService(
+    DisposeCustomerService event,
+    Emitter<CustomerServiceState> emit,
+  ) async {
+    emit(state.copyWith(status: CustomerServiceStatus.initial, isDelete: true));
+  }
+
   Future<void> _onShowError(
     ShowError event,
     Emitter<CustomerServiceState> emit,
@@ -743,14 +754,57 @@ class CustomerServiceBloc
     );
 
     if (_ok(response.data)) {
-      final CustomerDetailResponse customer =
-          CustomerDetailResponse.fromJson(response.data);
-      emit(state.copyWith(
-          customerDetail: customer.content!,
-          status: CustomerServiceStatus.successGetCustomerDetail));
+      final LeadDetailResponse customer =
+          LeadDetailResponse.fromJson(response.data);
+      if (customer.content != null) {
+        emit(state.copyWith(
+            customerDetail: customer.content!,
+            status: CustomerServiceStatus.successGetCustomerDetail));
+
+        add(LoadPaginges(organizationId: event.organizationId));
+      } else {
+        emit(state.copyWith(
+            isDelete: true,
+            status: CustomerServiceStatus.successGetCustomerDetail,
+            customerDetail: null));
+      }
     } else {
       emit(
           state.copyWith(status: CustomerServiceStatus.errorGetCustomerDetail));
+    }
+  }
+
+  Future<void> _onLoadPaginges(
+    LoadPaginges event,
+    Emitter<CustomerServiceState> emit,
+  ) async {
+    // Get list paging
+    try {
+      final response = await organizationRepository.getFilterItem(
+        event.organizationId,
+      );
+      final bool isSuccess = Helpers.isResponseSuccess(response.data);
+      if (isSuccess) {
+        final PagingResponse responsePaging =
+            PagingResponse.fromJson(response.data);
+        List<PagingModel> initLabels = [];
+        for (final PagingModel item in responsePaging.content ?? []) {
+          // print(item.name);
+          for (final itemCF in state.customerDetail?.tags ?? []) {
+            if (item.name == itemCF) {
+              initLabels.add(item);
+            }
+          }
+        }
+
+        emit(state.copyWith(
+            paginges: responsePaging.content,
+            initLabels: initLabels,
+            status: CustomerServiceStatus.successLoadPaginges));
+      }
+    } catch (e) {
+      // emit(state.copyWith(
+      //     status: CustomerServiceStatus.error, error: e.toString()));
     }
   }
 

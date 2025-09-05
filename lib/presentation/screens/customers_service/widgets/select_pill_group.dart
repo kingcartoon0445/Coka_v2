@@ -1,16 +1,15 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:source_base/config/app_color.dart';
 import 'package:source_base/presentation/blocs/final_deal/model/business_process_response.dart';
 import 'package:source_base/presentation/blocs/organization/organization_bloc.dart';
 import 'package:source_base/presentation/blocs/switch_final_deal/models/business_process_template_response.dart';
-import 'package:source_base/presentation/blocs/switch_final_deal/switch_final_deal_state.dart';
+import 'package:source_base/presentation/blocs/switch_final_deal/switch_final_deal_bloc.dart';
+import 'package:source_base/presentation/blocs/switch_final_deal/switch_final_deal_event.dart';
 import 'package:source_base/presentation/screens/shared/widgets/chip_input.dart';
 
-import '../../../blocs/final_deal/final_deal_action.dart'
-    show BlocBuilder, ReadContext, BlocSelector;
 import '../../../blocs/switch_final_deal/switch_final_deal_action.dart';
-import '../../../blocs/switch_final_deal/switch_final_deal_bloc.dart';
 
 /// -------------------------------------------
 /// Generic SelectPillGroup

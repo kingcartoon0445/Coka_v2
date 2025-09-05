@@ -1,10 +1,13 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:source_base/config/app_color.dart';
 import 'package:source_base/config/routes.dart';
 import 'package:source_base/data/models/customer_service_response.dart';
 import 'package:source_base/presentation/blocs/chat/chat_aciton.dart';
+import 'package:source_base/presentation/blocs/customer_detail/customer_detail_bloc.dart';
+import 'package:source_base/presentation/blocs/customer_detail/customer_detail_event.dart';
 import 'package:source_base/presentation/blocs/customer_service/customer_service_action.dart';
 import 'package:source_base/presentation/screens/shared/widgets/avatar_widget.dart';
 import 'package:source_base/presentation/screens/shared/widgets/context_menu.dart';
@@ -277,18 +280,24 @@ class CustomerListItem extends StatelessWidget {
     //       ChangeStatusRead(organizationId: organizationId, conversationId: id));
     // }
     // context.read<ChatBloc>().add(LoadFacebookChat(facebookChat: facebookChat));
-    context.read<CustomerServiceBloc>().add(LoadFacebookChat(
+    context.read<CustomerDetailBloc>().add(
+          LoadCustomerDetailValue(
+              organizationId: organizationId, customerService: customer),
+        );
+    context.read<CustomerDetailBloc>().add(LoadFacebookChat(
           conversationId: customer.id ?? '',
           facebookChat: null,
+          organizationId: organizationId,
         ));
     context.read<ChatBloc>().add(ToolListenFirebase(
           organizationId: organizationId ?? '',
           conversationId: customer.id ?? '',
         ));
     context.push(AppPaths.chatDetail(customer.id ?? '')).then((v) {
-      context.read<CustomerServiceBloc>().add(LoadFacebookChat(
+      context.read<CustomerDetailBloc>().add(LoadFacebookChat(
             conversationId: customer.id ?? '',
             facebookChat: null,
+            organizationId: organizationId,
           ));
       // ignore: use_build_context_synchronously
       context.read<ChatBloc>().add(DisableFirebaseListener());
@@ -373,13 +382,24 @@ class CustomerListItem extends StatelessWidget {
                   _handleTap(context);
                   return;
                 }
-                context.read<CustomerServiceBloc>().add(LoadJourneyPaging(
+                context.read<CustomerDetailBloc>().add(LoadCustomerDetailValue(
                       organizationId: organizationId,
                       customerService: customer,
+                      isChat: customer.channel == 'FACEBOOK' ||
+                          customer.channel == 'ZALO',
                     ));
-                context.push(
+                context
+                    .push(
                   AppPaths.customerService,
-                );
+                )
+                    .then((value) {
+                  context
+                      .read<CustomerDetailBloc>()
+                      .add(LoadCustomerDetailValue(
+                        organizationId: organizationId,
+                        customerService: customer,
+                      ));
+                });
                 //đây
               },
               onLongPress: () {
@@ -409,6 +429,7 @@ class CustomerListItem extends StatelessWidget {
                             size: 48,
                             shape: AvatarShape.circle,
                             // imageUrl: customer.ava,
+                            imageUrl: customer.avatar ?? '',
                             fallbackText: customer.fullName,
                           ),
                         ),

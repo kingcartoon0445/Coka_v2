@@ -4,6 +4,7 @@ class LeadPagingRequest {
   final String? searchText;
   final int limit;
   final List<String>? fields;
+  final List<String>? channels;
   final int offset;
   final int? status;
   final DateTime? startDate;
@@ -23,6 +24,7 @@ class LeadPagingRequest {
     this.searchText,
     required this.limit,
     this.fields,
+    this.channels,
     required this.offset,
     this.status,
     this.startDate,
@@ -44,6 +46,8 @@ class LeadPagingRequest {
       searchText: json['searchText'] as String?,
       limit: json['limit'] as int,
       fields: json['fields'] != null ? List<String>.from(json['fields']) : null,
+      channels:
+          json['channels'] != null ? List<String>.from(json['channels']) : null,
       offset: json['offset'] as int,
       status: json['status'] as int?,
       startDate:
@@ -76,6 +80,7 @@ class LeadPagingRequest {
     String? searchText,
     int? limit,
     List<String>? fields,
+    List<String>? channels,
     int? offset,
     int? status,
     DateTime? startDate,
@@ -95,6 +100,7 @@ class LeadPagingRequest {
       searchText: searchText ?? this.searchText,
       limit: limit ?? this.limit,
       fields: fields ?? this.fields,
+      channels: channels ?? this.channels,
       offset: offset ?? this.offset,
       status: status ?? this.status,
       startDate: startDate ?? this.startDate,
@@ -118,6 +124,7 @@ class LeadPagingRequest {
       'searchText': searchText,
       'limit': limit,
       'fields': fields,
+      'channels': channels,
       'offset': offset,
       'status': status,
       'startDate': startDate?.toUtc().toIso8601String(),

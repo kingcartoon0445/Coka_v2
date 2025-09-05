@@ -75,7 +75,7 @@ class GetTiktokLeadConnectionsEvent extends ConnectionChannelEvent {
 class GetTiktokItemListEvent extends ConnectionChannelEvent {
   final String organizationId;
   final String subscribedId;
-  final String isConnect;
+  final bool isConnect;
 
   const GetTiktokItemListEvent(
       {required this.organizationId,
